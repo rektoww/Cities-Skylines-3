@@ -32,13 +32,13 @@
 -   [x] **TASK-CONST-004**: Define an `IConstructable` interface for buildings that can be built by `ConstructionCompany`.
 -   [x] **TASK-CONST-005**: Implement the logic for a `ConstructionCompany` to consume `ConstructionMaterial` and time to build a new building on the map.
 
-### Sub-Phase 1.2: Factory Workshop Models
+### Sub-Phase 1.2: Factory Workshop Models (Simplified)
 
--   [ ] **TASK-FACT-001**: Create a base `FactoryBuilding` class inheriting from `Building`. It should have properties for input resources and output products.
--   [ ] **TASK-FACT-002**: Create a `Workshop` class. A `FactoryBuilding` can contain multiple `Workshop` instances. Each `Workshop` will have a specific function (e.g., `AssemblyLine`, `SmeltingFurnace`).
--   [ ] **TASK-FACT-003**: Implement a `ProductionChain` concept. A `Workshop` takes specific input resources/materials and produces an output.
--   [ ] **TASK-FACT-004**: Create a `Machine` class that can be placed inside a `Workshop`. Machines can require maintenance and have an operational efficiency.
--   [ ] **TASK-FACT-005**: Implement logic for `Workshop` to process resources. This includes checking for required materials, worker availability, and machine status.
+-   [x] **TASK-FACT-002**: Create a `Workshop` class. A `FactoryBuilding` can contain multiple `Workshop` instances. Each `Workshop` will have a specific function (e.g., `AssemblyLine`, `SmeltingFurnace`).
+-   [x] **TASK-FACT-003**: Implement a `ProductionChain` concept. A `Workshop` takes specific input resources/materials and produces an output.
+-   [x] **TASK-FACT-005**: Implement simplified logic for `Workshop` to process resources.
+-   [-] **TASK-FACT-001 (Postponed)**: Create a base `FactoryBuilding` class.
+-   [-] **TASK-FACT-004 (Removed)**: Create a `Machine` class. This concept has been removed for simplification.
 
 ---
 
