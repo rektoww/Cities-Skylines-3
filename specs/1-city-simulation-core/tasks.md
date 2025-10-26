@@ -26,11 +26,11 @@
 
 ### Sub-Phase 1.1: Construction Industry Models
 
--   [ ] **TASK-CONST-001**: Create `ConstructionCompany` class inheriting from `Building`. This entity will manage construction projects.
--   [ ] **TASK-CONST-002**: Create `ConstructionMaterial` enum/class (e.g., `Steel`, `Concrete`, `Glass`).
--   [ ] **TASK-CONST-003**: Implement a `ConstructionYard` building class where `ConstructionMaterial` is produced or stored.
--   [ ] **TASK-CONST-004**: Define an `IConstructable` interface for buildings that can be built by `ConstructionCompany`.
--   [ ] **TASK-CONST-005**: Implement the logic for a `ConstructionCompany` to consume `ConstructionMaterial` and time to build a new building on the map.
+-   [x] **TASK-CONST-001**: Create `ConstructionCompany` class inheriting from `Building`. This entity will manage construction projects.
+-   [x] **TASK-CONST-002**: Create `ConstructionMaterial` enum/class (e.g., `Steel`, `Concrete`, `Glass`).
+-   [x] **TASK-CONST-003**: Implement a `ConstructionYard` building class where `ConstructionMaterial` is produced or stored.
+-   [x] **TASK-CONST-004**: Define an `IConstructable` interface for buildings that can be built by `ConstructionCompany`.
+-   [x] **TASK-CONST-005**: Implement the logic for a `ConstructionCompany` to consume `ConstructionMaterial` and time to build a new building on the map.
 
 ### Sub-Phase 1.2: Factory Workshop Models
 
