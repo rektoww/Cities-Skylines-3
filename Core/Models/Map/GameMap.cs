@@ -8,16 +8,18 @@ namespace Core.Models.Map
         public int Height { get; private set; }
         public Tile[,] Tiles { get; set; }
         public List<Building> Buildings { get; private set; }
-        private Building[,] _buildingsGrid;
-        public GameMap(int width, int height) 
-        { 
+        public Building[,] _buildingsGrid;
+
+        public GameMap(int width, int height)
+        {
             Width = width;
             Height = height;
-            Tiles = new Tile[Width,Height];
+            Tiles = new Tile[Width, Height];
             Buildings = new List<Building>();
 
             InitializeMap();
         }
+
         private void InitializeMap()
         {
             for (int x = 0; x < Width; x++)
