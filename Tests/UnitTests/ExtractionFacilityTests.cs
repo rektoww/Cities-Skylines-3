@@ -9,6 +9,8 @@ namespace Tests.UnitTests
     [TestClass]
     public sealed class ExtractionFacilityTests
     {
+
+        
         /// <summary>
         /// Тест создания добывающего предприятия
         /// </summary>
@@ -55,7 +57,7 @@ namespace Tests.UnitTests
             Assert.IsTrue(extracted > 0);
             Assert.AreEqual(extracted, facility.CurrentStorage);
         }
-
+        
         /// <summary>
         /// Тест сбора ресурсов
         /// </summary>
