@@ -15,6 +15,21 @@ namespace Core.Models.Buildings
 
         public bool HasVacancy => CurrentResidents.Count < Capacity;
 
+        ///ЖКХ, SmirnovMA - Подключено ли здание к электрической сети
+        public bool HasElectricity { get; set; }
+
+        /// Подключено ли здание к водоснабжению
+        public bool HasWater { get; set; }
+
+        /// Подключено ли здание к газовой сети
+        public bool HasGas { get; set; }
+
+        /// Подключено ли здание к канализации
+        public bool HasSewage { get; set; }
+
+        /// Работоспособно ли здание (все коммуникации подключены)
+        public bool IsOperational => HasElectricity && HasWater && HasGas && HasSewage;
+
         public ResidentialBuilding(ResidentialType type)
         {
             Type = type;

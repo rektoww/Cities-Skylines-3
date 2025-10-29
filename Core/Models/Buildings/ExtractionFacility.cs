@@ -26,6 +26,21 @@ public class ExtractionFacility
     /// <summary>Стоимость обслуживания</summary>
     public decimal MaintenanceCost { get; set; }
 
+    ///ЖКХ, SmirnovMA - Подключено ли здание к электрической сети
+    public bool HasElectricity { get; set; }
+
+    /// Подключено ли здание к водоснабжению
+    public bool HasWater { get; set; }
+
+    /// Подключено ли здание к газовой сети
+    public bool HasGas { get; set; }
+
+    /// Подключено ли здание к канализации
+    public bool HasSewage { get; set; }
+
+    /// Работоспособно ли здание (все коммуникации подключены)
+    public bool IsOperational => HasElectricity && HasWater && HasGas && HasSewage;
+
     private List<Worker> _workers = new List<Worker>();
 
     /// <summary>

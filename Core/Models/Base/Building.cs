@@ -10,9 +10,27 @@ namespace Core.Models.Base
         public int Width { get; set; }
         public int Height { get; set; }
         public decimal BuildCost { get; set; }
-
         public int MaxOccupancy { get; set; }
         public int CurrentOccupancy { get; set; }
+        /// <summary>
+        /// SmirnovMA - СИСТЕМА ЖКХ - ПОДКЛЮЧЕНИЕ К КОММУНАЛЬНЫМ СЕТЯМ
+        /// </summary>
+
+        /// Подключено ли здание к электрической сети
+        public bool HasElectricity { get; set; }
+
+        /// Подключено ли здание к водоснабжению
+        public bool HasWater { get; set; }
+
+        /// Подключено ли здание к газовой сети
+        public bool HasGas { get; set; }
+
+        /// Подключено ли здание к канализации
+        public bool HasSewage { get; set; }
+
+        /// Работоспособно ли здание (все коммуникации подключены)
+        public bool IsOperational => HasElectricity && HasWater && HasGas && HasSewage;
+
         public GameMap GameMap { get; protected set; }
         protected Building()
         {
