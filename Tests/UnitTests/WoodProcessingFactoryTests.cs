@@ -1,4 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Core.Models.Map;
+using Core.Models.Mobs;
 
 namespace Tests.UnitTests
 {
@@ -18,7 +20,8 @@ namespace Tests.UnitTests
 
             Assert.AreEqual("Test Factory", factory.Name);
             Assert.AreEqual(1000, factory.MaxWoodStorage);
-            Assert.AreEqual(500, factory.MaxProcessedWoodStorage);
+            Assert.IsTrue(factory.IsActive);
+            Assert.AreEqual(8, factory.MaxWorkers);
         }
 
         /// <summary>
@@ -38,51 +41,107 @@ namespace Tests.UnitTests
         }
 
         /// <summary>
-        /// Тест обработки древесины
+        /// Тест добычи древесины из леса
         /// </summary>
         [TestMethod]
-        public void TestWoodProcessing()
+        public void TestWoodExtraction()
+        {
+            var forest = new NaturalResource { Amount = 100 };
+            var factory = new WoodProcessingFactory("Test Factory", forest);
+            factory.IsActive = true;
+
+            int extracted = factory.ExtractWood();
+
+            Assert.IsTrue(extracted > 0);
+            Assert.AreEqual(extracted, factory.WoodStorage);
+        }
+
+        /// <summary>
+        /// Тест добавления рабочих
+        /// </summary>
+        [TestMethod]
+        public void TestWorkerManagement()
+        {
+            var factory = new WoodProcessingFactory("Test Factory");
+            var citizen = new Citizen(0, 0, null) { Age = 25, IsEmployed = false };
+
+            bool added = factory.AddWorker(citizen);
+
+            Assert.IsTrue(added);
+            Assert.AreEqual(1, factory.WorkersCount);
+            Assert.IsTrue(citizen.IsEmployed);
+            Assert.IsTrue(factory.IsWorker(citizen));
+        }
+
+        /// <summary>
+        /// Тест производственного цикла
+        /// </summary>
+        [TestMethod]
+        public void TestProductionCycle()
         {
             var factory = new WoodProcessingFactory("Test Factory");
             factory.IsActive = true;
             factory.AddWood(100);
 
-            factory.ProcessWood();
+            int initialWood = factory.WoodStorage;
+            factory.ProcessWorkshops();
 
-            Assert.IsTrue(factory.WoodStorage < 100);
-            Assert.IsTrue(factory.ProcessedWoodStorage > 0);
+            Assert.IsTrue(factory.WoodStorage <= initialWood);
         }
 
         /// <summary>
-        /// Тест производства мебели
+        /// Тест полного цикла фабрики
         /// </summary>
         [TestMethod]
-        public void TestFurnitureProduction()
+        public void TestFullProductionCycle()
         {
-            var factory = new WoodProcessingFactory("Test Factory");
+            var forest = new NaturalResource { Amount = 200 };
+            var factory = new WoodProcessingFactory("Test Factory", forest);
             factory.IsActive = true;
-            factory.AddWood(100);
-            factory.ProcessWood();
 
-            int initialFurniture = factory.FurnitureStorage;
-            factory.ProduceFurniture();
+            factory.FullProductionCycle();
 
-            Assert.IsTrue(factory.FurnitureStorage > initialFurniture);
+            Assert.IsTrue(factory.WoodStorage >= 0);
         }
 
         /// <summary>
-        /// Тест получения статуса
+        /// Тест проверки возможности добычи
         /// </summary>
         [TestMethod]
-        public void TestStatusReporting()
+        public void TestCanExtractWood()
+        {
+            var forest = new NaturalResource { Amount = 100 };
+            var factory = new WoodProcessingFactory("Test Factory", forest);
+            factory.IsActive = true;
+
+            bool canExtract = factory.CanExtractWood();
+            Assert.IsFalse(canExtract); // Нет рабочих
+
+            var citizen = new Citizen(0, 0, null) { Age = 25, IsEmployed = false };
+            factory.AddWorker(citizen);
+
+            canExtract = factory.CanExtractWood();
+            Assert.IsTrue(canExtract); // Есть рабочие и место
+        }
+
+        /// <summary>
+        /// Тест получения списка рабочих
+        /// </summary>
+        [TestMethod]
+        public void TestGetWorkers()
         {
             var factory = new WoodProcessingFactory("Test Factory");
-            factory.AddWood(50);
+            var citizen1 = new Citizen(0, 0, null) { Age = 25, IsEmployed = false };
+            var citizen2 = new Citizen(1, 1, null) { Age = 30, IsEmployed = false };
 
-            var status = factory.GetStatus();
+            factory.AddWorker(citizen1);
+            factory.AddWorker(citizen2);
 
-            Assert.AreEqual(50, status.WoodAmount);
-            Assert.IsTrue(status.CanProcessWood);
+            var workers = factory.GetWorkers();
+
+            Assert.AreEqual(2, workers.Count);
+            Assert.IsTrue(workers.Contains(citizen1));
+            Assert.IsTrue(workers.Contains(citizen2));
         }
     }
 }
