@@ -1,5 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using Core.Enums;
+using Core.Models.Mobs;
+using Core.Models.Map;
+using Core.Models.Components;
 
 /// <summary>
 /// Деревообрабатывающая фабрика
@@ -10,59 +14,124 @@ public class WoodProcessingFactory
     public string Name { get; set; }
     /// <summary>Количество сырой древесины</summary>
     public int WoodStorage { get; set; }
-    /// <summary>Количество обработанной древесины</summary>
-    public int ProcessedWoodStorage { get; set; }
-    /// <summary>Количество мебели</summary>
-    public int FurnitureStorage { get; set; }
-    /// <summary>Количество бумаги</summary>
-    public int PaperStorage { get; set; }
-    /// <summary>Скорость обработки древесины</summary>
-    public int WoodProcessingRate { get; set; }
-    /// <summary>Скорость производства мебели</summary>
-    public int FurnitureProductionRate { get; set; }
-    /// <summary>Скорость производства бумаги</summary>
-    public int PaperProductionRate { get; set; }
     /// <summary>Максимум сырой древесины</summary>
     public int MaxWoodStorage { get; set; }
-    /// <summary>Максимум обработанной древесины</summary>
-    public int MaxProcessedWoodStorage { get; set; }
-    /// <summary>Максимум мебели</summary>
-    public int MaxFurnitureStorage { get; set; }
-    /// <summary>Максимум бумаги</summary>
-    public int MaxPaperStorage { get; set; }
     /// <summary>Активна ли фабрика</summary>
     public bool IsActive { get; set; }
-    /// <summary>Операционные расходы</summary>
-    public decimal OperationalCost { get; set; }
-    ///ЖКХ, SmirnovMA - Подключено ли здание к электрической сети
-    public bool HasElectricity { get; set; }
+    /// <summary>Лесной ресурс, с которым работает фабрика</summary>
+    public NaturalResource ConnectedForest { get; set; }
+    /// <summary>Производственные цеха фабрики</summary>
+    public List<Workshop> Workshops { get; set; } = new List<Workshop>();
 
-    /// Подключено ли здание к водоснабжению
-    public bool HasWater { get; set; }
-
-    /// Подключено ли здание к газовой сети
-    public bool HasGas { get; set; }
-
-    /// Подключено ли здание к канализации
-    public bool HasSewage { get; set; }
-
-    /// Работоспособно ли здание (все коммуникации подключены)
-    public bool IsOperational => HasElectricity && HasWater && HasGas && HasSewage;
+    private List<Citizen> _workers = new List<Citizen>();
+    /// <summary>Текущее количество рабочих</summary>
+    public int WorkersCount { get; set; }
+    /// <summary>Максимальное количество рабочих</summary>
+    public int MaxWorkers { get; set; }
 
     /// <summary>
     /// Создает новую деревообрабатывающую фабрику
     /// </summary>
-    public WoodProcessingFactory(string name)
+    public WoodProcessingFactory(string name, NaturalResource connectedForest = null)
     {
         Name = name;
+        ConnectedForest = connectedForest;
         MaxWoodStorage = 1000;
-        MaxProcessedWoodStorage = 500;
-        MaxFurnitureStorage = 100;
-        MaxPaperStorage = 200;
-        WoodProcessingRate = 20;
-        FurnitureProductionRate = 5;
-        PaperProductionRate = 10;
-        OperationalCost = 150m;
+        MaxWorkers = 8;
+        IsActive = true;
+
+        InitializeWorkshops();
+    }
+
+    /// <summary>
+    /// Инициализирует цеха фабрики
+    /// </summary>
+    private void InitializeWorkshops()
+    {
+        // Цех обработки древесины
+        var woodProcessing = new Workshop
+        {
+            Name = "Цех обработки древесины",
+            ProductionCycleTime = 5
+        };
+        woodProcessing.InputRequirements.Add("Древесина", 10);
+        woodProcessing.OutputProducts.Add("Обработанная древесина", 8);
+        Workshops.Add(woodProcessing);
+
+        // Цех производства мебели
+        var furnitureWorkshop = new Workshop
+        {
+            Name = "Мебельный цех",
+            ProductionCycleTime = 8
+        };
+        furnitureWorkshop.InputRequirements.Add("Обработанная древесина", 5);
+        furnitureWorkshop.OutputProducts.Add("Мебель", 1);
+        Workshops.Add(furnitureWorkshop);
+
+        // Цех производства бумаги
+        var paperWorkshop = new Workshop
+        {
+            Name = "Цех производства бумаги",
+            ProductionCycleTime = 6
+        };
+        paperWorkshop.InputRequirements.Add("Древесина", 3);
+        paperWorkshop.OutputProducts.Add("Бумага", 5);
+        Workshops.Add(paperWorkshop);
+    }
+
+    /// <summary>
+    /// Добавляет рабочего на фабрику
+    /// </summary>
+    public bool AddWorker(Citizen citizen)
+    {
+        if (_workers.Count >= MaxWorkers || citizen == null) return false;
+        if (!citizen.IsEmployed && citizen.Age >= 18)
+        {
+            _workers.Add(citizen);
+            citizen.IsEmployed = true;
+            WorkersCount = _workers.Count;
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Удаляет рабочего с фабрики
+    /// </summary>
+    public bool RemoveWorker(Citizen citizen)
+    {
+        var removed = _workers.Remove(citizen);
+        if (removed)
+        {
+            citizen.IsEmployed = false;
+            WorkersCount = _workers.Count;
+        }
+        return removed;
+    }
+
+    /// <summary>
+    /// Добывает древесину из леса
+    /// </summary>
+    public int ExtractWood()
+    {
+        if (!IsActive || WorkersCount == 0) return 0;
+        if (ConnectedForest != null && ConnectedForest.Amount <= 0) return 0;
+
+        int extractionRate = 20 + (WorkersCount * 3);
+        int woodToExtract = extractionRate;
+        int availableSpace = MaxWoodStorage - WoodStorage;
+
+        if (woodToExtract > availableSpace)
+            woodToExtract = availableSpace;
+
+        if (ConnectedForest != null && woodToExtract > ConnectedForest.Amount)
+            woodToExtract = ConnectedForest.Amount;
+
+        if (ConnectedForest != null)
+            ConnectedForest.Amount -= woodToExtract;
+
+        WoodStorage += woodToExtract;
+        return woodToExtract;
     }
 
     /// <summary>
@@ -76,115 +145,67 @@ public class WoodProcessingFactory
     }
 
     /// <summary>
-    /// Обрабатывает древесину
+    /// Запускает производственные циклы во всех цехах
     /// </summary>
-    public void ProcessWood()
+    public void ProcessWorkshops()
     {
-        if (!IsActive || WoodStorage < WoodProcessingRate) return;
+        if (!IsActive || WorkersCount == 0) return;
 
-        int woodToProcess = Math.Min(WoodStorage, WoodProcessingRate);
-        WoodStorage -= woodToProcess;
-
-        int processedWoodOutput = (int)(woodToProcess * 0.8);
-        if (ProcessedWoodStorage + processedWoodOutput <= MaxProcessedWoodStorage)
+        var availableResources = new Dictionary<object, int>
         {
-            ProcessedWoodStorage += processedWoodOutput;
-        }
-    }
-
-    /// <summary>
-    /// Производит мебель
-    /// </summary>
-    public void ProduceFurniture()
-    {
-        if (!IsActive || ProcessedWoodStorage < FurnitureProductionRate * 2) return;
-
-        ProcessedWoodStorage -= FurnitureProductionRate * 2;
-        if (FurnitureStorage < MaxFurnitureStorage)
-        {
-            FurnitureStorage += FurnitureProductionRate;
-        }
-    }
-
-    /// <summary>
-    /// Производит бумагу
-    /// </summary>
-    public void ProducePaper()
-    {
-        if (!IsActive || WoodStorage < PaperProductionRate) return;
-
-        WoodStorage -= PaperProductionRate;
-        if (PaperStorage < MaxPaperStorage)
-        {
-            PaperStorage += PaperProductionRate;
-        }
-    }
-
-    /// <summary>
-    /// Собирает произведенную мебель
-    /// </summary>
-    public int CollectFurniture()
-    {
-        int collected = FurnitureStorage;
-        FurnitureStorage = 0;
-        return collected;
-    }
-
-    /// <summary>
-    /// Собирает произведенную бумагу
-    /// </summary>
-    public int CollectPaper()
-    {
-        int collected = PaperStorage;
-        PaperStorage = 0;
-        return collected;
-    }
-
-    /// <summary>
-    /// Собирает обработанную древесину
-    /// </summary>
-    public int CollectProcessedWood()
-    {
-        int collected = ProcessedWoodStorage;
-        ProcessedWoodStorage = 0;
-        return collected;
-    }
-
-    /// <summary>
-    /// Получает статус производства
-    /// </summary>
-    public ProductionStatus GetStatus()
-    {
-        return new ProductionStatus
-        {
-            WoodAmount = WoodStorage,
-            ProcessedWoodAmount = ProcessedWoodStorage,
-            FurnitureAmount = FurnitureStorage,
-            PaperAmount = PaperStorage,
-            CanProcessWood = WoodStorage >= WoodProcessingRate,
-            CanProduceFurniture = ProcessedWoodStorage >= FurnitureProductionRate * 2,
-            CanProducePaper = WoodStorage >= PaperProductionRate
+            { "Древесина", WoodStorage }
         };
-    }
-}
 
-/// <summary>
-/// Статус производства на фабрике
-/// </summary>
-public class ProductionStatus
-{
-    /// <summary>Количество сырой древесины</summary>
-    public int WoodAmount { get; set; }
-    /// <summary>Количество обработанной древесины</summary>
-    public int ProcessedWoodAmount { get; set; }
-    /// <summary>Количество мебели</summary>
-    public int FurnitureAmount { get; set; }
-    /// <summary>Количество бумаги</summary>
-    public int PaperAmount { get; set; }
-    /// <summary>Можно ли обрабатывать древесину</summary>
-    public bool CanProcessWood { get; set; }
-    /// <summary>Можно ли производить мебель</summary>
-    public bool CanProduceFurniture { get; set; }
-    /// <summary>Можно ли производить бумагу</summary>
-    public bool CanProducePaper { get; set; }
+        foreach (var workshop in Workshops)
+        {
+            var workshopOutputs = new Dictionary<object, int>();
+            workshop.Process(availableResources, workshopOutputs);
+
+            // Обновляем доступные ресурсы после каждого цеха
+            foreach (var output in workshopOutputs)
+            {
+                if (availableResources.ContainsKey(output.Key))
+                    availableResources[output.Key] += output.Value;
+                else
+                    availableResources[output.Key] = output.Value;
+            }
+        }
+
+        // Обновляем хранилище древесины
+        WoodStorage = availableResources.ContainsKey("Древесина") ? availableResources["Древесина"] : 0;
+    }
+
+    /// <summary>
+    /// Полный рабочий цикл фабрики
+    /// </summary>
+    public void FullProductionCycle()
+    {
+        ExtractWood();
+        ProcessWorkshops();
+    }
+
+    /// <summary>
+    /// Проверяет возможность добычи древесины
+    /// </summary>
+    public bool CanExtractWood()
+    {
+        return IsActive && WorkersCount > 0 && WoodStorage < MaxWoodStorage &&
+               (ConnectedForest == null || ConnectedForest.Amount > 0);
+    }
+
+    /// <summary>
+    /// Получает список рабочих
+    /// </summary>
+    public List<Citizen> GetWorkers()
+    {
+        return new List<Citizen>(_workers);
+    }
+
+    /// <summary>
+    /// Проверяет, работает ли гражданин на этой фабрике
+    /// </summary>
+    public bool IsWorker(Citizen citizen)
+    {
+        return _workers.Contains(citizen);
+    }
 }
