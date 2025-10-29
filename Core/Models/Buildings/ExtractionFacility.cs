@@ -1,6 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
+using Core.Enums;
+using Core.Models.Mobs;
+using Core.Models.Map;
 
 /// <summary>
 /// Добывающее предприятие для природных ресурсов
@@ -23,59 +24,51 @@ public class ExtractionFacility
     public int CurrentStorage { get; set; }
     /// <summary>Активно ли предприятие</summary>
     public bool IsActive { get; set; }
-    /// <summary>Стоимость обслуживания</summary>
-    public decimal MaintenanceCost { get; set; }
+    /// <summary>Природный ресурс, с которым работает предприятие</summary>
+    public NaturalResource ConnectedResource { get; set; }
 
-    ///ЖКХ, SmirnovMA - Подключено ли здание к электрической сети
-    public bool HasElectricity { get; set; }
-
-    /// Подключено ли здание к водоснабжению
-    public bool HasWater { get; set; }
-
-    /// Подключено ли здание к газовой сети
-    public bool HasGas { get; set; }
-
-    /// Подключено ли здание к канализации
-    public bool HasSewage { get; set; }
-
-    /// Работоспособно ли здание (все коммуникации подключены)
-    public bool IsOperational => HasElectricity && HasWater && HasGas && HasSewage;
-
-    private List<Worker> _workers = new List<Worker>();
+    private List<Citizen> _workers = new List<Citizen>();
 
     /// <summary>
     /// Создает новое добывающее предприятие
     /// </summary>
-    public ExtractionFacility(string name, ResourceType resourceType, int storageCapacity)
+    public ExtractionFacility(string name, ResourceType resourceType, int storageCapacity, NaturalResource connectedResource = null)
     {
         Name = name;
         ResourceType = resourceType;
         StorageCapacity = storageCapacity;
+        ConnectedResource = connectedResource;
         ExtractionRate = 10;
         MaxWorkers = 5;
-        MaintenanceCost = 100m;
+        IsActive = true;
     }
 
     /// <summary>
     /// Добавляет рабочего на предприятие
     /// </summary>
-    public bool AddWorker(Worker worker)
+    public bool AddWorker(Citizen citizen)
     {
-        if (_workers.Count >= MaxWorkers) return false;
-        _workers.Add(worker);
-        WorkersCount = _workers.Count;
-        RecalculateExtractionRate();
-        return true;
+        if (_workers.Count >= MaxWorkers || citizen == null) return false;
+        if (!citizen.IsEmployed && citizen.Age >= 18)
+        {
+            _workers.Add(citizen);
+            citizen.IsEmployed = true;
+            WorkersCount = _workers.Count;
+            RecalculateExtractionRate();
+            return true;
+        }
+        return false;
     }
 
     /// <summary>
     /// Удаляет рабочего с предприятия
     /// </summary>
-    public bool RemoveWorker(Worker worker)
+    public bool RemoveWorker(Citizen citizen)
     {
-        var removed = _workers.Remove(worker);
+        var removed = _workers.Remove(citizen);
         if (removed)
         {
+            citizen.IsEmployed = false;
             WorkersCount = _workers.Count;
             RecalculateExtractionRate();
         }
@@ -96,11 +89,19 @@ public class ExtractionFacility
     public int ExtractResources()
     {
         if (!IsActive || WorkersCount == 0) return 0;
+        if (ConnectedResource != null && ConnectedResource.Amount <= 0) return 0;
 
         int extractedAmount = ExtractionRate;
         int availableSpace = StorageCapacity - CurrentStorage;
 
-        if (extractedAmount > availableSpace) extractedAmount = availableSpace;
+        if (extractedAmount > availableSpace)
+            extractedAmount = availableSpace;
+
+        if (ConnectedResource != null && extractedAmount > ConnectedResource.Amount)
+            extractedAmount = ConnectedResource.Amount;
+
+        if (ConnectedResource != null)
+            ConnectedResource.Amount -= extractedAmount;
 
         CurrentStorage += extractedAmount;
         return extractedAmount;
@@ -121,35 +122,23 @@ public class ExtractionFacility
     /// </summary>
     public bool CanExtract()
     {
-        return IsActive && WorkersCount > 0 && CurrentStorage < StorageCapacity;
+        return IsActive && WorkersCount > 0 && CurrentStorage < StorageCapacity &&
+               (ConnectedResource == null || ConnectedResource.Amount > 0);
     }
-}
 
-/// <summary>
-/// Рабочий на добывающем предприятии
-/// </summary>
-public class Worker
-{
-    /// <summary>Имя рабочего</summary>
-    public string Name { get; set; }
-    /// <summary>Уровень навыка</summary>
-    public int SkillLevel { get; set; }
-    /// <summary>Зарплата</summary>
-    public decimal Salary { get; set; }
-    /// <summary>Доступен ли для работы</summary>
-    public bool IsAvailable { get; set; } = true;
-}
+    /// <summary>
+    /// Получает список рабочих
+    /// </summary>
+    public List<Citizen> GetWorkers()
+    {
+        return new List<Citizen>(_workers);
+    }
 
-/// <summary>
-/// Типы природных ресурсов
-/// </summary>
-public enum ResourceType
-{
-    Wood,
-    Stone,
-    Iron,
-    Copper,
-    Oil,
-    Gas,
-    Coal
+    /// <summary>
+    /// Проверяет, работает ли гражданин на этом предприятии
+    /// </summary>
+    public bool IsWorker(Citizen citizen)
+    {
+        return _workers.Contains(citizen);
+    }
 }
