@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Core.Enums;
 using Core.Models.Mobs;
 using Core.Models.Map;
@@ -9,43 +10,36 @@ using Core.Models.Components;
 /// </summary>
 public class ProcessingPlant
 {
-    /// <summary>Название завода</summary>
-    public string Name { get; set; }
     /// <summary>Тип перерабатываемого ресурса</summary>
-    public ResourceType InputResourceType { get; set; }
+    public ResourceType InputResourceType { get; private set; }
     /// <summary>Тип производимого продукта</summary>
-    public string OutputProductType { get; set; }
+    public string OutputProductType { get; private set; }
     /// <summary>Скорость переработки</summary>
-    public int ProcessingRate { get; set; }
+    public int ProcessingRate { get; private set; }
     /// <summary>Текущее количество рабочих</summary>
-    public int WorkersCount { get; set; }
+    public int WorkersCount { get; private set; }
     /// <summary>Максимальное количество рабочих</summary>
-    public int MaxWorkers { get; set; }
+    public int MaxWorkers { get; private set; }
     /// <summary>Вместимость склада сырья</summary>
-    public int InputStorageCapacity { get; set; }
+    public int InputStorageCapacity { get; private set; }
     /// <summary>Вместимость склада продукции</summary>
-    public int OutputStorageCapacity { get; set; }
+    public int OutputStorageCapacity { get; private set; }
     /// <summary>Текущее количество сырья</summary>
-    public int CurrentInputStorage { get; set; }
+    public int CurrentInputStorage { get; private set; }
     /// <summary>Текущее количество продукции</summary>
-    public int CurrentOutputStorage { get; set; }
-    /// <summary>Активен ли завод</summary>
-    public bool IsActive { get; set; }
+    public int CurrentOutputStorage { get; private set; }
     /// <summary>Коэффициент преобразования (сколько продукции из единицы сырья)</summary>
-    public float ConversionRate { get; set; }
+    public float ConversionRate { get; private set; }
 
     /// <summary>Производственные цеха завода</summary>
-    public List<Workshop> Workshops { get; set; } = new List<Workshop>();
-
-    private List<Citizen> _workers = new List<Citizen>();
+    public List<Workshop> Workshops { get; private set; } = new List<Workshop>();
 
     /// <summary>
     /// Создает новый перерабатывающий завод
     /// </summary>
-    public ProcessingPlant(string name, ResourceType inputResourceType, string outputProductType,
+    public ProcessingPlant(ResourceType inputResourceType, string outputProductType,
                          int inputStorageCapacity, int outputStorageCapacity)
     {
-        Name = name;
         InputResourceType = inputResourceType;
         OutputProductType = outputProductType;
         InputStorageCapacity = inputStorageCapacity;
@@ -53,7 +47,7 @@ public class ProcessingPlant
         ProcessingRate = 15;
         MaxWorkers = 6;
         ConversionRate = 0.7f;
-        IsActive = true;
+        WorkersCount = 0;
 
         InitializeWorkshops();
     }
@@ -69,41 +63,18 @@ public class ProcessingPlant
             Name = $"Цех переработки {InputResourceType}",
             ProductionCycleTime = 8
         };
-        processingWorkshop.InputRequirements.Add(InputResourceType, 10);
+        processingWorkshop.InputRequirements.Add(InputResourceType.ToString(), 10);
         processingWorkshop.OutputProducts.Add(OutputProductType, (int)(10 * ConversionRate));
         Workshops.Add(processingWorkshop);
     }
 
     /// <summary>
-    /// Добавляет рабочего на завод
+    /// Устанавливает количество рабочих
     /// </summary>
-    public bool AddWorker(Citizen citizen)
+    public void SetWorkersCount(int count)
     {
-        if (_workers.Count >= MaxWorkers || citizen == null) return false;
-        if (!citizen.IsEmployed && citizen.Age >= 18)
-        {
-            _workers.Add(citizen);
-            citizen.IsEmployed = true;
-            WorkersCount = _workers.Count;
-            RecalculateProcessingRate();
-            return true;
-        }
-        return false;
-    }
-
-    /// <summary>
-    /// Удаляет рабочего с завода
-    /// </summary>
-    public bool RemoveWorker(Citizen citizen)
-    {
-        var removed = _workers.Remove(citizen);
-        if (removed)
-        {
-            citizen.IsEmployed = false;
-            WorkersCount = _workers.Count;
-            RecalculateProcessingRate();
-        }
-        return removed;
+        WorkersCount = Math.Min(count, MaxWorkers);
+        RecalculateProcessingRate();
     }
 
     /// <summary>
@@ -129,7 +100,7 @@ public class ProcessingPlant
     /// </summary>
     public int ProcessMaterials()
     {
-        if (!IsActive || WorkersCount == 0) return 0;
+        if (WorkersCount == 0) return 0;
         if (CurrentInputStorage < ProcessingRate) return 0;
 
         int materialsToProcess = Math.Min(CurrentInputStorage, ProcessingRate);
@@ -152,11 +123,11 @@ public class ProcessingPlant
     /// </summary>
     public void ProcessWorkshops()
     {
-        if (!IsActive || WorkersCount == 0) return;
+        if (WorkersCount == 0) return;
 
         var availableResources = new Dictionary<object, int>
         {
-            { InputResourceType, CurrentInputStorage }
+            { InputResourceType.ToString(), CurrentInputStorage }
         };
 
         var producedMaterials = new Dictionary<object, int>();
@@ -167,7 +138,7 @@ public class ProcessingPlant
         }
 
         // Обновляем хранилища
-        CurrentInputStorage = availableResources[InputResourceType];
+        CurrentInputStorage = availableResources[InputResourceType.ToString()];
 
         // Добавляем произведенную продукцию
         foreach (var product in producedMaterials)
@@ -183,26 +154,6 @@ public class ProcessingPlant
     }
 
     /// <summary>
-    /// Собирает произведенную продукцию
-    /// </summary>
-    public int CollectProducts()
-    {
-        int collected = CurrentOutputStorage;
-        CurrentOutputStorage = 0;
-        return collected;
-    }
-
-    /// <summary>
-    /// Проверяет возможность переработки
-    /// </summary>
-    public bool CanProcess()
-    {
-        return IsActive && WorkersCount > 0 &&
-               CurrentInputStorage >= ProcessingRate &&
-               CurrentOutputStorage < OutputStorageCapacity;
-    }
-
-    /// <summary>
     /// Полный производственный цикл завода
     /// </summary>
     public void FullProductionCycle()
@@ -211,18 +162,26 @@ public class ProcessingPlant
     }
 
     /// <summary>
-    /// Получает список рабочих
+    /// Получает текущие запасы сырья и продукции
     /// </summary>
-    public List<Citizen> GetWorkers()
+    public (int inputMaterials, int outputProducts) GetStorageStatus()
     {
-        return new List<Citizen>(_workers);
+        return (CurrentInputStorage, CurrentOutputStorage);
     }
 
     /// <summary>
-    /// Проверяет, работает ли гражданин на этом заводе
+    /// Получает информацию о производственных мощностях
     /// </summary>
-    public bool IsWorker(Citizen citizen)
+    public Dictionary<string, object> GetProductionInfo()
     {
-        return _workers.Contains(citizen);
+        return new Dictionary<string, object>
+        {
+            { "InputResourceType", InputResourceType },
+            { "OutputProductType", OutputProductType },
+            { "ProcessingRate", ProcessingRate },
+            { "WorkersCount", WorkersCount },
+            { "MaxWorkers", MaxWorkers },
+            { "ConversionRate", ConversionRate }
+        };
     }
 }

@@ -10,35 +10,28 @@ using Core.Models.Components;
 /// </summary>
 public class WoodProcessingFactory
 {
-    /// <summary>Название фабрики</summary>
-    public string Name { get; set; }
     /// <summary>Количество сырой древесины</summary>
-    public int WoodStorage { get; set; }
+    public int WoodStorage { get; private set; }
     /// <summary>Максимум сырой древесины</summary>
-    public int MaxWoodStorage { get; set; }
-    /// <summary>Активна ли фабрика</summary>
-    public bool IsActive { get; set; }
+    public int MaxWoodStorage { get; private set; }
     /// <summary>Лесной ресурс, с которым работает фабрика</summary>
-    public NaturalResource ConnectedForest { get; set; }
+    public NaturalResource ConnectedForest { get; private set; }
     /// <summary>Производственные цеха фабрики</summary>
-    public List<Workshop> Workshops { get; set; } = new List<Workshop>();
-
-    private List<Citizen> _workers = new List<Citizen>();
+    public List<Workshop> Workshops { get; private set; } = new List<Workshop>();
     /// <summary>Текущее количество рабочих</summary>
-    public int WorkersCount { get; set; }
+    public int WorkersCount { get; private set; }
     /// <summary>Максимальное количество рабочих</summary>
-    public int MaxWorkers { get; set; }
+    public int MaxWorkers { get; private set; }
 
     /// <summary>
     /// Создает новую деревообрабатывающую фабрику
     /// </summary>
-    public WoodProcessingFactory(string name, NaturalResource connectedForest = null)
+    public WoodProcessingFactory(NaturalResource connectedForest = null)
     {
-        Name = name;
         ConnectedForest = connectedForest;
         MaxWoodStorage = 1000;
         MaxWorkers = 8;
-        IsActive = true;
+        WorkersCount = 0;
 
         InitializeWorkshops();
     }
@@ -80,33 +73,11 @@ public class WoodProcessingFactory
     }
 
     /// <summary>
-    /// Добавляет рабочего на фабрику
+    /// Устанавливает количество рабочих
     /// </summary>
-    public bool AddWorker(Citizen citizen)
+    public void SetWorkersCount(int count)
     {
-        if (_workers.Count >= MaxWorkers || citizen == null) return false;
-        if (!citizen.IsEmployed && citizen.Age >= 18)
-        {
-            _workers.Add(citizen);
-            citizen.IsEmployed = true;
-            WorkersCount = _workers.Count;
-            return true;
-        }
-        return false;
-    }
-
-    /// <summary>
-    /// Удаляет рабочего с фабрики
-    /// </summary>
-    public bool RemoveWorker(Citizen citizen)
-    {
-        var removed = _workers.Remove(citizen);
-        if (removed)
-        {
-            citizen.IsEmployed = false;
-            WorkersCount = _workers.Count;
-        }
-        return removed;
+        WorkersCount = Math.Min(count, MaxWorkers);
     }
 
     /// <summary>
@@ -114,7 +85,7 @@ public class WoodProcessingFactory
     /// </summary>
     public int ExtractWood()
     {
-        if (!IsActive || WorkersCount == 0) return 0;
+        if (WorkersCount == 0) return 0;
         if (ConnectedForest != null && ConnectedForest.Amount <= 0) return 0;
 
         int extractionRate = 20 + (WorkersCount * 3);
@@ -149,7 +120,7 @@ public class WoodProcessingFactory
     /// </summary>
     public void ProcessWorkshops()
     {
-        if (!IsActive || WorkersCount == 0) return;
+        if (WorkersCount == 0) return;
 
         var availableResources = new Dictionary<object, int>
         {
@@ -185,27 +156,18 @@ public class WoodProcessingFactory
     }
 
     /// <summary>
-    /// Проверяет возможность добычи древесины
+    /// Получает текущие запасы продукции
     /// </summary>
-    public bool CanExtractWood()
+    public Dictionary<string, int> GetProductionOutput()
     {
-        return IsActive && WorkersCount > 0 && WoodStorage < MaxWoodStorage &&
-               (ConnectedForest == null || ConnectedForest.Amount > 0);
-    }
+        var output = new Dictionary<string, int>();
 
-    /// <summary>
-    /// Получает список рабочих
-    /// </summary>
-    public List<Citizen> GetWorkers()
-    {
-        return new List<Citizen>(_workers);
-    }
+        // Здесь должна быть логика сбора продукции из всех цехов
+        // Временная заглушка - возвращаем основные продукты
+        output.Add("Обработанная древесина", 0);
+        output.Add("Мебель", 0);
+        output.Add("Бумага", 0);
 
-    /// <summary>
-    /// Проверяет, работает ли гражданин на этой фабрике
-    /// </summary>
-    public bool IsWorker(Citizen citizen)
-    {
-        return _workers.Contains(citizen);
+        return output;
     }
 }
