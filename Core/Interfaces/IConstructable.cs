@@ -1,4 +1,5 @@
 using Core.Enums;
+using Core.Models.Map;
 using System.Collections.Generic;
 
 namespace Core.Interfaces
@@ -9,30 +10,19 @@ namespace Core.Interfaces
     public interface IConstructable
     {
         /// <summary>
-        /// Получает сбор материалов и их необходимое количество для строительства.
+        /// Цена на строительство
         /// </summary>
-        Dictionary<ConstructionMaterial, int> RequiredMaterials { get; }
+        static abstract decimal BuildCost { get; }
 
         /// <summary>
-        /// Получает общее время (может в милисекундах, может в собственных единицмх измерения игры, как тики в майне),
-        /// необходимое для строительства здания.
+        /// Необходимое количество материалов для строительства.
         /// </summary>
-        int ConstructionTime { get; }
+        static abstract Dictionary<ConstructionMaterial, int> RequiredMaterials { get; }
 
         /// <summary>
-        /// Получает текущий прогресс строительства от 0,0 до 1,0. (как проценты)
+        /// Размещение на карте
         /// </summary>
-        double ConstructionProgress { get; }
-
-        /// <summary>
-        /// Ход прогресса строительства на заданную сумму.
-        /// </summary>
-        /// <param name="amount">Количество прогресса, которое нужно добавить</param>
-        void AdvanceConstruction(double amount);
-
-        /// <summary>
-        /// Флаг, указывающий, завершено ли строительство.
-        /// </summary>
-        bool IsConstructed { get; }
+        /// <returns></returns>
+        public bool TryPlace(int x, int y, GameMap map);
     }
 }

@@ -16,7 +16,7 @@ namespace Core.Models.Buildings
         /// Работоспособно ли здание (все коммуникации подключены)
         public bool IsOperational => HasElectricity && HasWater && HasGas && HasSewage;
 
-        public ServiceBuilding(ServiceBuildingType type, int capacity = 0)
+        public ServiceBuilding(ServiceBuildingType type, int capacity = 0) : base()
         {
             Type = type;
             Capacity = capacity == 0 ? GetDefaultCapacity(type) : capacity;

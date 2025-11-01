@@ -1,5 +1,7 @@
+using Core.Enums;
 using Core.Interfaces;
 using Core.Models.Base;
+using Core.Models.Map;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -8,73 +10,82 @@ namespace Core.Models.Buildings
     /// <summary>
     /// Представляет строительную компанию, ответственную за строительные проекты. (офис строительной компании, пока не уверен, будет ли это зданием)
     /// </summary>
-    public class ConstructionCompany : Building
+    public class ConstructionCompany
     {
-        private readonly List<(IConstructable project, ConstructionYard sourceYard)> _constructionProjects = new();
+        public Dictionary<ConstructionMaterial, int> StoredMaterials { get; private set; } // Кол-во материалов у игрока
 
-        public ConstructionCompany() : base() { }
+        public decimal Balance { get; private set; } // Баланс игрока (деньги)
+
+        public ConstructionCompany(ref Dictionary<ConstructionMaterial, int> StoredMaterials, ref decimal balance)
+        {
+            this.StoredMaterials = StoredMaterials;
+            this.Balance = balance;
+        }
 
         /// <summary>
-        /// Начало нового строительства.
+        /// Пытается удалить из хранилища указанное количество строительного материала.
         /// </summary>
-        /// <param name="buildingToConstruct">Проект здания, реализующий IConstructable.</param>
-        /// <param name="sourceYard">Строительная площадка, предоставляющая материалы.</param>
-        /// <returns>True, если проект можно запустить, в противном случае — false.</returns>
-        public bool StartNewProject(IConstructable buildingToConstruct, ConstructionYard sourceYard)
+        /// <param name="material">Материал, который нужно удалить.</param>
+        /// <param name="amount">Количество для удаления.</param>
+        /// <param name="balance">Остаток материала после удаления.</param>
+        /// <returns>True, если материал был успешно удален, в противном случае — false..</returns>
+        public bool TryRemoveMaterial(ConstructionMaterial material, int amount, out int balance)
         {
-            if (buildingToConstruct == null || sourceYard == null)
-                return false;
-
-            // Check if the source yard has enough materials to start
-            foreach (var material in buildingToConstruct.RequiredMaterials)
+            if (amount > 0 && StoredMaterials.ContainsKey(material) && StoredMaterials[material] >= amount)
             {
-                if (!sourceYard.StoredMaterials.ContainsKey(material.Key) || sourceYard.StoredMaterials[material.Key] < material.Value)
+                StoredMaterials[material] -= amount;
+                balance = StoredMaterials[material];
+                return true;
+            }
+            balance = StoredMaterials[material];
+            return false;
+        }
+
+        /// <summary>
+        /// Создание объекта здания
+        /// </summary>
+        /// <typeparam name="T"> класс здания </typeparam>
+        /// <param name="x"> позиция x </param>
+        /// <param name="y"> позиция y </param>
+        /// <param name="map"> игровое поле </param>
+        /// <param name="parameters"> параметры для конструктора здания</param>
+        /// <param name="building"> объект здания, если true, иначе null </param>
+        /// <returns>true, если успешно установлено, иначе false </returns>
+        public bool TryBuild<T>(int x, int y, GameMap map, object[] parameters, out IConstructable? building) where T : Building, IConstructable
+        {
+            var RequiredMaterials = T.RequiredMaterials;
+            var BuildCost = T.BuildCost;
+
+            // Дополню логику, когда узнаю, что нужно для постройки здания
+
+            // Проверка достаточности материалов для начала строительства
+            foreach (var material in RequiredMaterials)
+            {
+                if (!StoredMaterials.ContainsKey(material.Key) || StoredMaterials[material.Key] < material.Value)
                 {
                     // Недостаточно материалов
+                    building = null;
                     return false;
                 }
             }
 
-            // Вывод материалов из строительной площадки
-            foreach (var material in buildingToConstruct.RequiredMaterials)
+            // Вычитание материалов из баланса игрока
+            foreach (var material in RequiredMaterials)
             {
-                sourceYard.TryRemoveMaterial(material.Key, material.Value, out int balance); // пока не используем balance
+                TryRemoveMaterial(material.Key, material.Value, out int balance); // пока не используем balance
             }
 
-            _constructionProjects.Add((buildingToConstruct, sourceYard));
-            return true;
-        }
+            // Попытка поставить здание
+            building = (T)Activator.CreateInstance(typeof(T), parameters);
 
-        /// <summary>
-        /// Этот метод следует вызывать при каждом такте моделирования для продвижения строительных проектов.
-        /// </summary>
-        public void UpdateProjects()
-        {
-            // Обработка проектов в обратном порядке, чтобы обеспечить безопасное удаление
-            for (int i = _constructionProjects.Count - 1; i >= 0; i--)
+            if (building.TryPlace(x, y, map))
             {
-                var projectData = _constructionProjects[i];
-                var project = projectData.project;
-
-                if (!project.IsConstructed)
-                {
-                    // 1 единица прогресса за тик
-                    // Можно позже привязать логику к доступным рабочим или оборудованию
-                    double progressPerTick = 1.0 / project.ConstructionTime;
-                    project.AdvanceConstruction(progressPerTick);
-                }
-
-                if (project.IsConstructed)
-                {
-                    // Удалить завершенный проект
-                    _constructionProjects.RemoveAt(i);
-                }
+                Balance -= BuildCost;
+                return true;
             }
-        }
 
-        public override void OnBuildingPlaced()
-        {
-            // Пока неясная логика
+
+            return false;
         }
     }
 }
