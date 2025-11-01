@@ -5,7 +5,7 @@ using Core.Models.Map;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Core.Models.Buildings
+namespace Core.Services
 {
     /// <summary>
     /// Представляет строительную компанию, ответственную за строительные проекты. (офис строительной компании, пока не уверен, будет ли это зданием)
@@ -19,7 +19,7 @@ namespace Core.Models.Buildings
         public ConstructionCompany(ref Dictionary<ConstructionMaterial, int> StoredMaterials, ref decimal balance)
         {
             this.StoredMaterials = StoredMaterials;
-            this.Balance = balance;
+            Balance = balance;
         }
 
         /// <summary>
