@@ -3,10 +3,215 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:Laboratornaya3"
+        xmlns:map="clr-namespace:Core.Models.Map;assembly=Core"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="Карта города"
+        Height="700"
+        Width="1000"
+        WindowStartupLocation="CenterScreen">
+    <DockPanel>
 
-    </Grid>
+        <!-- ЛЕВАЯ ПАНЕЛЬ: кнопки и инфо -->
+        <Border DockPanel.Dock="Left"
+                Width="260"
+                Padding="12"
+                Background="#0F000000">
+            <StackPanel>
+                <TextBlock Text="Управление картой"
+                           FontSize="18"
+                           FontWeight="Bold"
+                           Margin="0,0,0,10" />
+
+                <Button Content="Загрузить статичную карту"
+                        Command="{Binding LoadStaticCommand}"
+                        Margin="0,0,0,6"
+                        Height="32" />
+                <Button Content="Сохранить в JSON"
+                        Command="{Binding SaveMapCommand}"
+                        Margin="0,0,0,6"
+                        Height="32" />
+                <Button Content="Загрузить из JSON"
+                        Command="{Binding LoadMapCommand}"
+                        Margin="0,0,0,12"
+                        Height="32" />
+
+                <Separator Margin="0,8,0,8" />
+
+                <TextBlock Text="Размер карты:"
+                           FontWeight="Bold" />
+                <TextBlock Margin="0,2,0,0">
+                    <Run Text="Ширина: " />
+                    <Run Text="{Binding CurrentMap.Width,  Mode=OneWay}" />
+                    <Run Text="   Высота: " />
+                    <Run Text="{Binding CurrentMap.Height, Mode=OneWay}" />
+                </TextBlock>
+
+                <Border Margin="0,12,0,0"
+                        Padding="8"
+                        BorderThickness="1"
+                        BorderBrush="#22000000">
+                    <StackPanel>
+                        <TextBlock Text="Легенда"
+                                   FontWeight="Bold"
+                                   Margin="0,0,0,6" />
+                        <StackPanel Orientation="Horizontal"
+                                    Margin="0,2,0,0">
+                            <Rectangle Width="16"
+                                       Height="16"
+                                       Fill="LightGreen"
+                                       Stroke="Black"
+                                       StrokeThickness="0.5" />
+                            <TextBlock Text="  Равнина"
+                                       VerticalAlignment="Center"
+                                       Margin="6,0,0,0" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal"
+                                    Margin="0,2,0,0">
+                            <Rectangle Width="16"
+                                       Height="16"
+                                       Fill="LightBlue"
+                                       Stroke="Black"
+                                       StrokeThickness="0.5" />
+                            <TextBlock Text="  Вода"
+                                       VerticalAlignment="Center"
+                                       Margin="6,0,0,0" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal"
+                                    Margin="0,2,0,0">
+                            <Rectangle Width="16"
+                                       Height="16"
+                                       Fill="DarkGray"
+                                       Stroke="Black"
+                                       StrokeThickness="0.5" />
+                            <TextBlock Text="  Горы"
+                                       VerticalAlignment="Center"
+                                       Margin="6,0,0,0" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Border>
+
+        <!-- ПРАВАЯ ОБЛАСТЬ: отрисовка карты -->
+        <Grid Background="#FFF7F7F7">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                          VerticalScrollBarVisibility="Auto"
+                          Padding="12">
+                <!-- Плоская коллекция + количество колонок -->
+                <ItemsControl ItemsSource="{Binding TilesFlat, Mode=OneWay}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="{Binding CurrentMap.Width, Mode=OneWay}" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type map:Tile}">
+                            <Button Command="{Binding DataContext.ShowTileInfoCommand,
+                            RelativeSource={RelativeSource AncestorType=Window}}"
+                                    CommandParameter="{Binding}"
+                                    Padding="0"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    ToolTipService.ShowDuration="30000">
+
+                                <!-- ToolTip с инфо по клетке -->
+                                <Button.ToolTip>
+                                    <StackPanel>
+                                        <TextBlock>
+                                              <Run Text="Координаты: " />
+                                              <Run Text="{Binding X}" />
+                                              <Run Text="; " /><Run Text="{Binding Y}" />
+                                        </TextBlock>
+
+                                        <TextBlock>
+                                              <Run Text="Рельеф: " />
+                                              <Run Text="{Binding Terrain}" />
+                                        </TextBlock>
+
+                                        <!-- Заголовок показываем только если есть ресурсы -->
+                                        <TextBlock Text="Ресурсы:"
+                                                   FontWeight="Bold"
+                                                   Margin="0,6,0,2">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Visibility"
+                                                            Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding HasItems, ElementName=resList}"
+                                                                     Value="True">
+                                                            <Setter Property="Visibility"
+                                                                    Value="Visible" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+
+                                        <!-- Список ресурсов -->
+                                        <ItemsControl x:Name="resList"
+                                                      ItemsSource="{Binding Resources}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock>
+                                                            <Run Text="{Binding Type}" />
+                                                            <Run Text=" — " />
+                                                            <Run Text="{Binding Amount}" />
+                                                    </TextBlock>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+
+                                        <!-- Текст, если ресурсов нет -->
+                                        <TextBlock Text="Ресурсы: нет"
+                                                   Foreground="Gray">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Visibility"
+                                                            Value="Visible" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding HasItems, ElementName=resList}"
+                                                                     Value="True">
+                                                            <Setter Property="Visibility"
+                                                                    Value="Collapsed" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Button.ToolTip>
+
+                                <!-- Визуал клетки -->
+                                <Border Width="25"
+                                        Height="25"
+                                        BorderBrush="Black"
+                                        BorderThickness="0.5">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Background"
+                                                    Value="LightGreen" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Terrain}"
+                                                             Value="Water">
+                                                    <Setter Property="Background"
+                                                            Value="LightBlue" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Terrain}"
+                                                             Value="Mountain">
+                                                    <Setter Property="Background"
+                                                            Value="DarkGray" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                </Border>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Grid>
+
+    </DockPanel>
 </Window>
