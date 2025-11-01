@@ -30,6 +30,14 @@ namespace Core.Models.Mobs
         public float Health { get; set; } = 100f;
 
         public float Happiness { get; set; } = 50f;
+        
+        
+        public Building DestinationBuilding { get; set; } // Конечная цель перемещения (Workplace, School, Home)
+        public TransitStation TargetTransitStation { get; set; }// Остановка, к которой гражданин направляется или на которой ждет.
+        public Transport CurrentTransport { get; set; }// Текущий транспорт, в котором находится гражданин.
+        public bool IsWaitingForTransport => TargetTransitStation != null && CurrentTransport == null && IsAtStationTile(); // Флаг: Гражданин ждет транспорт на остановке?
+        public bool IsOnTransport => CurrentTransport != null;// Флаг: Гражданин едет в транспорте?
+        public bool IsMoving => DestinationBuilding != null || TargetTransitStation != null || IsOnTransport; // Флаг: Гражданин находится в процессе перемещения?
 
         /// <summary>
         /// Обновляет счастье жителя в зависимости от окружающей инфраструктуры
@@ -84,7 +92,75 @@ namespace Core.Models.Mobs
 
         public override void Move()
         {
-            // мув
+            // TODO: остальные методы перемещения
+            
+            if (IsOnTransport)
+            {
+                // СОСТОЯНИЕ 1: Едет в транспорте.
+                // Координаты гражданина синхронизируются самим транспортом.
+                if (IsArrivedAtDestination())
+                {
+                    TryDisembarkFromTransport();
+                }
+                return;
+            }
+
+            if (IsWaitingForTransport)
+            {
+                // СОСТОЯНИЕ 2: Ждет транспорт на остановке.
+                // Тут мы только ждем. Логика посадки будет инициирована транспортом.
+                return;
+            }
+
+            if (DestinationBuilding == null)
+            {
+                // СОСТОЯНИЕ 3: Нет цели. Определяем, куда нужно идти.
+                DecideDestination();
+            }
+
+            if (DestinationBuilding != null)
+            {
+                // Есть цель, начинаем движение.
+
+                if (IsArrivedAtDestination())
+                {
+                    // Прибыли в конечный пункт.
+                    DestinationBuilding = null;
+                    TargetTransitStation = null;
+                    return;
+                }
+
+                // Логика выбора: Транспорт или пешком?
+                bool isFar = CalculateDistanceToDestination() > 10; // Если далеко (условное расстояние)
+                bool needsTransit = TargetTransitStation != null || (isFar && FindNearestTransitStation() != null);
+
+                if (needsTransit)
+                {
+                    // Шаг А: Определить остановку
+                    if (TargetTransitStation == null)
+                    {
+                        TargetTransitStation = FindNearestTransitStation();
+                    }
+
+                    // Шаг Б: Движемся к остановке
+                    if (TargetTransitStation != null && !IsAtStationTile())
+                    {
+                        MoveTowards(TargetTransitStation.X, TargetTransitStation.Y);
+                        
+                        // Если только что пришли на остановку, регистрируемся в ней.
+                        if (IsAtStationTile())
+                        {
+                            TargetTransitStation.AddWaitingCitizen(this);
+                        }
+                    }
+                }
+                else
+                {
+                    // Идем пешком
+                    TargetTransitStation = null;
+                    MoveTowards(DestinationBuilding.X, DestinationBuilding.Y);
+                }
+            }
         }
 
         /// <summary>
@@ -109,14 +185,226 @@ namespace Core.Models.Mobs
             // ворк ворк ворк ворк ворк ворк
         }
 
+        /// <summary>
+        /// Выполняет процесс обучения. Вызывается каждый игровой такт.
+        /// </summary>
         public void Study()
         {
             if (!IsStudying || School == null) return;
 
-            if (Age >= 18 && Education == EducationLevel.School)
-                Education = EducationLevel.University;
+            // Если здание не работает, обучение замедляется или останавливается
+            if (!School.IsOperational)
+            {
+                // Небольшое снижение счастья, если место учебы не работает
+                Happiness = Math.Max(0, Happiness - 0.05f); 
+                return;
+            }
 
-            // добить дальше похуй
+            // Попытка выпуска (проверка на возраст и уровень)
+            TryGraduate();
+
+            // Если гражданин все еще учится:
+            if (IsStudying)
+            {
+                // Небольшое повышение здоровья и счастья от регулярного обучения
+                Health = Math.Min(100, Health + 0.01f);
+                Happiness = Math.Min(100, Happiness + 0.01f);
+            }
+        }
+        
+        // Доп метод для обучения
+        /// <summary>
+        /// Попытка завершить текущий уровень образования и перейти на следующий.
+        /// </summary>
+        public void TryGraduate()
+        {
+            if (!IsStudying || School == null) return;
+            
+            // TODO:тут тонкий момент на подумать
+            if (School is not ServiceBuilding serviceSchool)
+            {
+                // Это может быть ошибкой, если Citizen.School ссылается на что-то несервисное.
+                return; 
+            }
+            
+            // Сначала проверяем работоспособность школы (коммуникации)
+            if (!serviceSchool.IsOperational) return; // Используем serviceSchool для проверки
+
+            // Логика выпуска из учебного заведения
+            bool shouldGraduate = false;
+
+            // Устанавливаем возрастные рамки для выпуска и повышения уровня
+            switch (Education)
+            {
+                case EducationLevel.School:
+                    // Предполагаем, что школу оканчивают в 18 лет
+                    if (Age >= 18)
+                    {
+                        Education = EducationLevel.College; // Переход на следующий уровень
+                        shouldGraduate = true;
+                    }
+                    break;
+
+                case EducationLevel.College:
+                    // Предполагаем, что колледж оканчивают к 21 году
+                    if (Age >= 21)
+                    {
+                        Education = EducationLevel.University; // Переход на следующий уровень
+                        shouldGraduate = true;
+                    }
+                    break;
+
+                case EducationLevel.University:
+                    // Предполагаем, что университет оканчивают к 25 годам
+                    if (Age >= 25)
+                    {
+                        // Максимальный уровень образования достигнут.
+                        Education = EducationLevel.University; 
+                        shouldGraduate = true;
+                    }
+                    break;
+            }
+
+            if (shouldGraduate)
+            {
+                IsStudying = false;
+                serviceSchool.Clients.Remove(this); // 🟢 ИСПРАВЛЕНИЕ: Используем serviceSchool.Clients
+                School = null; // Гражданин больше не привязан к этому зданию
+                
+                // Счастье повышается после окончания учебы!
+                Happiness = Math.Min(100, Happiness + 5f);
+            }
+        }
+        
+        /// <summary>
+        /// Простейшее движение к цели (пока без поиска пути, просто X, Y).
+        /// </summary>
+        private void MoveTowards(int targetX, int targetY)
+        {
+            // Здесь должна быть логика поиска пути (Pathfinding), 
+            // но пока используем упрощенный алгоритм Mob.MoveTo.
+            int deltaX = targetX - X;
+            int deltaY = targetY - Y;
+
+            if (Math.Abs(deltaX) > Math.Abs(deltaY))
+            {
+                // Сначала двигаемся по X
+                MoveTo(X + Math.Sign(deltaX), Y);
+            }
+            else
+            {
+                // Сначала двигаемся по Y
+                MoveTo(X, Y + Math.Sign(deltaY));
+            }
+        }
+        
+        // ======ДОПОЛНИТЕЛЬНЫЕ МЕТОДЫ======
+        
+        /// <summary>
+        /// Проверяет, находится ли гражданин на плитке целевой остановки.
+        /// </summary>
+        private bool IsAtStationTile()
+        {
+            if (TargetTransitStation == null) return false;
+            return X == TargetTransitStation.X && Y == TargetTransitStation.Y;
+        }
+
+        /// <summary>
+        /// Проверяет, прибыл ли гражданин в конечный пункт (здание).
+        /// </summary>
+        private bool IsArrivedAtDestination()
+        {
+            if (DestinationBuilding == null) return false;
+
+            int targetX = DestinationBuilding.X;
+            int targetY = DestinationBuilding.Y;
+            
+            // Если в транспорте, проверяем его координаты
+            if (IsOnTransport)
+            {
+                targetX = CurrentTransport.X;
+                targetY = CurrentTransport.Y;
+            }
+            
+            // Считаем, что прибыл, если находится на тайле здания (или рядом, для больших зданий)
+            return X >= targetX && X < targetX + DestinationBuilding.Width &&
+                   Y >= targetY && Y < targetY + DestinationBuilding.Height;
+        }
+        
+        /// <summary>
+        /// Упрощенная логика выбора цели (приоритет: Учеба -> Работа -> Дом).
+        /// </summary>
+        private void DecideDestination()
+        {
+            if (IsStudying && School != null)
+            {
+                DestinationBuilding = School;
+            }
+            else if (IsEmployed && Workplace != null)
+            {
+                DestinationBuilding = Workplace;
+            }
+            else if (Home != null)
+            {
+                // Если других дел нет, идем домой
+                DestinationBuilding = Home; 
+            }
+        }
+        
+        /// <summary>
+        /// Попытка высадки из транспорта при достижении цели.
+        /// </summary>
+        private void TryDisembarkFromTransport()
+        {
+            if (CurrentTransport == null || DestinationBuilding == null) return;
+            
+            CurrentTransport.TryDisembark(this); 
+            
+            // Позиция гражданина становится позицией транспорта
+            X = CurrentTransport.X; 
+            Y = CurrentTransport.Y; 
+
+            CurrentTransport = null; // Мы вышли
+            TargetTransitStation = null; // Сбрасываем остановку
+            // В следующем такте IsArrivedAtDestination() должен завершить перемещение.
+        }
+        
+        /// <summary>
+        /// Упрощенный расчет расстояния до цели (для принятия решения о транспорте).
+        /// </summary>
+        private double CalculateDistanceToDestination()
+        {
+            if (DestinationBuilding == null) return 0;
+            return Math.Sqrt(Math.Pow(X - DestinationBuilding.X, 2) + Math.Pow(Y - DestinationBuilding.Y, 2));
+        }
+
+        /// <summary>
+        /// Ищет ближайшую рабочую TransitStation на карте.
+        /// ТРЕБУЕТ, чтобы в GameMap был доступен список Buildings (GameMap.Buildings).
+        /// </summary>
+        private TransitStation FindNearestTransitStation()
+        {
+            if (GameMap == null || GameMap.Buildings == null) return null;
+
+            TransitStation nearestStation = null;
+            double minDistance = 50 * 50; // Ищем только в радиусе 50 тайлов
+
+            foreach (var building in GameMap.Buildings)
+            {
+                // Используем is с приведением типа, чтобы найти только остановки, которые рабочие
+                if (building is TransitStation station && station.IsOperational) 
+                {
+                    double distanceSquared = Math.Pow(X - station.X, 2) + Math.Pow(Y - station.Y, 2);
+                    
+                    if (distanceSquared < minDistance)
+                    {
+                        minDistance = distanceSquared;
+                        nearestStation = station;
+                    }
+                }
+            }
+            
+            return nearestStation;
         }
     }
 }
