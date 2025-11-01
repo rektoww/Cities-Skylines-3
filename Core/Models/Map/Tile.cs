@@ -14,6 +14,25 @@ namespace Core.Models.Map
         public Building Building { get; set; }
         public bool HasRoad { get; set; }
 
+        /// <summary>
+        /// SmirnovMA - ПЕШЕХОДНАЯ ИНФРАСТРУКТУРА
+        /// </summary>
+
+        /// <summary>
+        /// Есть ли велодорожка на этом тайле
+        /// </summary>
+        public bool HasBikeLane { get; set; }
+
+        /// <summary>
+        /// Есть ли парк/зеленая зона на этом тайле
+        /// </summary>
+        public bool HasPark { get; set; }
+
+        /// <summary>
+        /// Есть ли пешеходная дорожка на этом тайле
+        /// </summary>
+        public bool HasPedestrianPath { get; set; }
+
         public Tile()
         {
             Resources = new List<NaturalResource>();
