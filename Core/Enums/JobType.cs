@@ -13,6 +13,12 @@ namespace Core.Enums
         Teacher,
         Doctor,
         Engineer,
-        Manager
+        Manager,
+        // Профессии для коммерции:
+        Salesman,
+        Cashier,
+        Chef,
+        Barista,
+        Pharmacist
     }
 }

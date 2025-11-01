@@ -2,7 +2,18 @@
 
 Этот документ описывает различные перечисления, используемые в симуляции города.
 
-## Глава 1: ConstructionMaterial.cs
+## Глава 1: CommercialBuildingType.cs
+
+Перечисление `CommercialBuildingType` определяет типы коммерческих зданий.
+
+- `Shop` (Магазин)
+- `Supermarket` (Супермаркет)
+- `Cafe` (Кафе)
+- `Restaurant` (Ресторан)
+- `GasStation` (Заправка)
+- `Pharmacy` (Аптека)
+- 
+## Глава 2: ConstructionMaterial.cs
 
 Перечисление `ConstructionMaterial` определяет типы строительных материалов, которые могут использоваться в игре.
 
@@ -11,7 +22,7 @@
 - `Concrete` (Бетон)
 - `Plastic` (Пластик)
 
-## Глава 2: EducationLevel.cs
+## Глава 3: EducationLevel.cs
 
 Перечисление `EducationLevel` определяет уровни образования, которые могут иметь горожане. Эти уровни напрямую влияют на доступные им профессии.
 
@@ -20,7 +31,7 @@
 - `College` (Среднее специальное)
 - `University` (Высшее)
 
-## Глава 3: JobType.cs
+## Глава 4: JobType.cs
 
 Перечисление `JobType` определяет типы профессий, доступные в симуляции.
 
@@ -30,8 +41,13 @@
 - `Doctor` (Врач)
 - `Engineer` (Инженер)
 - `Manager` (Менеджер)
+- `Salesman` (Продавец)
+- `Cashier` (Кассир)
+- `Chef` (Повар)
+- `Barista` (Бариста)
+- `Pharmacist` (Фармацевт)
 
-## Глава 4: ResidentialType.cs
+## Глава 5: ResidentialType.cs
 
 Перечисление `ResidentialType` определяет типы жилых зданий.
 
@@ -39,7 +55,7 @@
 - `Dormitory` (Общежитие)
 - `Hotel` (Отель)
 
-## Глава 5: ResourceType.cs
+## Глава 6: ResourceType.cs
 
 Перечисление `ResourceType` определяет типы природных ресурсов, которые можно найти на карте.
 
@@ -47,7 +63,7 @@
 - `Oil` (Нефть)
 - `Gas` (Газ)
 
-## Глава 6: ServiceBuildingType.cs
+## Глава 7: ServiceBuildingType.cs
 
 Перечисление `ServiceBuildingType` определяет типы общественных зданий, предоставляющих услуги горожанам.
 
@@ -56,7 +72,7 @@
 - `University` (Университет)
 - `Hospital` (Больница)
 
-## Глава 7: TerrainType.cs
+## Глава 8: TerrainType.cs
 
 Перечисление `TerrainType` определяет типы ландшафта на игровой карте.
 
@@ -64,7 +80,7 @@
 - `Plain` (Равнина)
 - `Mountain` (Горы)
 
-## Глава 8: UtilityType.cs
+## Глава 9: UtilityType.cs
 
 Перечисление `UtilityType` определяет типы коммунальных услуг в системе ЖКХ.
 
