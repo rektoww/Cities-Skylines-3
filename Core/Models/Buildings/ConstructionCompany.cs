@@ -6,11 +6,13 @@ using System.Linq;
 namespace Core.Models.Buildings
 {
     /// <summary>
-    /// Представляет строительную компанию, ответственную за строительные проекты. (офис строительной компании)
+    /// Представляет строительную компанию, ответственную за строительные проекты. (офис строительной компании, пока не уверен, будет ли это зданием)
     /// </summary>
     public class ConstructionCompany : Building
     {
         private readonly List<(IConstructable project, ConstructionYard sourceYard)> _constructionProjects = new();
+
+        public ConstructionCompany() : base() { }
 
         /// <summary>
         /// Начало нового строительства.

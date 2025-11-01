@@ -15,10 +15,11 @@ namespace Core.Models.Buildings
         /// </summary>
         public Dictionary<ConstructionMaterial, int> StoredMaterials { get; private set; } = new();
 
-        public ConstructionYard()
+        public ConstructionYard() : base()
         {
+
             // Инициализируйте хранилище, установив для всех типов материалов значение 0.   
-            foreach (ConstructionMaterial material in System.Enum.GetValues(typeof(ConstructionMaterial)))
+            foreach (ConstructionMaterial material in Enum.GetValues<ConstructionMaterial>())
             {
                 StoredMaterials[material] = 0;
             }
