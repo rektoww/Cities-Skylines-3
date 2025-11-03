@@ -1,35 +1,37 @@
-﻿using System;
+﻿using Core.Enums;
+using Core.Interfaces;
+using Core.Models.Components;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Core.Enums;
-using Core.Models.Components;
 
 namespace Core.Models.Buildings.CommertialBuildings
 {
-    /// <summary>
-    /// Фабрика по производству косметической продукции
-    /// Управляет производственным процессом, включая цеха, сырье и готовую продукцию
-    /// </summary>
-    public class CosmeticsFactory
+    public class CosmeticsFactory : CommercialBuilding, IConstructable<CosmeticsFactory>
     {
+        #region Static Properties - Construction Cost
+
+        public static decimal BuildCost { get; protected set; } = 300000m;
+
+        public static Dictionary<ConstructionMaterial, int> RequiredMaterials { get; protected set; }
+            = new Dictionary<ConstructionMaterial, int>
+            {
+                { ConstructionMaterial.Steel, 5 },
+                { ConstructionMaterial.Concrete, 8 },
+                { ConstructionMaterial.Glass, 4 },
+                { ConstructionMaterial.Plastic, 3 }
+            };
+
+        #endregion
+
         #region Simplified Enums
 
-        /// <summary>
-        /// Типы сырья для производства косметики
-        /// </summary>
         public enum CosmeticMaterial
         {
             Alcohol,
-            Pigments,
-            Oils,
-            Chemicals,
-            Waxes,
-            PlantExtracts
+            Plastic
         }
 
-        /// <summary>
-        /// Типы производимой косметической продукции
-        /// </summary>
         public enum CosmeticProduct
         {
             FaceCream,
@@ -44,32 +46,18 @@ namespace Core.Models.Buildings.CommertialBuildings
 
         #endregion
 
-        /// <summary>Количество материалов на складе</summary>
         public Dictionary<CosmeticMaterial, int> MaterialsStorage { get; private set; } = new Dictionary<CosmeticMaterial, int>();
-
-        /// <summary>Количество продукции на складе</summary>
         public Dictionary<CosmeticProduct, int> ProductsStorage { get; private set; } = new Dictionary<CosmeticProduct, int>();
-
-        /// <summary>Максимальная вместимость склада материалов</summary>
         public int MaxMaterialStorage { get; private set; }
-
-        /// <summary>Максимальная вместимость склада продукции</summary>
         public int MaxProductStorage { get; private set; }
-
-        /// <summary>Производственные цеха фабрики</summary>
         public List<Workshop> Workshops { get; private set; } = new List<Workshop>();
-
-        /// <summary>Текущее количество рабочих</summary>
         public int WorkersCount { get; private set; }
-
-        /// <summary>Максимальное количество рабочих</summary>
         public int MaxWorkers { get; private set; }
 
-        /// <summary>
-        /// Создает новую косметическую фабрику
-        /// Выходные данные: инициализированная фабрика с цехами и стартовыми материалами
-        /// </summary>
-        public CosmeticsFactory()
+        // Коэффициент эффективности в зависимости от количества рабочих
+        public float ProductionEfficiency => WorkersCount > 0 ? 0.5f + (WorkersCount / (float)MaxWorkers) * 0.5f : 0f;
+
+        public CosmeticsFactory() : base(CommercialBuildingType.Factory)
         {
             MaxMaterialStorage = 1000;
             MaxProductStorage = 800;
@@ -80,204 +68,198 @@ namespace Core.Models.Buildings.CommertialBuildings
             InitializeStartingMaterials();
         }
 
-        /// <summary>
-        /// Инициализирует цеха фабрики
-        /// Входные данные: отсутствуют
-        /// Выходные данные: созданные и настроенные производственные цеха
-        /// </summary>
         private void InitializeWorkshops()
         {
-            // Цех производства кремов и лосьонов
             var creamWorkshop = new Workshop
             {
                 Name = "Цех кремов и лосьонов",
                 ProductionCycleTime = 6
             };
-            creamWorkshop.InputRequirements.Add(CosmeticMaterial.Alcohol, 2);
-            creamWorkshop.InputRequirements.Add(CosmeticMaterial.Oils, 3);
-            creamWorkshop.InputRequirements.Add(CosmeticMaterial.Chemicals, 2);
-            creamWorkshop.OutputProducts.Add(CosmeticProduct.FaceCream, 8);
-            creamWorkshop.OutputProducts.Add(CosmeticProduct.BodyLotion, 6);
+            creamWorkshop.InputRequirements.Add("Alcohol", 6);
+            creamWorkshop.InputRequirements.Add("Plastic", 2);
+            creamWorkshop.OutputProducts.Add("FaceCream", 5);
+            creamWorkshop.OutputProducts.Add("BodyLotion", 4);
             Workshops.Add(creamWorkshop);
 
-            // Цех декоративной косметики
             var makeupWorkshop = new Workshop
             {
                 Name = "Цех декоративной косметики",
                 ProductionCycleTime = 8
             };
-            makeupWorkshop.InputRequirements.Add(CosmeticMaterial.Pigments, 4);
-            makeupWorkshop.InputRequirements.Add(CosmeticMaterial.Waxes, 3);
-            makeupWorkshop.InputRequirements.Add(CosmeticMaterial.Oils, 2);
-            makeupWorkshop.OutputProducts.Add(CosmeticProduct.Lipstick, 10);
-            makeupWorkshop.OutputProducts.Add(CosmeticProduct.EyeShadow, 12);
+            makeupWorkshop.InputRequirements.Add("Alcohol", 10);
+            makeupWorkshop.InputRequirements.Add("Plastic", 4);
+            makeupWorkshop.OutputProducts.Add("Lipstick", 6);
+            makeupWorkshop.OutputProducts.Add("EyeShadow", 8);
             Workshops.Add(makeupWorkshop);
 
-            // Цех парфюмерии
             var perfumeWorkshop = new Workshop
             {
                 Name = "Цех парфюмерии",
                 ProductionCycleTime = 10
             };
-            perfumeWorkshop.InputRequirements.Add(CosmeticMaterial.Alcohol, 5);
-            perfumeWorkshop.InputRequirements.Add(CosmeticMaterial.Oils, 3);
-            perfumeWorkshop.InputRequirements.Add(CosmeticMaterial.PlantExtracts, 2);
-            perfumeWorkshop.OutputProducts.Add(CosmeticProduct.Perfume, 6);
-            perfumeWorkshop.OutputProducts.Add(CosmeticProduct.EauDeToilette, 8);
+            perfumeWorkshop.InputRequirements.Add("Alcohol", 12);
+            perfumeWorkshop.InputRequirements.Add("Plastic", 3);
+            perfumeWorkshop.OutputProducts.Add("Perfume", 3);
+            perfumeWorkshop.OutputProducts.Add("EauDeToilette", 5);
             Workshops.Add(perfumeWorkshop);
 
-            // Цех ухода за волосами
             var hairCareWorkshop = new Workshop
             {
                 Name = "Цех ухода за волосами",
                 ProductionCycleTime = 7
             };
-            hairCareWorkshop.InputRequirements.Add(CosmeticMaterial.PlantExtracts, 3);
-            hairCareWorkshop.InputRequirements.Add(CosmeticMaterial.Chemicals, 3);
-            hairCareWorkshop.InputRequirements.Add(CosmeticMaterial.Oils, 2);
-            hairCareWorkshop.OutputProducts.Add(CosmeticProduct.Shampoo, 15);
-            hairCareWorkshop.OutputProducts.Add(CosmeticProduct.Conditioner, 12);
+            hairCareWorkshop.InputRequirements.Add("Alcohol", 8);
+            hairCareWorkshop.InputRequirements.Add("Plastic", 5);
+            hairCareWorkshop.OutputProducts.Add("Shampoo", 8);
+            hairCareWorkshop.OutputProducts.Add("Conditioner", 6);
             Workshops.Add(hairCareWorkshop);
         }
 
-        /// <summary>
-        /// Инициализирует стартовые материалы
-        /// Входные данные: отсутствуют
-        /// Выходные данные: заполненное хранилище начальными материалами
-        /// </summary>
         private void InitializeStartingMaterials()
         {
-            AddMaterial(CosmeticMaterial.Alcohol, 100);
-            AddMaterial(CosmeticMaterial.Pigments, 80);
-            AddMaterial(CosmeticMaterial.Oils, 120);
-            AddMaterial(CosmeticMaterial.Chemicals, 90);
-            AddMaterial(CosmeticMaterial.Waxes, 60);
-            AddMaterial(CosmeticMaterial.PlantExtracts, 70);
+            AddMaterial(CosmeticMaterial.Alcohol, 200);
+            AddMaterial(CosmeticMaterial.Plastic, 150);
         }
 
-        /// <summary>
-        /// Устанавливает количество рабочих на фабрике
-        /// Входные данные: count - количество рабочих для установки
-        /// Выходные данные: отсутствуют (устанавливает значение WorkersCount)
-        /// </summary>
-        /// <param name="count">Количество рабочих для установки</param>
         public void SetWorkersCount(int count)
         {
             WorkersCount = Math.Min(count, MaxWorkers);
         }
 
-        /// <summary>
-        /// Добавляет материал на склад фабрики
-        /// Входные данные: material - тип материала, amount - количество для добавления
-        /// Выходные данные: true если материал успешно добавлен, false если превышена вместимость склада
-        /// </summary>
-        /// <param name="material">Тип добавляемого материала</param>
-        /// <param name="amount">Количество материала для добавления</param>
-        /// <returns>True если материал успешно добавлен, false в противном случае</returns>
         public bool AddMaterial(CosmeticMaterial material, int amount)
         {
             int currentAmount = MaterialsStorage.ContainsKey(material) ? MaterialsStorage[material] : 0;
-            if (currentAmount + amount > MaxMaterialStorage)
+            if (GetTotalMaterialStorage() + amount > MaxMaterialStorage)
                 return false;
 
             MaterialsStorage[material] = currentAmount + amount;
             return true;
         }
 
-        /// <summary>
-        /// Запускает производственные циклы во всех цехах фабрики
-        /// Входные данные: текущее состояние хранилищ материалов и продукции
-        /// Выходные данные: отсутствуют (обновляет хранилища материалов и продукции)
-        /// </summary>
+        public int GetTotalMaterialStorage()
+        {
+            return MaterialsStorage.Values.Sum();
+        }
+
         public void ProcessWorkshops()
         {
-            if (WorkersCount == 0) return;
+            if (WorkersCount == 0 || ProductionEfficiency <= 0) return;
 
-            // Создаем копию текущих материалов для обработки
             var availableResources = new Dictionary<object, int>();
+
+            // Конвертируем enum в строки для совместимости с Workshop
             foreach (var material in MaterialsStorage)
             {
-                availableResources.Add(material.Key, material.Value);
-            }
-
-            // Добавляем существующую продукцию как доступный ресурс для возможных дальнейших переработок
-            foreach (var product in ProductsStorage)
-            {
-                availableResources.Add(product.Key, product.Value);
+                availableResources.Add(material.Key.ToString(), material.Value);
             }
 
             var producedOutputs = new Dictionary<object, int>();
 
-            // Обрабатываем каждый цех
             foreach (var workshop in Workshops)
             {
-                workshop.Process(availableResources, producedOutputs);
+                // Создаем копию ресурсов для каждого цеха
+                var workshopResources = new Dictionary<object, int>(availableResources);
+                var workshopOutputs = new Dictionary<object, int>();
+
+                if (workshop.Process(workshopResources, workshopOutputs))
+                {
+                    // Учитываем эффективность производства
+                    ApplyProductionEfficiency(workshopOutputs);
+
+                    // Обновляем ресурсы только если производство успешно
+                    availableResources = workshopResources;
+
+                    // Добавляем выходы цеха в общие выходы
+                    foreach (var output in workshopOutputs)
+                    {
+                        if (producedOutputs.ContainsKey(output.Key))
+                            producedOutputs[output.Key] += output.Value;
+                        else
+                            producedOutputs[output.Key] = output.Value;
+                    }
+                }
             }
 
             // Обновляем хранилище материалов
+            UpdateMaterialsStorage(availableResources);
+
+            // Обновляем хранилище продукции с проверкой вместимости
+            UpdateProductsStorage(producedOutputs);
+        }
+
+        /// <summary>
+        /// Применяет коэффициент эффективности к произведенной продукции
+        /// </summary>
+        private void ApplyProductionEfficiency(Dictionary<object, int> outputs)
+        {
+            if (ProductionEfficiency >= 1f) return;
+
+            var keys = outputs.Keys.ToList();
+            foreach (var key in keys)
+            {
+                outputs[key] = (int)(outputs[key] * ProductionEfficiency);
+                if (outputs[key] <= 0)
+                    outputs.Remove(key);
+            }
+        }
+
+        /// <summary>
+        /// Обновляет хранилище материалов из результатов обработки
+        /// </summary>
+        private void UpdateMaterialsStorage(Dictionary<object, int> availableResources)
+        {
             MaterialsStorage.Clear();
             foreach (var resource in availableResources)
             {
-                if (resource.Key is CosmeticMaterial material)
+                if (Enum.TryParse<CosmeticMaterial>(resource.Key.ToString(), out var material))
                 {
                     MaterialsStorage[material] = resource.Value;
                 }
             }
+        }
 
-            // Обновляем хранилище продукции
+        /// <summary>
+        /// Обновляет хранилище продукции с проверкой вместимости
+        /// </summary>
+        private void UpdateProductsStorage(Dictionary<object, int> producedOutputs)
+        {
             foreach (var output in producedOutputs)
             {
-                if (output.Key is CosmeticProduct product)
+                if (Enum.TryParse<CosmeticProduct>(output.Key.ToString(), out var product))
                 {
                     int currentAmount = ProductsStorage.ContainsKey(product) ? ProductsStorage[product] : 0;
-                    if (currentAmount + output.Value <= MaxProductStorage)
+                    int availableSpace = MaxProductStorage - GetTotalProductStorage();
+                    int amountToAdd = Math.Min(output.Value, availableSpace);
+
+                    if (amountToAdd > 0)
                     {
-                        ProductsStorage[product] = currentAmount + output.Value;
+                        ProductsStorage[product] = currentAmount + amountToAdd;
+                    }
+
+                    // Логируем потерю продукции при переполнении
+                    if (amountToAdd < output.Value)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Превышена вместимость склада! Потеряно {output.Value - amountToAdd} единиц продукции {product}");
                     }
                 }
             }
         }
 
-        /// <summary>
-        /// Выполняет полный рабочий цикл фабрики
-        /// Входные данные: текущее состояние фабрики
-        /// Выходные данные: отсутствуют (обновляет все производственные процессы)
-        /// </summary>
         public void FullProductionCycle()
         {
             ProcessWorkshops();
         }
 
-        /// <summary>
-        /// Получает текущие запасы готовой продукции
-        /// Входные данные: отсутствуют
-        /// Выходные данные: словарь с типами продукции и их количеством на складе
-        /// </summary>
-        /// <returns>Словарь с текущими запасами продукции</returns>
         public Dictionary<CosmeticProduct, int> GetProductionOutput()
         {
             return new Dictionary<CosmeticProduct, int>(ProductsStorage);
         }
 
-        /// <summary>
-        /// Получает текущие запасы сырья на складе
-        /// Входные данные: отсутствуют
-        /// Выходные данные: словарь с типами материалов и их количеством на складе
-        /// </summary>
-        /// <returns>Словарь с текущими запасами сырья</returns>
-        public Dictionary<CosmeticMaterial, int> GetRawMaterials()
+        public Dictionary<CosmeticMaterial, int> GetMaterialStorage()
         {
             return new Dictionary<CosmeticMaterial, int>(MaterialsStorage);
         }
 
-        /// <summary>
-        /// Потребляет продукцию (продажа или использование)
-        /// Входные данные: product - тип продукции, amount - количество для потребления
-        /// Выходные данные: true если продукция успешно потреблена, false если недостаточно продукции
-        /// </summary>
-        /// <param name="product">Тип потребляемой продукции</param>
-        /// <param name="amount">Количество продукции для потребления</param>
-        /// <returns>True если продукция успешно потреблена, false в противном случае</returns>
         public bool ConsumeProduct(CosmeticProduct product, int amount)
         {
             if (!ProductsStorage.ContainsKey(product) || ProductsStorage[product] < amount)
@@ -290,26 +272,33 @@ namespace Core.Models.Buildings.CommertialBuildings
             return true;
         }
 
-        /// <summary>
-        /// Получает общее количество материалов на складе
-        /// Входные данные: отсутствуют
-        /// Выходные данные: общее количество всех материалов на складе
-        /// </summary>
-        /// <returns>Общее количество материалов</returns>
-        public int GetTotalMaterialStorage()
-        {
-            return MaterialsStorage.Values.Sum();
-        }
-
-        /// <summary>
-        /// Получает общее количество продукции на складе
-        /// Входные данные: отсутствуют
-        /// Выходные данные: общее количество всей продукции на складе
-        /// </summary>
-        /// <returns>Общее количество продукции</returns>
         public int GetTotalProductStorage()
         {
             return ProductsStorage.Values.Sum();
+        }
+
+        /// <summary>
+        /// Получает информацию о производственной эффективности
+        /// </summary>
+        public Dictionary<string, object> GetProductionInfo()
+        {
+            return new Dictionary<string, object>
+            {
+                { "WorkersCount", WorkersCount },
+                { "MaxWorkers", MaxWorkers },
+                { "ProductionEfficiency", ProductionEfficiency },
+                { "TotalMaterialStorage", GetTotalMaterialStorage() },
+                { "MaxMaterialStorage", MaxMaterialStorage },
+                { "TotalProductStorage", GetTotalProductStorage() },
+                { "MaxProductStorage", MaxProductStorage },
+                { "ActiveWorkshops", Workshops.Count }
+            };
+        }
+
+        public override void OnBuildingPlaced()
+        {
+            // Базовая логика при размещении
+            FullProductionCycle();
         }
     }
 }
