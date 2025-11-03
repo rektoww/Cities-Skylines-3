@@ -12,22 +12,11 @@ namespace Core.Models.Buildings
         public int EmployeesCount { get; set; }
         public decimal ServiceCost { get; set; }
         public bool CanAcceptClient => Clients.Count < Capacity;
-        ///ЖКХ, SmirnovMA - Подключено ли здание к электрической сети
-        public bool HasElectricity { get; set; }
-
-        /// Подключено ли здание к водоснабжению
-        public bool HasWater { get; set; }
-
-        /// Подключено ли здание к газовой сети
-        public bool HasGas { get; set; }
-
-        /// Подключено ли здание к канализации
-        public bool HasSewage { get; set; }
 
         /// Работоспособно ли здание (все коммуникации подключены)
         public bool IsOperational => HasElectricity && HasWater && HasGas && HasSewage;
 
-        public ServiceBuilding(ServiceBuildingType type, int capacity = 0)
+        public ServiceBuilding(ServiceBuildingType type, int capacity = 0) : base()
         {
             Type = type;
             Capacity = capacity == 0 ? GetDefaultCapacity(type) : capacity;
@@ -44,13 +33,13 @@ namespace Core.Models.Buildings
                     ServiceCost = 0;
                     Width = 3; Height = 2; Floors = 3;
                     break;
-                    
+
                 case ServiceBuildingType.Hospital:
                     EmployeesCount = 50;
                     ServiceCost = 1000m;
                     Width = 4; Height = 3; Floors = 5;
                     break;
-                    
+
                 case ServiceBuildingType.University:
                     EmployeesCount = 100;
                     ServiceCost = 50000m;
@@ -100,7 +89,7 @@ namespace Core.Models.Buildings
                         client.Health = Math.Min(100, client.Health + 20);
                         break;
                 }
-                
+
                 Clients.Remove(client);
             }
         }

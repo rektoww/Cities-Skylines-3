@@ -15,6 +15,9 @@ namespace Core.Models.Buildings
 
         public bool HasVacancy => CurrentResidents.Count < Capacity;
 
+        /// Работоспособно ли здание (все коммуникации подключены)
+        public bool IsOperational => HasElectricity && HasWater && HasGas && HasSewage;
+
         public ResidentialBuilding(ResidentialType type)
         {
             Type = type;

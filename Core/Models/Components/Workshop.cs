@@ -8,7 +8,7 @@ namespace Core.Models.Components
         /// <summary>
         /// Описательное название функции мастерской (например, «Сборочная линия»).
         /// </summary>
-        public string Name { get; set; }
+        public string Name { get; set; } = "DefaultName"; // Пока необязательно, но может пригодиться при поиске определенного цеха
 
         /// <summary>
         /// Ресурсы, необходимые для одного производственного цикла.
@@ -43,7 +43,7 @@ namespace Core.Models.Components
                 }
             }
 
-            // Cycle complete: consume inputs and produce outputs
+            // Выполнение цикла производства
             foreach (var required in InputRequirements)
             {
                 availableInputs[required.Key] -= required.Value;

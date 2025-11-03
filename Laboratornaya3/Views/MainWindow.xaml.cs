@@ -8,10 +8,10 @@ namespace Laboratornaya3
     /// </summary>
     public partial class MainWindow : Window
     {
-        public MainWindow(MainViewModel vm)
+        public MainWindow()
         {
-            DataContext = vm;
             InitializeComponent();
+            DataContext = new MainViewModel(); // VM со статичной картой
         }
     }
 }

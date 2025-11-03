@@ -1,4 +1,6 @@
-﻿using Core.Models.Mobs;
+﻿using Core.Enums;
+using Core.Interfaces;
+using Core.Models.Mobs;
 
 namespace Core.Models.Base;
 
@@ -26,7 +28,6 @@ public abstract class TransitStation : Building
         Width = 1; 
         Height = 1;
         Floors = 1;
-        BuildCost = 1000m; 
     }
 
     /// <summary>
