@@ -1,4 +1,6 @@
-﻿using Core.Models.Base;
+﻿using Core.Enums;
+using Core.Interfaces;
+using Core.Models.Base;
 using Core.Models.Map;
 
 namespace Core.Models.Buildings;
@@ -7,8 +9,17 @@ namespace Core.Models.Buildings;
 /// Конкретная реализация остановки для автобусов.
 /// Должна быть размещена на дороге.
 /// </summary>
-public class BusStop : TransitStation
+public class BusStop : TransitStation, IConstructable<BusStop>
 {
+    // Статические свойства, уникальные для каждого объекта, для примера (Бардашов)
+    public static decimal BuildCost { get; protected set; } = 50000m;
+
+    public static Dictionary<ConstructionMaterial, int> RequiredMaterials { get; protected set; }
+        = new Dictionary<ConstructionMaterial, int>
+        {
+                { ConstructionMaterial.Steel, 5 },
+                { ConstructionMaterial.Concrete, 5 }
+        };
     public BusStop()
     {
         // Переопределяем параметры, если нужно.

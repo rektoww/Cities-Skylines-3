@@ -89,6 +89,12 @@ namespace UnitTests
         [TestMethod]
         public void UpdateHappinessBasedOnInfrastructure_WorkplaceWithUtilities_ShouldNotDecreaseHappiness()
         {
+            var materialsRequired = new Dictionary<ConstructionMaterial, int>
+            {
+                { ConstructionMaterial.Steel, 5 },
+                { ConstructionMaterial.Plastic, 2 }
+            };
+
             // Arrange
             var gameMap = new GameMap(5, 5);
             var citizen = new Citizen(2, 2, gameMap);
