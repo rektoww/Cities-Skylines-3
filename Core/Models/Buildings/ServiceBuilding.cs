@@ -12,22 +12,11 @@ namespace Core.Models.Buildings
         public int EmployeesCount { get; set; }
         public decimal ServiceCost { get; set; }
         public bool CanAcceptClient => Clients.Count < Capacity;
-        ///ЖКХ, SmirnovMA - Подключено ли здание к электрической сети
-        public bool HasElectricity { get; set; }
-
-        /// Подключено ли здание к водоснабжению
-        public bool HasWater { get; set; }
-
-        /// Подключено ли здание к газовой сети
-        public bool HasGas { get; set; }
-
-        /// Подключено ли здание к канализации
-        public bool HasSewage { get; set; }
 
         /// Работоспособно ли здание (все коммуникации подключены)
         public bool IsOperational => HasElectricity && HasWater && HasGas && HasSewage;
 
-        public ServiceBuilding(ServiceBuildingType type, int capacity = 0)
+        public ServiceBuilding(ServiceBuildingType type, int capacity = 0) : base()
         {
             Type = type;
             Capacity = capacity == 0 ? GetDefaultCapacity(type) : capacity;
