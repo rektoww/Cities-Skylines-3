@@ -16,8 +16,9 @@ namespace Core.Models.Buildings.CommertialBuildings
         public static Dictionary<ConstructionMaterial, int> RequiredMaterials { get; protected set; }
             = new Dictionary<ConstructionMaterial, int>
             {
-                { ConstructionMaterial.Steel, 5 },
-                { ConstructionMaterial.Concrete, 5 }
+                { ConstructionMaterial.Steel, 2 },
+                { ConstructionMaterial.Concrete, 3 },
+                { ConstructionMaterial.Glass, 3 }
             };
         public Cafe() : base(CommercialBuildingType.Cafe)
         {

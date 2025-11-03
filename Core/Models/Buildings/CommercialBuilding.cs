@@ -12,7 +12,8 @@ namespace Core.Models.Buildings
         public int EmployeeCount { get; set; }
         public List<string> ProductCategories { get; set; }
 
-        public CommercialBuilding(CommercialBuildingType type, int capacity = 0)
+        protected CommercialBuilding(CommercialBuildingType type, int capacity = 0)
+            : base(Width: 1, Height: 1) // Базовые размеры, переопределятся в SetDefaultValuesByType
         {
             Type = type;
             Capacity = capacity == 0 ? GetDefaultCapacity(type) : capacity;
@@ -78,7 +79,7 @@ namespace Core.Models.Buildings
 
         public override void OnBuildingPlaced()
         {
-            // Пока пустая реализация
+            // Пустая реализация
         }
     }
 }
