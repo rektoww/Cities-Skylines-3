@@ -16,6 +16,7 @@ namespace Core.Enums
         Cafe,
         Restaurant,
         GasStation,
-        Pharmacy
+        Pharmacy,
+        Factory
     }
 }
