@@ -45,3 +45,9 @@
 - **Тип**: `CommercialBuildingType.Supermarket`
 - **Стоимость**: 200,000
 - **Материалы**: 5 Steel, 5 Concrete
+
+## Глава 7: CosmeticsFactory.cs
+`CosmeticsFactory` — представляет собой фабрику косметики.
+- **Тип**: `CommercialBuildingType.Factory`
+- **Стоимость**: 300,000
+- **Материалы**: 5 Steel, 8 Concrete, 4 Glass, 3 Plastic

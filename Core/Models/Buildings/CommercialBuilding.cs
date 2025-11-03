@@ -1,7 +1,5 @@
 ﻿using Core.Enums;
 using Core.Models.Base;
-using Core.Models.Map;
-using System.Collections.Generic;
 
 namespace Core.Models.Buildings
 {
@@ -60,6 +58,12 @@ namespace Core.Models.Buildings
                     Width = 2; Height = 1; Floors = 1;
                     ProductCategories = new List<string> { "Лекарства", "Медицинские товары", "Витамины" };
                     break;
+
+                case CommercialBuildingType.Factory:
+                    EmployeeCount = 25;
+                    Width = 4; Height = 3; Floors = 2;
+                    ProductCategories = new List<string> { "Промышленные товары", "Производство" };
+                    break;
             }
         }
 
@@ -73,6 +77,7 @@ namespace Core.Models.Buildings
                 CommercialBuildingType.Restaurant => 40,
                 CommercialBuildingType.GasStation => 15,
                 CommercialBuildingType.Pharmacy => 12,
+                CommercialBuildingType.Factory => 30,
                 _ => 10
             };
         }
