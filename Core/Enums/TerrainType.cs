@@ -4,6 +4,8 @@
     {
         Water, 
         Plain,
-        Mountain
+        Mountain,
+        Forest, // Лес
+        Meadow // Равнина
     }
 }

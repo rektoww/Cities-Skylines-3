@@ -1,8 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Core.Models.Map;
+using Core.Services; // Добавляем для NatureManager
 using Infrastructure.Services; // Содержит StaticMapProvider и SaveLoadService
 using System.Collections.Generic;
+using System.Linq; // Добавляем для работы с деревьями
 using System.Text;
 using System.Windows;
 
@@ -20,6 +22,11 @@ namespace Laboratornaya3.ViewModels
         /// Хранится один инстанс на всю VM.
         /// </summary>
         private readonly SaveLoadService _saveLoadService;
+
+        /// <summary>
+        /// Менеджер для работы с природными объектами
+        /// </summary>
+        private readonly NatureManager _natureManager;
 
         /// <summary>
         /// Текущая карта (модель уровня Core). Не должна быть null при нормальной работе,
@@ -74,6 +81,7 @@ namespace Laboratornaya3.ViewModels
         public MainViewModel()
         {
             _saveLoadService = new SaveLoadService();
+            _natureManager = new NatureManager(); // Инициализируем менеджер природы
 
             // Загрузка статичной (фиксированной) карты из провайдера.
             // Внутри строится GameMap на основании «масок» (строковых схем).
@@ -133,6 +141,16 @@ namespace Laboratornaya3.ViewModels
             sb.AppendLine($"Координаты: ({tile.X}; {tile.Y})");
             sb.AppendLine($"Рельеф: {tile.Terrain}");
 
+            // НОВЫЙ КОД ДЛЯ ОТОБРАЖЕНИЯ ДЕРЕВЬЕВ
+            if (tile.TreeType.HasValue && tile.TreeCount > 0)
+            {
+                sb.AppendLine($"Деревья: {tile.TreeType.Value} ({tile.TreeCount} шт.)");
+            }
+            else
+            {
+                sb.AppendLine("Деревья: нет");
+            }
+
             if (tile.Resources is { Count: > 0 })
             {
                 sb.AppendLine("Ресурсы:");
@@ -152,6 +170,38 @@ namespace Laboratornaya3.ViewModels
             MessageBox.Show(
                 sb.ToString(),
                 "Информация о клетке",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
+
+        /// <summary>
+        /// Команда: показать статистику по деревьям на карте
+        /// </summary>
+        [RelayCommand]
+        private void ShowTreeStatistics()
+        {
+            if (CurrentMap == null)
+                return;
+
+            var statistics = _natureManager.GetTreeTypeStatistics(CurrentMap);
+            var totalTrees = _natureManager.GetTotalTreeCount(CurrentMap);
+            var tilesWithTrees = _natureManager.GetTilesWithTreesCount(CurrentMap);
+
+            var sb = new StringBuilder();
+            sb.AppendLine($"Общая статистика деревьев:");
+            sb.AppendLine($"Всего деревьев: {totalTrees}");
+            sb.AppendLine($"Тайлов с деревьями: {tilesWithTrees}");
+            sb.AppendLine();
+
+            sb.AppendLine("По типам деревьев:");
+            foreach (var stat in statistics)
+            {
+                sb.AppendLine($" • {stat.Key}: {stat.Value} шт.");
+            }
+
+            MessageBox.Show(
+                sb.ToString(),
+                "Статистика деревьев",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
         }

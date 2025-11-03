@@ -35,6 +35,15 @@
                         Margin="0,0,0,12"
                         Height="32" />
 
+                <!-- Кнопка для статистики природы -->
+                <Button Content="Статистика деревьев"
+                        Command="{Binding ShowTreeStatisticsCommand}"
+                        Margin="0,0,0,12"
+                        Height="32"
+                        Background="#FF4CAF50"
+                        Foreground="White"
+                        FontWeight="Bold" />
+
                 <Separator Margin="0,8,0,8" />
 
                 <TextBlock Text="Размер карты:"
@@ -62,6 +71,29 @@
                                        Stroke="Black"
                                        StrokeThickness="0.5" />
                             <TextBlock Text="  Равнина"
+                                       VerticalAlignment="Center"
+                                       Margin="6,0,0,0" />
+                        </StackPanel>
+                        <!-- Новые эл-ты легенды -->
+                        <StackPanel Orientation="Horizontal"
+                                    Margin="0,2,0,0">
+                            <Rectangle Width="16"
+                                       Height="16"
+                                       Fill="#569156"
+                                       Stroke="Black"
+                                       StrokeThickness="0.5" />
+                            <TextBlock Text="  Лес"
+                                       VerticalAlignment="Center"
+                                       Margin="6,0,0,0" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal"
+                                    Margin="0,2,0,0">
+                            <Rectangle Width="16"
+                                       Height="16"
+                                       Fill="#b5f7b5"
+                                       Stroke="Black"
+                                       StrokeThickness="0.5" />
+                            <TextBlock Text="  Луг"
                                        VerticalAlignment="Center"
                                        Margin="6,0,0,0" />
                         </StackPanel>
@@ -128,6 +160,14 @@
                                               <Run Text="Рельеф: " />
                                               <Run Text="{Binding Terrain}" />
                                         </TextBlock>
+                                        <!-- Деревья -->
+                                        <TextBlock>
+                                            <Run Text="Деревья: " />
+                                            <Run Text="{Binding TreeCount}" />
+                                            <Run Text=" шт. (" />
+                                            <Run Text="{Binding TreeType}" />
+                                            <Run Text=")" />
+                                        </TextBlock>
 
                                         <!-- Заголовок показываем только если есть ресурсы -->
                                         <TextBlock Text="Ресурсы:"
@@ -189,9 +229,23 @@
                                         BorderThickness="0.5">
                                     <Border.Style>
                                         <Style TargetType="Border">
+                                            <!-- Базовый цвет для равнины -->
                                             <Setter Property="Background"
                                                     Value="LightGreen" />
+
                                             <Style.Triggers>
+                                                <!-- Сначала обрабатываем специфичные типы -->
+                                                <DataTrigger Binding="{Binding Terrain}"
+                                                             Value="Forest">
+                                                    <Setter Property="Background"
+                                                            Value="#569156" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Terrain}"
+                                                             Value="Meadow">
+                                                    <Setter Property="Background"
+                                                            Value="#b5f7b5" />
+                                                </DataTrigger>
+                                                <!-- Потом общие типы -->
                                                 <DataTrigger Binding="{Binding Terrain}"
                                                              Value="Water">
                                                     <Setter Property="Background"
@@ -202,6 +256,7 @@
                                                     <Setter Property="Background"
                                                             Value="DarkGray" />
                                                 </DataTrigger>
+                                                <!-- Plain убрал, тк это базовый цвет -->
                                             </Style.Triggers>
                                         </Style>
                                     </Border.Style>

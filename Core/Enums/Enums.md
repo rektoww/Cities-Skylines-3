@@ -71,6 +71,8 @@
 - `College` (Колледж)
 - `University` (Университет)
 - `Hospital` (Больница)
+- - `Forest` (Лес)
+- `Meadow` (Луг)
 
 ## Глава 8: TerrainType.cs
 
@@ -80,7 +82,16 @@
 - `Plain` (Равнина)
 - `Mountain` (Горы)
 
-## Глава 9: UtilityType.cs
+## Глава 9: TreeType.cs
+
+- Перечисление `TreeType` определяет типы деревьев в природной системе.
+
+- `Oak` (Дуб)
+- `Pine` (Сосна)
+- `Birch` (Береза)
+- `Spruce` (Ель)
+- 
+## Глава 10: UtilityType.cs
 
 Перечисление `UtilityType` определяет типы коммунальных услуг в системе ЖКХ.
 

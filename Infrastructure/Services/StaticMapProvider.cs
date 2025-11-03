@@ -13,11 +13,19 @@ namespace Infrastructure.Services
     /// </summary>
     public static class StaticMapProvider
     {
+        private static readonly Random _random = new Random();
+
         /// <summary>
         /// Создаёт и заполняет <see cref="GameMap"/> на основании двух масок.
         /// </summary>
         /// <remarks>
-        /// <para><b>Легенда рельефа:</b> <c>~</c> — вода, <c>^</c> — гора, <c>.</c> — равнина, <c>#</c> — скальное плато (тоже гора).</para>
+        /// <para><b>Легенда рельефа:</b> 
+        /// <c>~</c> — вода, 
+        /// <c>^</c> — гора, 
+        /// <c>.</c> — равнина, 
+        /// <c>#</c> — скальное плато (тоже гора),
+        /// <c>T</c> — лес,
+        /// <c>M</c> — луг</para>
         /// <para><b>Легенда ресурсов:</b> <c>I</c> — железо, <c>O</c> — нефть, <c>G</c> — газ.</para>
         /// Если строка короче вычисленной ширины карты, недостающие символы трактуются как равнина без ресурсов.
         /// </remarks>
@@ -30,17 +38,18 @@ namespace Infrastructure.Services
             string[] terrainRows =
             {
                 "~~~~~~~~~~~~~~~~~~~~~~~",
+                "~~~~.....^^^^TTTTT~~~~~",
+                "~~~......^^^^TTTTT.~~~~",
+                "~~.......^^^TTT.T..~~~~",
+                "~...M....^^.....M..~~~~",
+                "~..MM..........MMM...~~",
+                "~....######....MM.....~",
+                "~....######.....TT....~",
+                "~..............TTT...~~",
+                "~~..MM....^^.....T..~~~",
+                "~~~..MM..^^^^......~~~~",
                 "~~~~.....^^^^.....~~~~~",
-                "~~~......^^^^......~~~~",
-                "~~.......^^^.......~~~~",
-                "~........^^........~~~~",
-                "~....................~~",
-                "~....######...........~",
-                "~....######...........~",
-                "~....................~~",
-                "~~........^^........~~~",
-                "~~~......^^^^......~~~~",
-                "~~~~.....^^^^.....~~~~~"
+                "~~~~~~~~~~~~~~~~~~~~~~~"
             };
 
             // Маска ресурсов (накладывается поверх рельефа).
@@ -57,6 +66,7 @@ namespace Infrastructure.Services
                 "....................G.",
                 "......................",
                 "...........I..........",
+                "......................",
                 "......................"
             };
 
@@ -104,9 +114,28 @@ namespace Infrastructure.Services
                         '~' => TerrainType.Water,
                         '^' => TerrainType.Mountain,
                         '#' => TerrainType.Mountain, // трактуем плато как гору
+                        'T' => TerrainType.Forest,   // лес
+                        'M' => TerrainType.Meadow,   // луг
                         '.' => TerrainType.Plain,
                         _ => TerrainType.Plain     // всё неизвестное считаем равниной
                     };
+
+                    // ----- Деревья -----
+                    // Автоматически добавляем деревья в зависимости от типа местности
+                    if (tile.Terrain == TerrainType.Forest)
+                    {
+                        tile.TreeType = GetRandomTreeType();
+                        tile.TreeCount = _random.Next(5, 11); // 5-10 деревьев в лесу
+                    }
+                    else if (tile.Terrain == TerrainType.Meadow)
+                    {
+                        // На лугах могут быть редкие деревья (30% chance)
+                        if (_random.Next(0, 100) < 30)
+                        {
+                            tile.TreeType = GetRandomTreeType();
+                            tile.TreeCount = _random.Next(1, 4); // 1-3 дерева на лугу
+                        }
+                    }
 
                     // ----- Ресурсы -----
                     // Берём символ ресурсов; если строки нет/короче — ничего не добавляем.
@@ -131,6 +160,15 @@ namespace Infrastructure.Services
 
             // Возвращаем полностью готовую карту.
             return map;
+        }
+
+        /// <summary>
+        /// Возвращает случайный тип дерева
+        /// </summary>
+        private static TreeType GetRandomTreeType()
+        {
+            var treeTypes = (TreeType[])Enum.GetValues(typeof(TreeType));
+            return treeTypes[_random.Next(treeTypes.Length)];
         }
     }
 }
