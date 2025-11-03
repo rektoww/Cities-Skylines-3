@@ -9,13 +9,9 @@
 ### Свойства
 
 - **`Type`**: `CommercialBuildingType` - Тип коммерческого здания (`Shop`, `Cafe` и т.д.).
-- **`Capacity`**: `int` - Вместимость здания (максимальное количество посетителей).
+- **`Capacity`**: `int` - Вместимость здания.
 - **`EmployeeCount`**: `int` - Количество сотрудников.
 - **`ProductCategories`**: `List<string>` - Категории товаров/услуг.
-
-### Конструктор
-
-- `CommercialBuilding(CommercialBuildingType type, ...)`: Принимает тип здания и устанавливает для него значения по умолчанию (вместимость, стоимость, размеры и т.д.).
 
 ## Глава 2: ResidentialBuilding.cs
 
@@ -33,22 +29,34 @@
 
 - **`TryAddResident(Citizen citizen)`**: `bool` - Пытается заселить жителя в здание.
 
-## Глава 3: ServiceBuilding.cs
+## Глава 3: ServiceBuilding (и наследники)
 
-`ServiceBuilding` — это здание, предоставляющее горожанам различные услуги (например, образование или здравоохранение).
+### ServiceBuilding.cs
+`ServiceBuilding` — это **базовый класс** для зданий, предоставляющих горожанам различные услуги (например, образование или здравоохранение).
 
-### Свойства
-
-- **`Type`**: `ServiceBuildingType` - Тип сервисного здания (`School`, `Hospital` и т.д.).
+#### Свойства
+- **`Type`**: `ServiceBuildingType` - Тип сервисного здания (`School`, `Hospital`, `College`, `University`).
 - **`Capacity`**: `int` - Максимальное количество клиентов.
 - **`Clients`**: `List<Citizen>` - Список текущих клиентов.
 - **`IsOperational`**: `bool` - Работоспособно ли здание.
 
-### Методы
+#### Методы
+- **`TryAddClient(Citizen citizen)`**: `bool` - Пытается добавить нового клиента.
+- **`ProvideService()`**: `void` - Предоставляет услугу всем клиентам.
 
-- **`TryAddClient(Citizen citizen)`**: `bool` - Пытается добавить нового клиента для обслуживания.
-- **`ProvideService()`**: `void` - Предоставляет услугу всем текущим клиентам (например, повышает образование или здоровье).
+### Конкретные реализации
+- **`SchoolBuilding.cs`**: Представляет школу. Наследуется от `ServiceBuilding` и в конструкторе устанавливает `ServiceBuildingType.School`.
+- **`CollegeBuilding.cs`**: Представляет колледж. Наследуется от `ServiceBuilding` и в конструкторе устанавливает `ServiceBuildingType.College`.
+- **`UniversityBuilding.cs`**: Представляет университет. Наследуется от `ServiceBuilding` и в конструкторе устанавливает `ServiceBuildingType.University`.
+
+## Глава 4: BusStop.cs
+
+`BusStop` — представляет собой автобусную остановку. Наследуется от абстрактного класса `TransitStation`.
+
+### Особенности
+- Реализует `IConstructable<BusStop>`, определяя собственную стоимость и материалы для строительства.
+- **Логика размещения**: Переопределяет метод `CanPlace`, требуя, чтобы остановка размещалась только на тайле с дорогой (`tile.HasRoad`).
 
 ---
 
-*Примечание: Классы `ExtractionFacility`, `ProcessingPlant` и `WoodProcessingFactory` были вынесены из иерархии `Building` и больше не являются зданиями в текущей архитектуре. Они представляют собой отдельные логические единицы производства.*
+*Примечание: Классы `ExtractionFacility`, `ProcessingPlant` и `WoodProcessingFactory` были вынесены из иерархии `Building` и больше не являются зданиями в текущей архитектуре.*

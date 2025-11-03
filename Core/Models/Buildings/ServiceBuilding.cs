@@ -33,13 +33,13 @@ namespace Core.Models.Buildings
                     ServiceCost = 0;
                     Width = 3; Height = 2; Floors = 3;
                     break;
-                    
+
                 case ServiceBuildingType.Hospital:
                     EmployeesCount = 50;
                     ServiceCost = 1000m;
                     Width = 4; Height = 3; Floors = 5;
                     break;
-                    
+
                 case ServiceBuildingType.University:
                     EmployeesCount = 100;
                     ServiceCost = 50000m;
@@ -89,7 +89,7 @@ namespace Core.Models.Buildings
                         client.Health = Math.Min(100, client.Health + 20);
                         break;
                 }
-                
+
                 Clients.Remove(client);
             }
         }

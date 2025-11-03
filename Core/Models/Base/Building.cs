@@ -4,14 +4,8 @@ using Core.Models.Map;
 
 namespace Core.Models.Base
 {
-    public abstract class Building : GameObject, IConstructable
+    public abstract class Building : GameObject
     {
-
-        #region Обязательные поля для строительства (IConstructable)
-        public static decimal BuildCost { get; protected set; }
-        public static Dictionary<ConstructionMaterial, int> RequiredMaterials { get; protected set; }
-        #endregion
-
         public int Floors { get; set; }
         public float Condition { get; set; } = 100f;
         public int Width { get; set; }
@@ -67,7 +61,6 @@ namespace Core.Models.Base
             this.HasSewage = HasSewage;
             this.HasElectricity = HasElectricity;
             this.Floors = Floors;
-            BuildCost = _BuildCost;
 
             this.Width = Width;
             this.Height = Height;

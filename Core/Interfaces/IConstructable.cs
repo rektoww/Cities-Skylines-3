@@ -7,7 +7,7 @@ namespace Core.Interfaces
     /// <summary>
     /// Определяет контракт на здания, которые могут быть построены с течением времени.
     /// </summary>
-    public interface IConstructable
+    public interface IConstructable<T> where T : IConstructable<T>
     {
         /// <summary>
         /// Цена на строительство

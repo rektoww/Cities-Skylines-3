@@ -8,7 +8,7 @@ public class SchoolBuilding : ServiceBuilding
     /// Устанавливает тип здания как School и использует дефолтную или переданную вместимость
     /// </summary>
     /// <param name="capacity">Опциональная вместимость здания.</param>
-    public SchoolBuilding(int capacity = 0) 
+    public SchoolBuilding(int capacity = 0)
         : base(ServiceBuildingType.School, capacity) 
     {
         // Здесь можно добавить любую специфичную для школы логику или свойства

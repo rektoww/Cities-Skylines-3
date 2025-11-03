@@ -16,6 +16,7 @@ namespace Core.Models.Map
             Height = height;
             Tiles = new Tile[Width, Height];
             Buildings = new List<Building>();
+            _buildingsGrid = new Building[Width, Height]; // добавил начальную инициализацию, чтобы NullReferenceException на тестах не выкидывало
 
             InitializeMap();
         }
