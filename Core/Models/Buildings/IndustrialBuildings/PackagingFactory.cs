@@ -9,7 +9,7 @@ namespace Core.Models.Buildings.IndustrialBuildings
     /// </summary>
     public class PackagingFactory
     {
-        #region Enums - Типы материалов и продукции
+        /// #region Enums - Типы материалов и продукции
         
     }
 }

@@ -207,7 +207,7 @@ namespace Laboratornaya3.ViewModels
             // Строим новый объект карты и публикуем его в CurrentMap.
             // SetProperty + OnPropertyChanged(nameof(TilesFlat)) в сеттере CurrentMap
             // обеспечат обновление UI.
-            CurrentMap = StaticMapProvider.Build();
+            CurrentMap = StaticBigMapProvider.Build50();
         }
 
         /// <summary>
