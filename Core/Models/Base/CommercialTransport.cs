@@ -4,10 +4,31 @@ using System.Collections.Generic;
 
 namespace Core.Models.Base;
 
+// TODO: ПОКА КРИВАЯ РЕАЛИЗАЦИЯ Т.К. ПИШЕТСЯ ПОД КОРАБЛИ И САМОЛЕТЫ
+//      ЧТО ПЕРЕВОЗЯТ И ПАССАЖИРОВ, И ТОВАРЫ
+//      ДАЛЬНЕЙШЯЯ РЕДАКТУРА ЧЕРЕЗ ДАНЮ И ОБСУЖДЕНИЕ
+//      КАК ТАКОВЫХ ПРОТИВОРЕЧИЙ С РОДИТЕЛЕМ НЕТ
+//
+// НУЖНО ПЕРЕДЕЛАТЬ ВСЕ КЛАССЫ ДЛЯ СФЕРЫ ТРАНСПОРТА:
+//      РАЗДЕЛЕНИЕ НА ОБЩЕСТВЕННЫЙ И КОММЕРЧЕСКИЙ ТРАНСПОРТ?
+//      ОПРЕДЕЛЕНИЕ ЦЕЛИ ТРАНСПОРТА В НАСЛЕДНИКЕ?
+//
+// НУЖНО ОПРЕДЕЛИТЬСЯ, БУДУТ ЛИ ВОДИТЕЛИ/ПИЛОТЫ/КАПИТАНЫ. ЕСЛИ ДА - 
+//      СДЕЛАТЬ ВЕСЬ КОММЕРЧЕСКИЙ ТРАНСПОРТ ТРАНСПОРТ ПОСТОЯННЫМ МОБОМ -> ДОПИЛИТЬ КЛАССЫ
+//      ЧТОБЫ БЫЛО ЛИБО РАСПИСАНИЕ, ЛИБО МАРШРУТ (PublicTransport)
+//      ТОГДА НУЖНО БУДЕТ АВТОМАТИЧЕСКИ СОЗДАВАТЬ ТРАНСПОРТ ПРИ РАСПОЛОЖЕНИИ ПОРТА
+//
+// ДОПОЛНИТЬ PlayerResources: МАТЕРИАЛЫ ДЛЯ ТРАНСПОРТИРОВКИ БЕРУТСЯ ОТТУДА, А НЕ С ЗАВОДОВ (?) 
+//
+// ВНЕШНИЙ ВИД (ПИКЧА, ЧТО ПО КАРТЕ ДВИГАЕТСЯ) ОПРЕДЕЛЯЕТСЯ ПРИ СОЗДАНИИ МОБА В ИГРЕ? ЕСЛИ НЕТ - ПРИДЕТСЯ СИЛЬНО МЕНЯТЬ ЛОГИКУ ТРАНСПОРТА.
+
 /// <summary>
-/// Абстрактный базовый класс для коммерческого транспорта (грузовые перевозки).
+/// Абстрактный базовый класс для коммерческого транспорта: самолеты, корабли и (ВОЗМОЖНО) грузовые машины (ПЕРЕМЕЩЕНИЕ РЕСУРСОВ ПО ГОРОДУ).
 /// Наследуется от Transport, но работает с товарами и ресурсами вместо пассажиров.
+/// Тип транспорта (корабль, самолет) определяется в наследниках через параметры и путь движения.
 /// </summary>
+
+
 public abstract class CommercialTransport(int x, int y, GameMap map, int capacity)
     : Transport(x, y, map, capacity)
 {
@@ -27,15 +48,14 @@ public abstract class CommercialTransport(int x, int y, GameMap map, int capacit
     /// </summary>ф
     public bool CanAcceptCargo => TotalCargoAmount < MaxCapacity;
 
-    /// <summary>
-    /// Флаг, указывающий что товары были успешно доставлены и транспорт должен быть удален.
-    /// </summary>
-    public bool ShouldBeRemoved { get; protected set; } = false;
+
+
 
     /// <summary>
     /// Маршрут, по которому движется коммерческий транспорт.
     /// </summary>
     public List<Tile> Route { get; set; } = new List<Tile>();
+
 
 
     /// <summary>
@@ -44,7 +64,7 @@ public abstract class CommercialTransport(int x, int y, GameMap map, int capacit
     /// <param name="material">Тип материала</param>
     /// <param name="amount">Количество</param>
     /// <returns>True если загрузка успешна</returns>
-    public virtual bool TryLoadCargo(TransportedGoods material, int amount)
+    public virtual bool LoadCargo(TransportedGoods material, int amount)
     {
         if (!CanAcceptCargo || amount <= 0)
             return false;
@@ -66,14 +86,6 @@ public abstract class CommercialTransport(int x, int y, GameMap map, int capacit
         }
 
         return false;
-    }
-
-    /// <summary>
-    /// Помечает транспорт для удаления после успешной доставки.
-    /// </summary>
-    public virtual void MarkForRemoval()
-    {
-        ShouldBeRemoved = true;
     }
 
     /// <summary>

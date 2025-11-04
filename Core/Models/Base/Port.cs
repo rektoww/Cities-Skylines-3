@@ -5,48 +5,32 @@ namespace Core.Models.Base;
 
 /// <summary>
 /// Абстрактный базовый класс для всех портов (воздушных и морских).
-/// Наследуется от Building, предоставляет базовую логику для портов.
+/// Наследуется от TransitStation, предоставляет базовую логику для портов.
+/// Сочетает функции остановки общественного транспорта и пункта прибытия коммерческих грузов.
 /// </summary>
-public abstract class Port : Building
+public abstract class Port : TransitStation
 {
-
     /// <summary>
-    /// Список коммерческих транспортов, приписанных к порту.
-    /// </summary>
-    public List<CommercialTransport> AssignedTransports { get; set; } = new List<CommercialTransport>();
-
-    /// <summary>
-    /// Вместимость порта (максимальное количество транспортов).
+    /// Вместимость порта (максимальное количество транспортов, которые можно отправить в порт).
     /// </summary>
     public int Capacity { get; protected set; }
 
     /// <summary>
+    /// Текущее количество транспортов, направленных в порт.
+    /// </summary>
+    public int CurrentTransports { get; protected set; }
+
+    /// <summary>
     /// Конструктор порта.
     /// </summary>
-    public Port() : base(Width: 2, Height: 2)
+    public Port()
     {
+        // Базовые размеры порта
+        Width = 2;
+        Height = 2;
+        Floors = 1;
         Capacity = 5;
-    }
-
-    /// <summary>
-    /// Добавляет коммерческий транспорт в порт.
-    /// </summary>
-    public virtual bool AssignTransport(CommercialTransport transport)
-    {
-        if (AssignedTransports.Count < Capacity)
-        {
-            AssignedTransports.Add(transport);
-            return true;
-        }
-        return false;
-    }
-
-    /// <summary>
-    /// Удаляет коммерческий транспорт из порта.
-    /// </summary>
-    public virtual bool RemoveTransport(CommercialTransport transport)
-    {
-        return AssignedTransports.Remove(transport);
+        CurrentTransports = 0;
     }
 
     /// <summary>
@@ -54,11 +38,47 @@ public abstract class Port : Building
     /// </summary>
     public virtual bool CanAcceptTransport()
     {
-        return AssignedTransports.Count < Capacity;
+        return CurrentTransports < Capacity;
     }
 
-    public override void OnBuildingPlaced()
+    /// <summary>
+    /// Увеличивает счетчик транспортов, направленных в порт.
+    /// </summary>
+    public virtual void AddTransport()
     {
-        // Базовая логика размещения порта
+        if (CanAcceptTransport())
+        {
+            CurrentTransports++;
+        }
     }
+
+    /// <summary>
+    /// Уменьшает счетчик транспортов (при удалении транспорта).
+    /// </summary>
+    public virtual void RemoveTransport()
+    {
+        if (CurrentTransports > 0)
+        {
+            CurrentTransports--;
+        }
+    }
+
+    /// <summary>
+    /// Удаляет транспорт с карты
+    /// </summary>
+    public virtual void DeleteTransport()
+    {
+        // TODO: НУЖЕН МЕТОД ДЛЯ УДАЛЕНИЯ МОБОВ С КАРТЫ, ЕСЛИ ТРАНСПОРТ НЕ БУДЕТ ПОСТОЯННЫМ.
+
+
+    }
+
+    /// <summary>
+    /// Получает количество доступных слотов для транспорта.
+    /// </summary>
+    public virtual int GetAvailableSlots()
+    {
+        return Capacity - CurrentTransports;
+    }
+
 }
