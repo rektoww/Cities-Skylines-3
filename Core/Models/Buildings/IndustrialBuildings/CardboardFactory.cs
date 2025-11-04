@@ -2,6 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+<<<<<<< Updated upstream
+=======
+using System.Text;
+using System.Threading.Tasks;
+>>>>>>> Stashed changes
 
 namespace Core.Models.Buildings.IndustrialBuildings
 {
@@ -394,4 +399,8 @@ namespace Core.Models.Buildings.IndustrialBuildings
 
         #endregion
     }
+<<<<<<< Updated upstream
 }
+=======
+}
+>>>>>>> Stashed changes

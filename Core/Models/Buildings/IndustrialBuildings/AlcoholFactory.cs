@@ -78,7 +78,7 @@ namespace Core.Models.Buildings.IndustrialBuildings
         public int MaxWorkers { get; private set; }
 
         // Коэффициент эффективности в зависимости от количества рабочих
-        public float ProductionEfficiency => WorkersCount > 0 ? 0.4f + (WorkersCount / (float)MaxWorkers) * 0.6f : 0f;
+        public float ProductionEfficiency => WorkersCount > 0 ? 0.4f + WorkersCount / (float)MaxWorkers * 0.6f : 0f;
 
         /// <summary>
         /// Создает новый завод по производству алкоголя
