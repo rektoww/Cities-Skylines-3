@@ -19,6 +19,13 @@ namespace Core.Enums
         Cashier,
         Chef,
         Barista,
-        Pharmacist
+        Pharmacist,
+        // Профессии для агропрома:
+        Farmer,
+        Agronomist,
+        LivestockSpecialist,
+        // Профессии для рыбодобывающая отрасль
+        Fisherman,
+        FishProcessor
     }
 }
