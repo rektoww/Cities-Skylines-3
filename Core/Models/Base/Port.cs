@@ -1,7 +1,11 @@
 ﻿using Core.Models.Map;
 using System.Collections.Generic;
+using Core.Models.Mobs;
 
 namespace Core.Models.Base;
+
+//TODO: РЕАЛИЗОВАТЬ ПОСЛЕ ИЗМЕНЕНИЙ ТРАНСПОРТА ТИП (КОРАБЛЬ, САМОЛЕТ) ТРАНСПОРТА, КОТОРЫЙ МОЖЕТ ПРИНИМАТЬ ПОРТ
+//      ПОКА ЧТО КОРАБЛЬ = САМОЛЕТ ДЛЯ ПОРТА
 
 /// <summary>
 /// Абстрактный базовый класс для всех портов (воздушных и морских).
@@ -21,11 +25,15 @@ public abstract class Port : TransitStation
     public int CurrentTransports { get; protected set; }
 
     /// <summary>
+    /// Список прибывших транспортов (для учёта и возможной последующей разгрузки).
+    /// </summary>
+    public List<CommercialTransport> ArrivedTransports { get; private set; } = new List<CommercialTransport>();
+
+    /// <summary>
     /// Конструктор порта.
     /// </summary>
     public Port()
     {
-        // Базовые размеры порта
         Width = 2;
         Height = 2;
         Floors = 1;
@@ -47,9 +55,7 @@ public abstract class Port : TransitStation
     public virtual void AddTransport()
     {
         if (CanAcceptTransport())
-        {
             CurrentTransports++;
-        }
     }
 
     /// <summary>
@@ -58,27 +64,61 @@ public abstract class Port : TransitStation
     public virtual void RemoveTransport()
     {
         if (CurrentTransports > 0)
-        {
             CurrentTransports--;
+    }
+
+    /// <summary>
+    /// Обрабатывает прибытие транспорта (самолет или корабль) в порт.
+    /// Проверяет достижение цели и при успешном прибытии добавляет транспорт в список прибывших.
+    /// </summary>
+    /// <param name="transport">Коммерческий транспорт</param>
+    public virtual void ReceiveTransport(CommercialTransport transport)
+    {
+        // Проверка типа и статуса прибытия
+        if (transport is Airplane airplane && airplane.HasReachedDestination)
+        {
+            if (CanAcceptTransport())
+            {
+                ArrivedTransports.Add(airplane);
+                AddTransport();
+                HideTransport(airplane);
+            }
+        }
+        else if (transport is Ship ship && ship.HasReachedDestination)
+        {
+            if (CanAcceptTransport())
+            {
+                ArrivedTransports.Add(ship);
+                AddTransport();
+                HideTransport(ship);
+            }
         }
     }
 
+
+    // TODO: ПО-ХОРОШЕМУ РЕАЛИЗУЕТ МЕТОДЫ КЛАССА Mob
     /// <summary>
-    /// Удаляет транспорт с карты
+    /// Абстрактный метод-заглушка для скрытия транспорта, достигшего конечной цели.
+    /// Реализуется в потомках (например, визуальное скрытие, снятие с карты и т.п.).
     /// </summary>
-    public virtual void DeleteTransport()
-    {
-        // TODO: НУЖЕН МЕТОД ДЛЯ УДАЛЕНИЯ МОБОВ С КАРТЫ, ЕСЛИ ТРАНСПОРТ НЕ БУДЕТ ПОСТОЯННЫМ.
+    /// <param name="transport">Транспорт, который нужно скрыть</param>
+    public abstract void HideTransport(CommercialTransport transport);
 
 
-    }
+    /// <summary>
+    /// Удаляет транспорт с карты либо сам, либо через взаимодействие с классом CommercialTransport.
+    /// </summary>
+    public abstract void DeleteTransport(CommercialTransport transport);
+    
+        // TODO: метод для удаления мобов с карты, если транспорт не будет постоянным.
+    
 
     /// <summary>
     /// Получает количество доступных слотов для транспорта.
+    /// Использовать для логики отправки грузового транспорта в порт.
     /// </summary>
     public virtual int GetAvailableSlots()
     {
         return Capacity - CurrentTransports;
     }
-
 }
