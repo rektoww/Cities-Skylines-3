@@ -41,7 +41,7 @@ namespace Tests.UnitTests
 
             // Попытка установить больше рабочих, чем максимум
             facility.SetWorkersCount(10);
-            Assert.AreEqual(5, facility.WorkersCount); // Должно ограничиться MaxWorkers
+            Assert.AreEqual(5, facility.WorkersCount); 
 
             // Установка нуля рабочих
             facility.SetWorkersCount(0);
