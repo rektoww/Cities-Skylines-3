@@ -56,7 +56,7 @@ namespace Tests.UnitTests
             Assert.IsFalse(placed, "Здание не должно размещаться за границей карты.");
         }
 
-        // ❌ Попытка построить на воде
+        // Попытка построить на воде
         [TestMethod]
         public void TryPlace_ShouldFail_OnWater()
         {

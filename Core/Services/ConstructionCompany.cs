@@ -40,7 +40,7 @@ namespace Core.Services
                 return true;
             }
 
-            balance = _resources.StoredMaterials.ContainsKey(material) ? _resources.StoredMaterials[material] : 0;
+            balance = _resources.StoredMaterials.ContainsKey(material) ? _resources.StoredMaterials[material] : -1;
             return false;
         }
 

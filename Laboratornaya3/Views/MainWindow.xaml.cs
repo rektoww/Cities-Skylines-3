@@ -3,6 +3,10 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System;
+using System.Windows;
+using System.Windows.Input;
+using System.Windows.Media.Animation;
 
 namespace Laboratornaya3
 {
@@ -60,27 +64,31 @@ namespace Laboratornaya3
         /// </summary>
         private void MapScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            e.Handled = true; // Останавливаем ScrollViewer от обработки колеса мыши
+            e.Handled = true;
 
-            double newScale = _scale;
+            // Позиция курсора относительно MapGrid
+            Point mousePosition = e.GetPosition(MapGrid);
 
-            if (e.Delta > 0)
-            {
-                // Приближение (Увеличение масштаба)
-                newScale += ScaleStep;
-            }
-            else
-            {
-                // Отдаление (Уменьшение масштаба)
-                newScale -= ScaleStep;
-            }
+            double zoomFactor = (e.Delta > 0) ? (1 + ScaleStep) : (1 - ScaleStep);
+            double newScale = _scale * zoomFactor;
 
             // Ограничиваем масштаб
             newScale = Math.Clamp(newScale, MinScale, MaxScale);
 
-            // Обновляем ScaleTransform в XAML
+            // Центрирование относительно курсора мыши
+            // 1. Вычисляем разницу между старым и новым масштабом
+            double scaleDelta = newScale / _scale;
+
+            // 2. Корректируем смещение, чтобы "сфокусироваться" на точке под курсором
+            // Суть: точка под мышкой должна оставаться на экране в том же месте
+            TranslateTransform.X = (TranslateTransform.X - mousePosition.X) * scaleDelta + mousePosition.X;
+            TranslateTransform.Y = (TranslateTransform.Y - mousePosition.Y) * scaleDelta + mousePosition.Y;
+
+            // 3. Применяем новый масштаб
             ScaleTransform.ScaleX = newScale;
             ScaleTransform.ScaleY = newScale;
+
+            // 4. Обновляем внутреннее поле масштаба
             _scale = newScale;
         }
 

@@ -1,4 +1,4 @@
-﻿using Core.Enums;
+using Core.Enums;
 using Core.Interfaces;
 using Core.Models.Components;
 using System;
@@ -7,24 +7,25 @@ using System.Linq;
 
 namespace Core.Models.Buildings.IndustrialBuildings
 {
-    public class AlcoholFactory : CommercialBuilding, IConstructable<AlcoholFactory>
+    public class FisheryComplex : CommercialBuilding, IConstructable<FisheryComplex>
     {
         #region Static Properties - Construction Cost
 
         /// <summary>
-        /// Стоимость постройки завода алкоголя
+        /// Стоимость постройки рыбодобывающего комбината
         /// </summary>
-        public static decimal BuildCost { get; protected set; } = 280000m;
+        public static decimal BuildCost { get; protected set; } = 350000m;
 
         /// <summary>
-        /// Материалы, необходимые для строительства завода алкоголя
+        /// Материалы, необходимые для строительства рыбодобывающего комбината
         /// </summary>
         public static Dictionary<ConstructionMaterial, int> RequiredMaterials { get; protected set; }
             = new Dictionary<ConstructionMaterial, int>
             {
-                { ConstructionMaterial.Steel, 6 },
-                { ConstructionMaterial.Concrete, 7 },
-                { ConstructionMaterial.Glass, 5 }
+                { ConstructionMaterial.Steel, 12 },
+                { ConstructionMaterial.Concrete, 8 },
+                { ConstructionMaterial.Glass, 3 },
+                { ConstructionMaterial.Plastic, 8 }
             };
 
         #endregion
@@ -32,35 +33,37 @@ namespace Core.Models.Buildings.IndustrialBuildings
         #region Simplified Enums
 
         /// <summary>
-        /// Типы сырья для производства алкоголя
+        /// Типы сырья для рыбодобывающей отрасли
         /// </summary>
-        public enum AlcoholMaterial
+        public enum FisheryMaterial
         {
-            Wheat,
-            Water,
-            Grapes
+            Fuel,
+            FishingGear,
+            Ice,
+            Salt
         }
 
         /// <summary>
-        /// Типы производимой алкогольной продукции
+        /// Типы рыбной продукции
         /// </summary>
-        public enum AlcoholProduct
+        public enum FisheryProduct
         {
-            Beer,
-            Vodka,
-            Whiskey,
-            Wine,
-            Brandy,
-            Alcohol
+            FreshFish,
+            FrozenFish,
+            CannedFish,
+            FishFillets,
+            FishOil,
+            FishMeal,
+            Seafood
         }
 
         #endregion
 
         /// <summary>Количество сырья на складе</summary>
-        public Dictionary<AlcoholMaterial, int> MaterialsStorage { get; private set; } = new Dictionary<AlcoholMaterial, int>();
+        public Dictionary<FisheryMaterial, int> MaterialsStorage { get; private set; } = new Dictionary<FisheryMaterial, int>();
 
         /// <summary>Количество продукции на складе</summary>
-        public Dictionary<AlcoholProduct, int> ProductsStorage { get; private set; } = new Dictionary<AlcoholProduct, int>();
+        public Dictionary<FisheryProduct, int> ProductsStorage { get; private set; } = new Dictionary<FisheryProduct, int>();
 
         /// <summary>Максимальная вместимость склада сырья</summary>
         public int MaxMaterialStorage { get; private set; }
@@ -68,7 +71,7 @@ namespace Core.Models.Buildings.IndustrialBuildings
         /// <summary>Максимальная вместимость склада продукции</summary>
         public int MaxProductStorage { get; private set; }
 
-        /// <summary>Производственные цеха завода</summary>
+        /// <summary>Производственные цеха комбината</summary>
         public List<Workshop> Workshops { get; private set; } = new List<Workshop>();
 
         /// <summary>Текущее количество рабочих</summary>
@@ -78,17 +81,17 @@ namespace Core.Models.Buildings.IndustrialBuildings
         public int MaxWorkers { get; private set; }
 
         // Коэффициент эффективности в зависимости от количества рабочих
-        public float ProductionEfficiency => WorkersCount > 0 ? 0.4f + WorkersCount / (float)MaxWorkers * 0.6f : 0f;
+        public float ProductionEfficiency => WorkersCount > 0 ? 0.4f + (WorkersCount / (float)MaxWorkers) * 0.6f : 0f;
 
         /// <summary>
-        /// Создает новый завод по производству алкоголя
-        /// Выходные данные: инициализированный завод с цехами и стартовыми материалами
+        /// Создает новый рыбодобывающий комбинат
+        /// Выходные данные: инициализированный комбинат с цехами и стартовыми материалами
         /// </summary>
-        public AlcoholFactory() : base(CommercialBuildingType.Factory)
+        public FisheryComplex() : base(CommercialBuildingType.Factory)
         {
-            MaxMaterialStorage = 1200;
-            MaxProductStorage = 600;
-            MaxWorkers = 10;
+            MaxMaterialStorage = 1500;
+            MaxProductStorage = 800;
+            MaxWorkers = 12;
             WorkersCount = 0;
 
             InitializeWorkshops();
@@ -96,73 +99,84 @@ namespace Core.Models.Buildings.IndustrialBuildings
         }
 
         /// <summary>
-        /// Инициализирует цеха завода, использующие пшеницу, воду и виноград для производства алкоголя
+        /// Инициализирует цеха комбината для рыбодобычи и переработки
         /// Входные данные: отсутствуют
         /// Выходные данные: созданные и настроенные производственные цеха
         /// </summary>
         private void InitializeWorkshops()
         {
-            // Цех брожения (производство пива и вина)
-            var fermentationWorkshop = new Workshop
+            // Цех добычи рыбы
+            var fishingWorkshop = new Workshop
             {
-                Name = "Цех брожения",
+                Name = "Цех добычи рыбы",
                 ProductionCycleTime = 8
             };
-            fermentationWorkshop.InputRequirements.Add("Wheat", 8);
-            fermentationWorkshop.InputRequirements.Add("Water", 6);
-            fermentationWorkshop.InputRequirements.Add("Grapes", 4);
-            fermentationWorkshop.OutputProducts.Add("Beer", 10);
-            fermentationWorkshop.OutputProducts.Add("Wine", 8);
-            Workshops.Add(fermentationWorkshop);
+            fishingWorkshop.InputRequirements.Add("Fuel", 15);
+            fishingWorkshop.InputRequirements.Add("FishingGear", 8);
+            fishingWorkshop.OutputProducts.Add("FreshFish", 20);
+            Workshops.Add(fishingWorkshop);
 
-            // Цех дистилляции (производство водки и виски)
-            var distillationWorkshop = new Workshop
+            // Цех заморозки рыбы
+            var freezingWorkshop = new Workshop
             {
-                Name = "Цех дистилляции",
-                ProductionCycleTime = 12
+                Name = "Цех заморозки рыбы",
+                ProductionCycleTime = 6
             };
-            distillationWorkshop.InputRequirements.Add("Wheat", 12);
-            distillationWorkshop.InputRequirements.Add("Water", 5);
-            distillationWorkshop.OutputProducts.Add("Vodka", 6);
-            distillationWorkshop.OutputProducts.Add("Whiskey", 4);
-            Workshops.Add(distillationWorkshop);
+            freezingWorkshop.InputRequirements.Add("FreshFish", 12);
+            freezingWorkshop.InputRequirements.Add("Ice", 10);
+            freezingWorkshop.OutputProducts.Add("FrozenFish", 8);
+            Workshops.Add(freezingWorkshop);
 
-            // Цех производства чистого спирта
-            var alcoholWorkshop = new Workshop
+            // Цех производства консервов
+            var canningWorkshop = new Workshop
             {
-                Name = "Цех производства спирта",
+                Name = "Консервный цех",
                 ProductionCycleTime = 10
             };
-            alcoholWorkshop.InputRequirements.Add("Wheat", 15);
-            alcoholWorkshop.InputRequirements.Add("Water", 3);
-            alcoholWorkshop.OutputProducts.Add("Alcohol", 8);
-            Workshops.Add(alcoholWorkshop);
+            canningWorkshop.InputRequirements.Add("FreshFish", 15);
+            canningWorkshop.InputRequirements.Add("Salt", 5);
+            canningWorkshop.OutputProducts.Add("CannedFish", 12);
+            Workshops.Add(canningWorkshop);
 
-            // Цех выдержки (производство бренди из вина)
-            var agingWorkshop = new Workshop
+            // Цех разделки рыбы
+            var processingWorkshop = new Workshop
             {
-                Name = "Цех выдержки",
-                ProductionCycleTime = 15
+                Name = "Цех разделки рыбы",
+                ProductionCycleTime = 7
             };
-            agingWorkshop.InputRequirements.Add("Wine", 4);
-            agingWorkshop.OutputProducts.Add("Brandy", 3);
-            Workshops.Add(agingWorkshop);
+            processingWorkshop.InputRequirements.Add("FreshFish", 10);
+            processingWorkshop.InputRequirements.Add("Ice", 3);
+            processingWorkshop.OutputProducts.Add("FishFillets", 6);
+            processingWorkshop.OutputProducts.Add("Seafood", 4);
+            Workshops.Add(processingWorkshop);
+
+            // Цех переработки отходов
+            var byproductWorkshop = new Workshop
+            {
+                Name = "Цех переработки отходов",
+                ProductionCycleTime = 9
+            };
+            byproductWorkshop.InputRequirements.Add("FreshFish", 8); // отходы от разделки
+            byproductWorkshop.OutputProducts.Add("FishOil", 3);
+            byproductWorkshop.OutputProducts.Add("FishMeal", 5);
+            Workshops.Add(byproductWorkshop);
         }
 
         /// <summary>
-        /// Инициализирует стартовые материалы (пшеница, вода, виноград)
+        /// Инициализирует стартовые материалы (топливо, снасти, лед, соль)
         /// Входные данные: отсутствуют
         /// Выходные данные: заполненное хранилище начальным количеством сырья
         /// </summary>
         private void InitializeStartingMaterials()
         {
-            AddMaterial(AlcoholMaterial.Wheat, 400);
-            AddMaterial(AlcoholMaterial.Water, 500);
-            AddMaterial(AlcoholMaterial.Grapes, 200);
+            AddMaterial(FisheryMaterial.Fuel, 500);
+            AddMaterial(FisheryMaterial.FishingGear, 300);
+            AddMaterial(FisheryMaterial.Ice, 400);
+            AddMaterial(FisheryMaterial.Salt, 200);
         }
 
         /// <summary>
-        /// Устанавливает количество рабочих на заводе
+        /// Устанавливает количество рабочих на комбинате
         /// Входные данные: count - количество рабочих для установки
         /// Выходные данные: отсутствуют (устанавливает значение WorkersCount)
         /// </summary>
@@ -173,14 +187,14 @@ namespace Core.Models.Buildings.IndustrialBuildings
         }
 
         /// <summary>
-        /// Добавляет сырье на склад завода
+        /// Добавляет сырье на склад комбината
         /// Входные данные: material - тип сырья, amount - количество для добавления
         /// Выходные данные: true если сырье успешно добавлено, false если превышена вместимость склада
         /// </summary>
         /// <param name="material">Тип добавляемого сырья</param>
         /// <param name="amount">Количество сырья для добавления</param>
         /// <returns>True если сырье успешно добавлено, false в противном случае</returns>
-        public bool AddMaterial(AlcoholMaterial material, int amount)
+        public bool AddMaterial(FisheryMaterial material, int amount)
         {
             int currentAmount = MaterialsStorage.ContainsKey(material) ? MaterialsStorage[material] : 0;
             if (GetTotalMaterialStorage() + amount > MaxMaterialStorage)
@@ -202,7 +216,7 @@ namespace Core.Models.Buildings.IndustrialBuildings
         }
 
         /// <summary>
-        /// Запускает производственные циклы во всех цехах завода
+        /// Запускает производственные циклы во всех цехах комбината
         /// Входные данные: текущее количество сырья и состояние хранилища продукции
         /// Выходные данные: отсутствуют (обновляет количество сырья и хранилище продукции)
         /// </summary>
@@ -218,7 +232,7 @@ namespace Core.Models.Buildings.IndustrialBuildings
                 availableResources.Add(material.Key.ToString(), material.Value);
             }
 
-            // Добавляем существующую продукцию как доступный ресурс для цеха выдержки
+            // Добавляем существующую продукцию как доступный ресурс для цехов переработки
             foreach (var product in ProductsStorage)
             {
                 availableResources.Add(product.Key.ToString(), product.Value);
@@ -282,7 +296,7 @@ namespace Core.Models.Buildings.IndustrialBuildings
             MaterialsStorage.Clear();
             foreach (var resource in availableResources)
             {
-                if (Enum.TryParse<AlcoholMaterial>(resource.Key.ToString(), out var material))
+                if (Enum.TryParse<FisheryMaterial>(resource.Key.ToString(), out var material))
                 {
                     MaterialsStorage[material] = resource.Value;
                 }
@@ -296,7 +310,7 @@ namespace Core.Models.Buildings.IndustrialBuildings
         {
             foreach (var output in producedOutputs)
             {
-                if (Enum.TryParse<AlcoholProduct>(output.Key.ToString(), out var product))
+                if (Enum.TryParse<FisheryProduct>(output.Key.ToString(), out var product))
                 {
                     int currentAmount = ProductsStorage.ContainsKey(product) ? ProductsStorage[product] : 0;
                     int availableSpace = MaxProductStorage - GetTotalProductStorage();
@@ -317,8 +331,8 @@ namespace Core.Models.Buildings.IndustrialBuildings
         }
 
         /// <summary>
-        /// Выполняет полный рабочий цикл завода
-        /// Входные данные: текущее состояние завода
+        /// Выполняет полный рабочий цикл комбината
+        /// Входные данные: текущее состояние комбината
         /// Выходные данные: отсутствуют (обновляет все производственные процессы)
         /// </summary>
         public void FullProductionCycle()
@@ -332,9 +346,9 @@ namespace Core.Models.Buildings.IndustrialBuildings
         /// Выходные данные: словарь с типами продукции и их количеством на складе
         /// </summary>
         /// <returns>Словарь с текущими запасами продукции</returns>
-        public Dictionary<AlcoholProduct, int> GetProductionOutput()
+        public Dictionary<FisheryProduct, int> GetProductionOutput()
         {
-            return new Dictionary<AlcoholProduct, int>(ProductsStorage);
+            return new Dictionary<FisheryProduct, int>(ProductsStorage);
         }
 
         /// <summary>
@@ -343,9 +357,9 @@ namespace Core.Models.Buildings.IndustrialBuildings
         /// Выходные данные: словарь с типами сырья и их количеством на складе
         /// </summary>
         /// <returns>Словарь с текущими запасами сырья</returns>
-        public Dictionary<AlcoholMaterial, int> GetMaterialStorage()
+        public Dictionary<FisheryMaterial, int> GetMaterialStorage()
         {
-            return new Dictionary<AlcoholMaterial, int>(MaterialsStorage);
+            return new Dictionary<FisheryMaterial, int>(MaterialsStorage);
         }
 
         /// <summary>
@@ -356,7 +370,7 @@ namespace Core.Models.Buildings.IndustrialBuildings
         /// <param name="product">Тип потребляемой продукции</param>
         /// <param name="amount">Количество продукции для потребления</param>
         /// <returns>True если продукция успешно потреблена, false в противном случае</returns>
-        public bool ConsumeProduct(AlcoholProduct product, int amount)
+        public bool ConsumeProduct(FisheryProduct product, int amount)
         {
             if (!ProductsStorage.ContainsKey(product) || ProductsStorage[product] < amount)
                 return false;
@@ -393,8 +407,19 @@ namespace Core.Models.Buildings.IndustrialBuildings
                 { "MaxMaterialStorage", MaxMaterialStorage },
                 { "TotalProductStorage", GetTotalProductStorage() },
                 { "MaxProductStorage", MaxProductStorage },
-                { "ActiveWorkshops", Workshops.Count }
+                { "ActiveWorkshops", Workshops.Count },
+                { "FleetEfficiency", GetFleetEfficiency() }
             };
+        }
+
+        /// <summary>
+        /// Получает эффективность флота (имитация погодных условий)
+        /// </summary>
+        private float GetFleetEfficiency()
+        {
+            // Простая имитация погодных условий для рыболовного флота
+            var random = new Random();
+            return 0.7f + (float)random.NextDouble() * 0.3f; // 70-100% эффективности
         }
 
         public override void OnBuildingPlaced()
