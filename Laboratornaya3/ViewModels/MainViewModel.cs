@@ -3,19 +3,44 @@ using CommunityToolkit.Mvvm.Input;
 using Core.Models.Map;
 using Core.Services; // Добавляем для NatureManager
 using Infrastructure.Services; // Содержит StaticMapProvider и SaveLoadService
+using Laboratornaya3.ViewModels;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq; // Добавляем для работы с деревьями
 using System.Text;
 using System.Windows;
+using System.Windows.Input;
 
 namespace Laboratornaya3.ViewModels
 {
+    // Штука для хранения название-иконка-категория для UI 
+    public class Building // TODO: Подумть над связкой с беком
+    {
+        public string Name { get; set; }
+        public string Icon { get; set; }
+        public string Category { get; set; }
+    }
+
+    public class TileViewModel : ViewModelBase // Наследуем от ViewModelBase!
+    {
+        public int X { get; set; }
+        public int Y { get; set; }
+        public string Coordinates => $"({X}, {Y})";
+
+        private string _backgroundColor;
+        public string BackgroundColor
+        {
+            get => _backgroundColor;
+            set => SetProperty(ref _backgroundColor, value);
+        }
+    }
+
     /// <summary>
     /// Главная ViewModel приложения.
     /// Отвечает за загрузку/сохранение статичной карты, предоставление данных для отрисовки
     /// и показ информации о клетке по клику.
     /// </summary>
-    public partial class MainViewModel : ObservableObject
+    public partial class MainViewModel : ViewModelBase
     {
         /// <summary>
         /// Сервис сохранения/загрузки карты в/из JSON.
@@ -54,6 +79,28 @@ namespace Laboratornaya3.ViewModels
             }
         }
 
+        // Для активной категории
+        private string _selectedCategoryName;
+        public string SelectedCategoryName
+        {
+            get => _selectedCategoryName;
+            set => SetProperty(ref _selectedCategoryName, value);
+        }
+
+        // Для списка зданий в нижней панели
+        private ObservableCollection<Building> _visibleBuildings;
+        public ObservableCollection<Building> VisibleBuildings
+        {
+            get => _visibleBuildings;
+            set => SetProperty(ref _visibleBuildings, value);
+        }
+
+        // Словарь для хранения всех данных
+        private readonly Dictionary<string, List<Building>> _buildingCategories = new Dictionary<string, List<Building>>();
+
+        // 2. Команды для обработки действий
+        public ICommand SelectCategoryCommand { get; }
+
         /// <summary>
         /// Плоское перечисление всех тайлов карты (для WPF ItemsControl).
         /// Порядок: построчно — сначала Y от 0 до Height-1, внутри каждой строки X от 0 до Width-1.
@@ -83,9 +130,71 @@ namespace Laboratornaya3.ViewModels
             _saveLoadService = new SaveLoadService();
             _natureManager = new NatureManager(); // Инициализируем менеджер природы
 
-            // Загрузка статичной (фиксированной) карты из провайдера.
-            // Внутри строится GameMap на основании «масок» (строковых схем).
+            InitializeCategories();
+
+            // Инициализация команды
+            SelectCategoryCommand = new RelayCommand(SelectCategory);
+
+            // Установка категории по умолчанию
+            SelectedCategoryName = "Коммерция";
+            UpdateBuildingsDisplay("Коммерция");
+
             LoadStatic();
+        }
+
+        // !!! НОВЫЙ МЕТОД: Заполнение данных категорий
+        private void InitializeCategories()
+        {
+            _buildingCategories.Add("Производство", new List<Building>
+            {
+                new Building { Name = "Завод", Icon = "🏭" },
+                new Building { Name = "Ферма", Icon = "🌾" },
+                new Building { Name = "Шахта", Icon = "⛏️" }
+            });
+
+            _buildingCategories.Add("Коммерция", new List<Building>
+            {
+                new Building { Name = "Магазин", Icon = "🛍️" },
+                new Building { Name = "Кафе", Icon = "☕" },
+                new Building { Name = "Ресторан", Icon = "🍴" },
+                new Building { Name = "Заправка", Icon = "⛽" }
+            });
+
+            _buildingCategories.Add("Социум", new List<Building>
+            {
+                new Building { Name = "Школа", Icon = "🏫" },
+                new Building { Name = "Больница", Icon = "🏥" },
+                new Building { Name = "Парк", Icon = "🌳" }
+            });
+
+            _buildingCategories.Add("Транспорт", new List<Building>
+            {
+                new Building { Name = "Аэропорт", Icon = "✈️" },
+                new Building { Name = "Ж/Д Вокзал", Icon = "🚉" }
+            });
+        }
+
+        // Метод, который будет вызываться командой
+        private void SelectCategory(object parameter)
+        {
+            if (parameter is string categoryName)
+            {
+                SelectedCategoryName = categoryName;
+                UpdateBuildingsDisplay(categoryName);
+            }
+        }
+
+        // Логика обновления списка зданий
+        private void UpdateBuildingsDisplay(string categoryName)
+        {
+            if (_buildingCategories.TryGetValue(categoryName, out var buildings))
+            {
+                VisibleBuildings = new ObservableCollection<Building>(buildings);
+            }
+            else
+            {
+                VisibleBuildings = new ObservableCollection<Building>();
+            }
         }
 
         /// <summary>
