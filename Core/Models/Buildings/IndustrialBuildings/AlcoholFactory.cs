@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Core.Models.Buildings.CommertialBuildings
+namespace Core.Models.Buildings.IndustrialBuildings
 {
     public class AlcoholFactory : CommercialBuilding, IConstructable<AlcoholFactory>
     {
