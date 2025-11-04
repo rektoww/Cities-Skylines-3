@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Core.Models.Buildings.CommertialBuildings
+namespace Core.Models.Buildings.IndustrialBuildings
 {
     public class CosmeticsFactory : CommercialBuilding, IConstructable<CosmeticsFactory>
     {
@@ -55,7 +55,7 @@ namespace Core.Models.Buildings.CommertialBuildings
         public int MaxWorkers { get; private set; }
 
         // Коэффициент эффективности в зависимости от количества рабочих
-        public float ProductionEfficiency => WorkersCount > 0 ? 0.5f + (WorkersCount / (float)MaxWorkers) * 0.5f : 0f;
+        public float ProductionEfficiency => WorkersCount > 0 ? 0.5f + WorkersCount / (float)MaxWorkers * 0.5f : 0f;
 
         public CosmeticsFactory() : base(CommercialBuildingType.Factory)
         {

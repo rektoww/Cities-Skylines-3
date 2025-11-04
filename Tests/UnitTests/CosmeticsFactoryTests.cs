@@ -1,7 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Core.Models.Buildings.CommertialBuildings;
 using Core.Enums;
 using System.Linq;
+using Core.Models.Buildings.IndustrialBuildings;
 
 namespace Tests.UnitTests
 {
