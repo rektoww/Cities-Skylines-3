@@ -303,26 +303,6 @@ namespace Core.Tests.Buildings.IndustrialBuildings
             Assert.IsTrue(secondCycleTotal >= firstCycleTotal, "Второй цикл должен увеличить общее производство");
         }
 
-<<<<<<< Updated upstream
-=======
-        [TestMethod]
-        public void WorkshopProcessing_WithInsufficientMaterials_SkipsProduction()
-        {
-            // Arrange
-            _factory.SetWorkersCount(8);
-            // Не добавляем материалы - завод пуст
-
-            var initialProducts = _factory.GetProductionOutput();
-
-            // Act
-            _factory.ProcessWorkshops();
-
-            // Assert
-            var finalProducts = _factory.GetProductionOutput();
-            Assert.AreEqual(initialProducts.Count, finalProducts.Count, "Без материалов производство не должно изменяться");
-        }
->>>>>>> Stashed changes
-
         [TestMethod]
         public void Production_RespectsStorageLimits()
         {
@@ -410,8 +390,5 @@ namespace Core.Tests.Buildings.IndustrialBuildings
             Assert.IsTrue(result, "Потребление 0 единиц всегда должно быть успешным");
         }
     }
-<<<<<<< Updated upstream
 }
-=======
-}
->>>>>>> Stashed changes
+

@@ -2,10 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Core.Models.Buildings.IndustrialBuildings;
-<<<<<<< Updated upstream
-=======
 using System.Diagnostics;
->>>>>>> Stashed changes
 
 namespace Core.Tests.Buildings.IndustrialBuildings
 {
@@ -85,10 +82,7 @@ namespace Core.Tests.Buildings.IndustrialBuildings
             // Arrange
             _factory.SetWorkersCount(7); // Примерно половина от 15
 
-<<<<<<< Updated upstream
-=======
             Debug.Print($"{_factory.ProductionEfficiency}");
->>>>>>> Stashed changes
             // Assert
             Assert.IsTrue(_factory.ProductionEfficiency > 0.6f && _factory.ProductionEfficiency < 0.8f);
         }
