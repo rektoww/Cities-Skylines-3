@@ -51,3 +51,9 @@
 - **Тип**: `CommercialBuildingType.Factory`
 - **Стоимость**: 300,000
 - **Материалы**: 5 Steel, 8 Concrete, 4 Glass, 3 Plastic
+
+## Глава 7: AlcoholFactory.cs
+`AlcoholFactory` — представляет собой фабрику алкоголя.
+- **Тип**: `CommercialBuildingType.Factory`
+- **Стоимость**: 280,000
+- **Материалы**: 6 Steel, 7 Concrete, 5 Glass
