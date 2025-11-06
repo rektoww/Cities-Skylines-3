@@ -1,167 +1,211 @@
-﻿using Laboratornaya3.ViewModels;
+﻿using Core.Models.Base;
+using Core.Models.Buildings;
+using Core.Models.Buildings.CommertialBuildings;
+using Core.Models.Map;
+using Laboratornaya3.ViewModels;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System;
-using System.Windows;
-using System.Windows.Input;
-using System.Windows.Media.Animation;
 
 namespace Laboratornaya3
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
-        private Button _lastSelectedButton;
-
-        // Переменные для масштабирования
-        private double _scale = 1.0;
-        private const double MinScale = 0.5;
-        private const double MaxScale = 4.0;
-        private const double ScaleStep = 0.2;
-
-        // Переменные для панорамирования (UI-логика)
-        private Point _lastMousePosition;
-        private bool _isPanning = false;
-
-        private double _offsetX = 0;
-        private double _offsetY = 0;
-
-        private MainViewModel ViewModel => DataContext as MainViewModel;
+        private Point? lastMousePosition;
+        private bool isDragging = false;
 
         public MainWindow()
         {
             InitializeComponent();
-            this.DataContext = new MainViewModel();
+            DataContext = new MainViewModel();
         }
 
-        /// <summary>
-        /// Обработчик нажатия на кнопку "Легенда". Переключает видимость панели LegendPanel.
-        /// </summary>
-        private void LegendButton_Click(object sender, RoutedEventArgs e)
+        private void MapScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            if (LegendPanel.Visibility == Visibility.Collapsed)
+            if (Keyboard.Modifiers != ModifierKeys.Control)
+                return;
+
+            var scale = e.Delta > 0 ? 1.1 : 0.9;
+            ScaleTransform.ScaleX *= scale;
+            ScaleTransform.ScaleY *= scale;
+            e.Handled = true;
+        }
+
+        private void MapScrollViewer_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            var viewModel = DataContext as MainViewModel;
+
+            if (viewModel?.IsBuildingMode == true && viewModel.SelectedBuilding != null)
             {
-                // Если скрыт, показываем
-                LegendPanel.Visibility = Visibility.Visible;
+                TryPlaceBuilding(e.GetPosition(MapGrid));
+                e.Handled = true;
+            }
+            else if (e.ChangedButton == MouseButton.Left)
+            {
+                lastMousePosition = e.GetPosition(this);
+                isDragging = true;
+                MapScrollViewer.CaptureMouse();
+                MapScrollViewer.Cursor = Cursors.SizeAll;
+            }
+            else if (e.ChangedButton == MouseButton.Right)
+            {
+                viewModel?.CancelBuildingCommand.Execute(null);
+            }
+        }
+
+        private void MapScrollViewer_MouseMove(object sender, MouseEventArgs e)
+        {
+            var viewModel = DataContext as MainViewModel;
+
+            if (viewModel?.IsBuildingMode == true)
+            {
+                MapScrollViewer.Cursor = Cursors.Cross;
+                ShowBuildingPreview(e.GetPosition(MapGrid));
+            }
+            else if (isDragging && lastMousePosition.HasValue)
+            {
+                Point currentPosition = e.GetPosition(this);
+                Vector delta = currentPosition - lastMousePosition.Value;
+
+                TranslateTransform.X += delta.X;
+                TranslateTransform.Y += delta.Y;
+
+                lastMousePosition = currentPosition;
+                MapScrollViewer.Cursor = Cursors.SizeAll;
             }
             else
             {
-                // Если показан, скрываем
-                LegendPanel.Visibility = Visibility.Collapsed;
+                MapScrollViewer.Cursor = Cursors.Arrow;
             }
         }
 
-        // =======================
-        // КАРТА
-        // =======================
-
-        /// <summary>
-        /// Обработчик колеса мыши для масштабирования (приближение/отдаление).
-        /// </summary>
-        private void MapScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
-        {
-            e.Handled = true;
-
-            // Позиция курсора относительно MapGrid
-            Point mousePosition = e.GetPosition(MapGrid);
-
-            double zoomFactor = (e.Delta > 0) ? (1 + ScaleStep) : (1 - ScaleStep);
-            double newScale = _scale * zoomFactor;
-
-            // Ограничиваем масштаб
-            newScale = Math.Clamp(newScale, MinScale, MaxScale);
-
-            // Центрирование относительно курсора мыши
-            // 1. Вычисляем разницу между старым и новым масштабом
-            double scaleDelta = newScale / _scale;
-
-            // 2. Корректируем смещение, чтобы "сфокусироваться" на точке под курсором
-            // Суть: точка под мышкой должна оставаться на экране в том же месте
-            TranslateTransform.X = (TranslateTransform.X - mousePosition.X) * scaleDelta + mousePosition.X;
-            TranslateTransform.Y = (TranslateTransform.Y - mousePosition.Y) * scaleDelta + mousePosition.Y;
-
-            // 3. Применяем новый масштаб
-            ScaleTransform.ScaleX = newScale;
-            ScaleTransform.ScaleY = newScale;
-
-            // 4. Обновляем внутреннее поле масштаба
-            _scale = newScale;
-        }
-
-        /// <summary>
-        /// Нажатие кнопки мыши (начало панорамирования).
-        /// </summary>
-        private void MapScrollViewer_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            // Проверяем, что зажата именно ЛЕВАЯ кнопка мыши.
-            // Используем LeftButton == Pressed, так как это состояние, которое мы отслеживаем в MouseUp
-            if (e.LeftButton == MouseButtonState.Pressed)
-            {
-                _isPanning = true;
-
-                // Получаем начальную позицию курсора относительно MapScrollViewer.
-                _lastMousePosition = e.GetPosition(MapScrollViewer);
-
-                // Считываем текущее смещение из Transform, чтобы продолжить с него
-                _offsetX = TranslateTransform.X;
-                _offsetY = TranslateTransform.Y;
-
-                MapScrollViewer.Cursor = Cursors.Hand;
-                MapScrollViewer.CaptureMouse();
-
-                e.Handled = true;
-            }
-        }
-
-        /// <summary>
-        /// Перемещение курсора (логика панорамирования)
-        /// </summary>
-        private void MapScrollViewer_MouseMove(object sender, MouseEventArgs e)
-        {
-            // Проверяем, что панорамирование активно И что мышь захвачена
-            if (_isPanning && MapScrollViewer.IsMouseCaptured)
-            {
-                // Получаем текущую позицию курсора относительно MapScrollViewer
-                Point currentPosition = e.GetPosition(MapScrollViewer);
-
-                // 1. Вычисляем разницу в положении мыши (дельту).
-                double deltaX = currentPosition.X - _lastMousePosition.X;
-                double deltaY = currentPosition.Y - _lastMousePosition.Y;
-
-                // 2. Обновляем смещение
-                _offsetX += deltaX;
-                _offsetY += deltaY;
-
-                // 3. Применяем новое смещение к TranslateTransform
-                TranslateTransform.X = _offsetX;
-                TranslateTransform.Y = _offsetY;
-
-                // 4. Обновляем последнюю позицию мыши.
-                _lastMousePosition = currentPosition;
-
-                // Поглощаем событие MouseMove
-                e.Handled = true;
-            }
-        }
-
-        /// <summary>
-        /// Отпускание кнопки мыши (окончание панорамирования).
-        /// </summary>
         private void MapScrollViewer_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            // Проверяем, что событие вызвано отпусканием ЛЕВОЙ кнопки
-            if (e.ChangedButton == MouseButton.Left && _isPanning)
+            if (e.ChangedButton == MouseButton.Left && isDragging)
             {
-                _isPanning = false;
-                MapScrollViewer.Cursor = Cursors.Arrow;
+                isDragging = false;
+                lastMousePosition = null;
                 MapScrollViewer.ReleaseMouseCapture();
 
-                e.Handled = true;
+                var viewModel = DataContext as MainViewModel;
+                MapScrollViewer.Cursor = viewModel?.IsBuildingMode == true ? Cursors.Cross : Cursors.Arrow;
             }
+        }
+
+        private void ShowBuildingPreview(Point mousePosition)
+        {
+            var tile = GetTileAtPosition(mousePosition);
+        }
+
+        private void TryPlaceBuilding(Point mousePosition)
+        {
+            var viewModel = DataContext as MainViewModel;
+            if (viewModel == null) return;
+
+            if (!viewModel.IsBuildingMode || viewModel.SelectedBuilding == null) return;
+
+            var tile = GetTileAtPosition(mousePosition);
+            if (tile != null)
+            {
+                viewModel.TryPlaceBuilding(tile.X, tile.Y);
+            }
+        }
+
+        private Tile GetTileAtPosition(Point position)
+        {
+            try
+            {
+                var inverseTransform = new Matrix();
+                inverseTransform.Scale(1 / ScaleTransform.ScaleX, 1 / ScaleTransform.ScaleY);
+                inverseTransform.Translate(-TranslateTransform.X, -TranslateTransform.Y);
+
+                var transformedPoint = inverseTransform.Transform(position);
+
+                double tileSize = 50;
+                int x = (int)(transformedPoint.X / tileSize);
+                int y = (int)(transformedPoint.Y / tileSize);
+
+                var viewModel = DataContext as MainViewModel;
+                if (viewModel?.CurrentMap != null &&
+                    x >= 0 && x < viewModel.CurrentMap.Width &&
+                    y >= 0 && y < viewModel.CurrentMap.Height)
+                {
+                    return viewModel.CurrentMap.Tiles[x, y];
+                }
+
+                return null;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private void LegendButton_Click(object sender, RoutedEventArgs e)
+        {
+            LegendPanel.Visibility = LegendPanel.Visibility == Visibility.Visible
+                ? Visibility.Collapsed
+                : Visibility.Visible;
+        }
+
+        private void TestButton_Click(object sender, RoutedEventArgs e)
+        {
+            var viewModel = DataContext as MainViewModel;
+            if (viewModel?.CurrentMap != null)
+            {
+                var testBuilding = new Shop();
+
+                bool placed = false;
+                for (int offset = 0; offset < 5 && !placed; offset++)
+                {
+                    int centerX = viewModel.CurrentMap.Width / 2 + offset;
+                    int centerY = viewModel.CurrentMap.Height / 2;
+
+                    if (testBuilding.TryPlace(centerX, centerY, viewModel.CurrentMap))
+                    {
+                        viewModel.CurrentMap.Buildings.Add(testBuilding);
+                        viewModel.RefreshMap();
+                        MessageBox.Show($"Тестовое здание размещено в ({centerX}, {centerY})",
+                                       "Тест", MessageBoxButton.OK, MessageBoxImage.Information);
+                        placed = true;
+                    }
+                }
+
+                if (!placed)
+                {
+                    MessageBox.Show("Не удалось разместить тестовое здание ни в одной из позиций!",
+                                   "Тест", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
+        }
+
+        private void ClearBuildings_Click(object sender, RoutedEventArgs e)
+        {
+            var viewModel = DataContext as MainViewModel;
+            if (viewModel?.CurrentMap != null)
+            {
+                int buildingCount = viewModel.CurrentMap.Buildings.Count;
+
+                viewModel.CurrentMap.Buildings.Clear();
+
+                for (int x = 0; x < viewModel.CurrentMap.Width; x++)
+                {
+                    for (int y = 0; y < viewModel.CurrentMap.Height; y++)
+                    {
+                        viewModel.CurrentMap.SetBuildingAt(x, y, null);
+                    }
+                }
+
+                viewModel.RefreshMap();
+                MessageBox.Show($"Удалено {buildingCount} зданий", "Очистка", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        private void MapGrid_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            var position = e.GetPosition(MapGrid);
+            var tile = GetTileAtPosition(position);
         }
     }
 }

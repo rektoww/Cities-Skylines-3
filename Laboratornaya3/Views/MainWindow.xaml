@@ -2,68 +2,54 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:map="clr-namespace:Core.Models.Map;assembly=Core"
+        xmlns:vm="clr-namespace:Laboratornaya3.ViewModels"
+        xmlns:converters="clr-namespace:Laboratornaya3.Converters"
         Title="Cities: Skylines 3"
         Height="600"
         Width="1000"
         WindowState="Maximized"
         WindowStyle="SingleBorderWindow">
+
     <Window.Resources>
-        <Style x:Key="BaseCategoryStyle"
-               TargetType="Button">
-            <Setter Property="Background"
-                    Value="#CCCCCC" />
-            <Setter Property="BorderThickness"
-                    Value="0" />
-            <Setter Property="Padding"
-                    Value="15, 5" />
-            <Setter Property="Foreground"
-                    Value="Black" />
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
+        <converters:NullToCollapsedVisibilityConverter x:Key="NullToCollapsedVisibilityConverter"/>
+
+        <Style x:Key="BaseCategoryStyle" TargetType="Button">
+            <Setter Property="Background" Value="#CCCCCC" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="15, 5" />
+            <Setter Property="Foreground" Value="Black" />
         </Style>
 
-        <Style x:Key="ProductionButtonStyle"
-               TargetType="Button"
-               BasedOn="{StaticResource BaseCategoryStyle}">
+        <Style x:Key="ProductionButtonStyle" TargetType="Button" BasedOn="{StaticResource BaseCategoryStyle}">
             <Style.Triggers>
-                <DataTrigger Binding="{Binding SelectedCategoryName}"
-                             Value="Производство">
-                    <Setter Property="Background"
-                            Value="White" />
+                <DataTrigger Binding="{Binding SelectedCategoryName}" Value="Производство">
+                    <Setter Property="Background" Value="White" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>
 
-        <Style x:Key="CommerceButtonStyle"
-               TargetType="Button"
-               BasedOn="{StaticResource BaseCategoryStyle}">
+        <Style x:Key="CommerceButtonStyle" TargetType="Button" BasedOn="{StaticResource BaseCategoryStyle}">
             <Style.Triggers>
-                <DataTrigger Binding="{Binding SelectedCategoryName}"
-                             Value="Коммерция">
-                    <Setter Property="Background"
-                            Value="White" />
+                <DataTrigger Binding="{Binding SelectedCategoryName}" Value="Коммерция">
+                    <Setter Property="Background" Value="White" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>
 
-        <Style x:Key="SociumButtonStyle"
-               TargetType="Button"
-               BasedOn="{StaticResource BaseCategoryStyle}">
+        <Style x:Key="SociumButtonStyle" TargetType="Button" BasedOn="{StaticResource BaseCategoryStyle}">
             <Style.Triggers>
-                <DataTrigger Binding="{Binding SelectedCategoryName}"
-                             Value="Социум">
-                    <Setter Property="Background"
-                            Value="White" />
+                <DataTrigger Binding="{Binding SelectedCategoryName}" Value="Социум">
+                    <Setter Property="Background" Value="White" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>
 
-        <Style x:Key="TransportButtonStyle"
-               TargetType="Button"
-               BasedOn="{StaticResource BaseCategoryStyle}">
+        <Style x:Key="TransportButtonStyle" TargetType="Button" BasedOn="{StaticResource BaseCategoryStyle}">
             <Style.Triggers>
-                <DataTrigger Binding="{Binding SelectedCategoryName}"
-                             Value="Транспорт">
-                    <Setter Property="Background"
-                            Value="White" />
+                <DataTrigger Binding="{Binding SelectedCategoryName}" Value="Транспорт">
+                    <Setter Property="Background" Value="White" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -77,98 +63,75 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0"
-              Background="#F0F0F0"
-              Height="50">
+        <!-- Top Panel -->
+        <Grid Grid.Row="0" Background="#F0F0F0" Height="50">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <StackPanel Grid.Column="0"
-                        Orientation="Horizontal"
-                        Margin="10,0"
-                        VerticalAlignment="Center">
-                <TextBlock Text="👤"
-                           FontSize="20"
-                           Margin="0,0,3,0"
-                           VerticalAlignment="Center"
-                           FontWeight="Bold" />
-                <TextBlock Text="0"
-                           FontSize="20"
-                           VerticalAlignment="Center"
-                           FontWeight="Bold" />
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="10,0" VerticalAlignment="Center">
+                <Button Content="❌"
+                        Command="{Binding CancelBuildingCommand}"
+                        ToolTip="Отменить размещение"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        FontSize="16"
+                        Margin="0,0,10,0"
+                        Visibility="{Binding IsBuildingMode, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+
+                <!-- Кнопки для тестирования -->
+                <Button Content="🧪 Тест" 
+                        Click="TestButton_Click"
+                        ToolTip="Тестовые функции"
+                        Background="LightGreen"
+                        Margin="0,0,10,0"
+                        Padding="5,2"/>
+
+                <Button Content="🗑️ Очистить" 
+                        Click="ClearBuildings_Click"
+                        ToolTip="Удалить все здания"
+                        Background="LightCoral"
+                        Margin="0,0,10,0"
+                        Padding="5,2"/>
+
+                <TextBlock Text="👤" FontSize="20" Margin="0,0,3,0" VerticalAlignment="Center" FontWeight="Bold" />
+                <TextBlock Text="0" FontSize="20" VerticalAlignment="Center" FontWeight="Bold" />
             </StackPanel>
 
-            <Border Grid.Column="1"
-                    CornerRadius="20"
-                    Background="Yellow"
-                    Width="60"
-                    Height="40"
-                    Margin="0,-5,0,0">
-                <TextBlock Text="12:34"
-                           Foreground="Black"
-                           FontWeight="Bold"
-                           VerticalAlignment="Center"
-                           HorizontalAlignment="Center" />
+            <Border Grid.Column="1" CornerRadius="20" Background="Yellow" Width="60" Height="40" Margin="0,-5,0,0">
+                <TextBlock Text="12:34" Foreground="Black" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center" />
             </Border>
 
-            <StackPanel Grid.Column="2"
-                        Orientation="Horizontal"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Center"
-                        Margin="10,0">
-
-                <StackPanel Orientation="Horizontal"
-                            Margin="0,0,10,0">
-                    <TextBlock Text="⚡"
-                               FontSize="20"
-                               Margin="0,0,3,0"
-                               VerticalAlignment="Center" />
-                    <TextBlock Text="0"
-                               FontSize="20"
-                               VerticalAlignment="Center" />
+            <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10,0">
+                <StackPanel Orientation="Horizontal" Margin="0,0,10,0">
+                    <TextBlock Text="⚡" FontSize="20" Margin="0,0,3,0" VerticalAlignment="Center" />
+                    <TextBlock Text="0" FontSize="20" VerticalAlignment="Center" />
                 </StackPanel>
 
-                <StackPanel Orientation="Horizontal"
-                            Margin="0,0,10,0">
-                    <TextBlock Text="🌊"
-                               FontSize="20"
-                               Margin="0,0,3,0"
-                               VerticalAlignment="Center" />
-                    <TextBlock Text="0"
-                               FontSize="20"
-                               VerticalAlignment="Center" />
+                <StackPanel Orientation="Horizontal" Margin="0,0,10,0">
+                    <TextBlock Text="🌊" FontSize="20" Margin="0,0,3,0" VerticalAlignment="Center" />
+                    <TextBlock Text="0" FontSize="20" VerticalAlignment="Center" />
                 </StackPanel>
 
-                <StackPanel Orientation="Horizontal"
-                            Margin="0,0,10,0">
-                    <TextBlock Text="⛽"
-                               FontSize="20"
-                               Margin="0,0,3,0"
-                               VerticalAlignment="Center" />
-                    <TextBlock Text="0"
-                               FontSize="20"
-                               VerticalAlignment="Center" />
+                <StackPanel Orientation="Horizontal" Margin="0,0,10,0">
+                    <TextBlock Text="⛽" FontSize="20" Margin="0,0,3,0" VerticalAlignment="Center" />
+                    <TextBlock Text="0" FontSize="20" VerticalAlignment="Center" />
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="💵"
-                               Margin="0,0,3,0"
-                               FontSize="20"
-                               VerticalAlignment="Center" />
-                    <TextBlock Text="0$"
-                               FontSize="20"
-                               VerticalAlignment="Center" />
+                    <TextBlock Text="💵" Margin="0,0,3,0" FontSize="20" VerticalAlignment="Center" />
+                    <TextBlock Text="0$" FontSize="20" VerticalAlignment="Center" />
                 </StackPanel>
             </StackPanel>
         </Grid>
 
+        <!-- Map Area -->
         <ScrollViewer Grid.Row="1"
                       x:Name="MapScrollViewer"
-                      HorizontalScrollBarVisibility="Disabled"
-                      VerticalScrollBarVisibility="Disabled"
+                      HorizontalScrollBarVisibility="Auto"
+                      VerticalScrollBarVisibility="Auto"
                       PreviewMouseWheel="MapScrollViewer_PreviewMouseWheel"
                       MouseDown="MapScrollViewer_MouseDown"
                       MouseMove="MapScrollViewer_MouseMove"
@@ -176,11 +139,13 @@
                       Background="#ADD8E6">
 
             <ContentControl x:Name="MapContainer">
-
-                <Grid x:Name="MapGrid"
+                <Grid x:Name="MapGrid" 
                       RenderTransformOrigin="0,0"
-                      Width="500"
-                      Height="500">
+                      Width="2500"
+                      Height="2500"
+                      MouseDown="MapGrid_MouseDown"
+                      VerticalAlignment="Center"
+                      HorizontalAlignment="Center">
                     <Grid.RenderTransform>
                         <TransformGroup>
                             <TranslateTransform x:Name="TranslateTransform" />
@@ -188,108 +153,117 @@
                         </TransformGroup>
                     </Grid.RenderTransform>
 
-                    <!-- summary: ItemsControl с привязками к размерам карты и шаблоном клетки -->
-                    <ItemsControl x:Name="TilesItemsControl"
-                                  ItemsSource="{Binding TilesFlat}">
+                    <ItemsControl x:Name="TilesItemsControl" ItemsSource="{Binding TilesFlat}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <!-- ВАЖНО: привязки к размерам карты вместо 10×10 -->
-                                <UniformGrid Columns="{Binding CurrentMap.Width}"
-                                             Rows="{Binding CurrentMap.Height}" />
+                                <UniformGrid Columns="{Binding CurrentMap.Width}" Rows="{Binding CurrentMap.Height}" />
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
 
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="{x:Type map:Tile}">
-                                <!-- Просто визуальный контейнер клетки -->
-                                <Border Width="50"
-                                        Height="50"
-                                        BorderBrush="#333333"
-                                        BorderThickness="1">
-                                    <!-- Цвет фона от рельефа -->
+                                <Border Width="50" Height="50" BorderBrush="#333333" BorderThickness="1">
                                     <Border.Style>
                                         <Style TargetType="Border">
-                                            <!-- По умолчанию Plain -->
-                                            <Setter Property="Background"
-                                                    Value="PaleGreen" />
+                                            <Setter Property="Background" Value="PaleGreen" />
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding Terrain}"
-                                                             Value="Water">
-                                                    <Setter Property="Background"
-                                                            Value="LightBlue" />
+                                                <DataTrigger Binding="{Binding Terrain}" Value="Water">
+                                                    <Setter Property="Background" Value="LightBlue" />
                                                 </DataTrigger>
-                                                <DataTrigger Binding="{Binding Terrain}"
-                                                             Value="Mountain">
-                                                    <Setter Property="Background"
-                                                            Value="Gray" />
+                                                <DataTrigger Binding="{Binding Terrain}" Value="Mountain">
+                                                    <Setter Property="Background" Value="Gray" />
                                                 </DataTrigger>
-                                                <DataTrigger Binding="{Binding Terrain}"
-                                                             Value="Forest">
-                                                    <Setter Property="Background"
-                                                            Value="DarkGreen" />
+                                                <DataTrigger Binding="{Binding Terrain}" Value="Forest">
+                                                    <Setter Property="Background" Value="DarkGreen" />
                                                 </DataTrigger>
-                                                <DataTrigger Binding="{Binding Terrain}"
-                                                             Value="Meadow">
-                                                    <Setter Property="Background"
-                                                            Value="LightGreen" />
+                                                <DataTrigger Binding="{Binding Terrain}" Value="Meadow">
+                                                    <Setter Property="Background" Value="LightGreen" />
                                                 </DataTrigger>
-                                                <DataTrigger Binding="{Binding Terrain}"
-                                                             Value="Plain">
-                                                    <Setter Property="Background"
-                                                            Value="PaleGreen" />
+                                                <DataTrigger Binding="{Binding Terrain}" Value="Plain">
+                                                    <Setter Property="Background" Value="PaleGreen" />
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
                                     </Border.Style>
+
+                                    <!-- ВИЗУАЛИЗАЦИЯ ЗДАНИЙ -->
+                                    <Grid>
+                                        <!-- Фон тайла -->
+                                        <Rectangle Fill="Transparent" />
+
+                                        <!-- Здание (если есть) -->
+                                        <Border Background="Red" 
+                                                Margin="2"
+                                                CornerRadius="3"
+                                                Visibility="{Binding Building, Converter={StaticResource NullToVisibilityConverter}}">
+                                            <TextBlock Text="{Binding Building.Name}" 
+                                                       FontSize="8" 
+                                                       Foreground="White" 
+                                                       FontWeight="Bold"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center"
+                                                       TextWrapping="Wrap"
+                                                       TextAlignment="Center"/>
+                                        </Border>
+                                    </Grid>
+
+                                    <Border.InputBindings>
+                                        <MouseBinding MouseAction="LeftClick" 
+                                                      Command="{Binding DataContext.ShowTileInfoCommand, 
+                                                              RelativeSource={RelativeSource AncestorType=Window}}"
+                                                      CommandParameter="{Binding}" />
+                                    </Border.InputBindings>
 
                                     <Border.ToolTip>
                                         <StackPanel>
                                             <TextBlock>
                                                 <Run Text="Рельеф: " /><Run Text="{Binding Terrain}" />
                                             </TextBlock>
-                                            <TextBlock Text="Ресурсы:"
-                                                       FontWeight="Bold"
-                                                       Margin="0,6,0,2" />
-                                            <ItemsControl x:Name="resList"
-                                                          ItemsSource="{Binding Resources}">
+                                            <TextBlock>
+                                                <Run Text="Координаты: " /><Run Text="{Binding X}" /><Run Text=", " /><Run Text="{Binding Y}" />
+                                            </TextBlock>
+                                            <TextBlock Text="Ресурсы:" FontWeight="Bold" Margin="0,6,0,2" />
+                                            <ItemsControl x:Name="resList" ItemsSource="{Binding Resources}">
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
                                                         <TextBlock>
-                                                                <Run Text="{Binding Type}" /><Run Text=" — " /><Run Text="{Binding Amount}" />
+                                                            <Run Text="{Binding Type}" /><Run Text=" — " /><Run Text="{Binding Amount}" />
                                                         </TextBlock>
                                                     </DataTemplate>
                                                 </ItemsControl.ItemTemplate>
                                             </ItemsControl>
-                                            <TextBlock Text="(нет)"
-                                                       Foreground="Gray">
+                                            <TextBlock Text="(нет)" Foreground="Gray">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
-                                                        <Setter Property="Visibility"
-                                                                Value="Collapsed" />
+                                                        <Setter Property="Visibility" Value="Collapsed" />
                                                         <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding HasItems, ElementName=resList}"
-                                                                         Value="False">
-                                                                <Setter Property="Visibility"
-                                                                        Value="Visible" />
+                                                            <DataTrigger Binding="{Binding HasItems, ElementName=resList}" Value="False">
+                                                                <Setter Property="Visibility" Value="Visible" />
                                                             </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
                                                 </TextBlock.Style>
                                             </TextBlock>
+
+                                            <!-- Информация о здании -->
+                                            <TextBlock Text="Здание:" FontWeight="Bold" Margin="0,6,0,2" 
+                                                       Visibility="{Binding Building, Converter={StaticResource NullToVisibilityConverter}}"/>
+                                            <TextBlock Text="{Binding Building.Name}" 
+                                                       Visibility="{Binding Building, Converter={StaticResource NullToVisibilityConverter}}"/>
+                                            <TextBlock Text="Нет здания" Foreground="Gray"
+                                                       Visibility="{Binding Building, Converter={StaticResource NullToCollapsedVisibilityConverter}}"/>
                                         </StackPanel>
                                     </Border.ToolTip>
                                 </Border>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
-
                 </Grid>
-
             </ContentControl>
         </ScrollViewer>
 
+        <!-- Legend Panel -->
         <Canvas Grid.Row="1">
-
             <Button Content="Легенда"
                     x:Name="LegendButton"
                     Canvas.Left="10"
@@ -309,82 +283,47 @@
                     Padding="10"
                     Visibility="Collapsed">
                 <StackPanel>
-                    <TextBlock Text="Обозначения Карты"
-                               FontWeight="Bold"
-                               Margin="0,0,0,10" />
-                    <StackPanel Orientation="Horizontal"
-                                Margin="0,5">
-                        <Border Width="15"
-                                Height="15"
-                                Background="LightBlue"
-                                BorderBrush="#333"
-                                BorderThickness="1"
-                                Margin="0,0,5,0" />
+                    <TextBlock Text="Обозначения Карты" FontWeight="Bold" Margin="0,0,0,10" />
+                    <StackPanel Orientation="Horizontal" Margin="0,5">
+                        <Border Width="15" Height="15" Background="LightBlue" BorderBrush="#333" BorderThickness="1" Margin="0,0,5,0" />
                         <TextBlock Text="Вода (Water)" />
                     </StackPanel>
-
-                    <StackPanel Orientation="Horizontal"
-                                Margin="0,5">
-                        <Border Width="15"
-                                Height="15"
-                                Background="Gray"
-                                BorderBrush="#333"
-                                BorderThickness="1"
-                                Margin="0,0,5,0" />
+                    <StackPanel Orientation="Horizontal" Margin="0,5">
+                        <Border Width="15" Height="15" Background="Gray" BorderBrush="#333" BorderThickness="1" Margin="0,0,5,0" />
                         <TextBlock Text="Горы (Mountain)" />
                     </StackPanel>
-
-                    <StackPanel Orientation="Horizontal"
-                                Margin="0,5">
-                        <Border Width="15"
-                                Height="15"
-                                Background="DarkGreen"
-                                BorderBrush="#333"
-                                BorderThickness="1"
-                                Margin="0,0,5,0" />
+                    <StackPanel Orientation="Horizontal" Margin="0,5">
+                        <Border Width="15" Height="15" Background="DarkGreen" BorderBrush="#333" BorderThickness="1" Margin="0,0,5,0" />
                         <TextBlock Text="Лес (Forest)" />
                     </StackPanel>
-
-                    <StackPanel Orientation="Horizontal"
-                                Margin="0,5">
-                        <Border Width="15"
-                                Height="15"
-                                Background="LightGreen"
-                                BorderBrush="#333"
-                                BorderThickness="1"
-                                Margin="0,0,5,0" />
+                    <StackPanel Orientation="Horizontal" Margin="0,5">
+                        <Border Width="15" Height="15" Background="LightGreen" BorderBrush="#333" BorderThickness="1" Margin="0,0,5,0" />
                         <TextBlock Text="Луг (Meadow)" />
                     </StackPanel>
-
-                    <StackPanel Orientation="Horizontal"
-                                Margin="0,5">
-                        <Border Width="15"
-                                Height="15"
-                                Background="PaleGreen"
-                                BorderBrush="#333"
-                                BorderThickness="1"
-                                Margin="0,0,5,0" />
+                    <StackPanel Orientation="Horizontal" Margin="0,5">
+                        <Border Width="15" Height="15" Background="PaleGreen" BorderBrush="#333" BorderThickness="1" Margin="0,0,5,0" />
                         <TextBlock Text="Равнина (Plain)" />
                     </StackPanel>
 
+                    <!-- Легенда для зданий -->
                     <Separator Margin="0,8,0,8" />
+                    <TextBlock Text="Обозначения Зданий" FontWeight="Bold" Margin="0,0,0,5" />
+                    <StackPanel Orientation="Horizontal" Margin="0,5">
+                        <Border Width="15" Height="15" Background="Red" BorderBrush="#333" BorderThickness="1" Margin="0,0,5,0" />
+                        <TextBlock Text="Здание" />
+                    </StackPanel>
                 </StackPanel>
             </Border>
-
         </Canvas>
 
-        <Grid Grid.Row="2"
-              Background="#DEDEDE">
+        <!-- Bottom Panel -->
+        <Grid Grid.Row="2" Background="#DEDEDE">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <StackPanel Grid.Row="0"
-                        Orientation="Horizontal"
-                        Background="#CCCCCC"
-                        x:Name="CategoryPanel">
-
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Background="#CCCCCC" x:Name="CategoryPanel">
                 <Button Content="Производство"
                         Command="{Binding SelectCategoryCommand}"
                         CommandParameter="Производство"
@@ -404,36 +343,28 @@
                         Command="{Binding SelectCategoryCommand}"
                         CommandParameter="Транспорт"
                         Style="{StaticResource TransportButtonStyle}" />
-
             </StackPanel>
 
-            <ItemsControl Grid.Row="1"
-                          x:Name="BuildingsItemsControl"
-                          ItemsSource="{Binding VisibleBuildings}">
+            <ItemsControl Grid.Row="1" x:Name="BuildingsItemsControl" ItemsSource="{Binding VisibleBuildings}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <StackPanel Orientation="Horizontal"
-                                    Margin="5,10" />
+                        <StackPanel Orientation="Horizontal" Margin="5,10" />
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
 
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border BorderBrush="Gray"
-                                BorderThickness="1"
-                                Width="80"
-                                Height="80"
-                                Margin="5,0"
-                                Background="White"
-                                CornerRadius="5">
-                            <StackPanel HorizontalAlignment="Center"
-                                        VerticalAlignment="Center">
-                                <TextBlock Text="{Binding Icon}"
-                                           FontSize="24"
-                                           HorizontalAlignment="Center" />
-                                <TextBlock Text="{Binding Name}"
-                                           HorizontalAlignment="Center"
-                                           FontSize="10" />
+                        <Border BorderBrush="Gray" BorderThickness="1" Width="80" Height="80" Margin="5,0" Background="White" CornerRadius="5" Cursor="Hand">
+                            <Border.InputBindings>
+                                <MouseBinding MouseAction="LeftClick" 
+                                              Command="{Binding DataContext.SelectBuildingCommand, 
+                                                      RelativeSource={RelativeSource AncestorType=Window}}"
+                                              CommandParameter="{Binding}" />
+                            </Border.InputBindings>
+
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Icon}" FontSize="24" HorizontalAlignment="Center" />
+                                <TextBlock Text="{Binding Name}" HorizontalAlignment="Center" FontSize="10" />
                             </StackPanel>
                         </Border>
                     </DataTemplate>
@@ -441,4 +372,4 @@
             </ItemsControl>
         </Grid>
     </Grid>
-</Window>
+</Window>   
