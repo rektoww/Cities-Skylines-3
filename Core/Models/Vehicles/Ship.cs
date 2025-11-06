@@ -2,7 +2,7 @@
 using Core.Models.Base;
 using System.Collections.Generic;
 
-namespace Core.Models.Mobs;
+namespace Core.Models.Vehicles;
 
 public class Ship : CommercialTransport
 {

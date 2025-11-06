@@ -30,8 +30,10 @@ namespace Core.Models.Mobs
         public float Health { get; set; } = 100f;
 
         public float Happiness { get; set; } = 50f;
-        
-        
+
+        public float AcademicProgress { get; set; } = 0f; // прогресс обучения
+        public float AcademicPerformance { get; set; } // успеваемость обучения
+
         public Building DestinationBuilding { get; set; } // Конечная цель перемещения (Workplace, School, Home)
         public TransitStation TargetTransitStation { get; set; }// Остановка, к которой гражданин направляется или на которой ждет.
         public Transport CurrentTransport { get; set; }// Текущий транспорт, в котором находится гражданин.
@@ -93,7 +95,7 @@ namespace Core.Models.Mobs
         public override void Move()
         {
             // TODO: остальные методы перемещения
-            
+
             if (IsOnTransport)
             {
                 // СОСТОЯНИЕ 1: Едет в транспорте.
@@ -146,7 +148,7 @@ namespace Core.Models.Mobs
                     if (TargetTransitStation != null && !IsAtStationTile())
                     {
                         MoveTowards(TargetTransitStation.X, TargetTransitStation.Y);
-                        
+
                         // Если только что пришли на остановку, регистрируемся в ней.
                         if (IsAtStationTile())
                         {
@@ -170,7 +172,7 @@ namespace Core.Models.Mobs
         public bool TryReproduce()
         {
             if (!CanReproduce || Partner == null) return false;
-        
+
             var random = new Random();
             if (random.NextDouble() < 0.1)
                 return true;
@@ -192,26 +194,37 @@ namespace Core.Models.Mobs
         {
             if (!IsStudying || School == null) return;
 
-            // Если здание не работает, обучение замедляется или останавливается
-            if (!School.IsOperational)
+            if (School is not ServiceBuilding serviceSchool)
             {
-                // Небольшое снижение счастья, если место учебы не работает
-                Happiness = Math.Max(0, Happiness - 0.05f); 
+                // Если здание не является учебным сервисным зданием — прекращаем учиться.
+                IsStudying = false;
+                School = null;
                 return;
             }
 
-            // Попытка выпуска (проверка на возраст и уровень)
-            TryGraduate();
-
-            // Если гражданин все еще учится:
-            if (IsStudying)
+            // Если здание не работает, обучение замедляется/останавливается и прогресс может немного падать
+            if (!serviceSchool.IsOperational)
             {
-                // Небольшое повышение здоровья и счастья от регулярного обучения
-                Health = Math.Min(100, Health + 0.01f);
-                Happiness = Math.Min(100, Happiness + 0.01f);
+                Happiness = Math.Max(0, Happiness - 0.05f);
+                // Небольшая деградация прогресса при отсутствии сервисов
+                AcademicProgress = Math.Max(0, AcademicProgress - 0.01f);
+                return;
             }
+
+            // Накопление прогресса: базовая скорость масштабируется успеваемостью ученика (0..100 -> 0..1)
+            float baseIncrement = 1.0f; // прогресс за такт при Performance = 100
+            float perfMultiplier = Math.Clamp(AcademicPerformance / 100f, 0f, 2f); // допускаем бонусы до x2
+            AcademicProgress = Math.Min(100f, AcademicProgress + baseIncrement * perfMultiplier);
+
+            // Положительные побочные эффекты от регулярного обучения
+            Health = Math.Min(100, Health + 0.01f);
+            Happiness = Math.Min(100, Happiness + 0.01f);
+
+            // Попытка выпуска по накопленному прогрессу
+            if (AcademicProgress >= 100f)
+                TryGraduate();
         }
-        
+
         // Доп метод для обучения
         /// <summary>
         /// Попытка завершить текущий уровень образования и перейти на следующий.
@@ -219,63 +232,51 @@ namespace Core.Models.Mobs
         public void TryGraduate()
         {
             if (!IsStudying || School == null) return;
-            
-            // TODO:тут тонкий момент на подумать
+
             if (School is not ServiceBuilding serviceSchool)
             {
-                // Это может быть ошибкой, если Citizen.School ссылается на что-то несервисное.
-                return; 
+                return;
             }
-            
-            // Сначала проверяем работоспособность школы (коммуникации)
-            if (!serviceSchool.IsOperational) return; // Используем serviceSchool для проверки
 
-            // Логика выпуска из учебного заведения
-            bool shouldGraduate = false;
+            if (!serviceSchool.IsOperational) return;
 
-            // Устанавливаем возрастные рамки для выпуска и повышения уровня
+            // Требуем явный порог прогресса
+            if (AcademicProgress < 100f) return;
+
+            bool promoted = false;
+
             switch (Education)
             {
                 case EducationLevel.School:
-                    // Предполагаем, что школу оканчивают в 18 лет
-                    if (Age >= 18)
-                    {
-                        Education = EducationLevel.College; // Переход на следующий уровень
-                        shouldGraduate = true;
-                    }
+                    Education = EducationLevel.College;
+                    promoted = true;
                     break;
 
                 case EducationLevel.College:
-                    // Предполагаем, что колледж оканчивают к 21 году
-                    if (Age >= 21)
-                    {
-                        Education = EducationLevel.University; // Переход на следующий уровень
-                        shouldGraduate = true;
-                    }
+                    Education = EducationLevel.University;
+                    promoted = true;
                     break;
 
                 case EducationLevel.University:
-                    // Предполагаем, что университет оканчивают к 25 годам
-                    if (Age >= 25)
-                    {
-                        // Максимальный уровень образования достигнут.
-                        Education = EducationLevel.University; 
-                        shouldGraduate = true;
-                    }
+                    // Уже на максимуме — можно просто завершить обучение
+                    promoted = true;
                     break;
             }
 
-            if (shouldGraduate)
+            if (promoted)
             {
                 IsStudying = false;
-                serviceSchool.Clients.Remove(this); // 🟢 ИСПРАВЛЕНИЕ: Используем serviceSchool.Clients
-                School = null; // Гражданин больше не привязан к этому зданию
-                
-                // Счастье повышается после окончания учебы!
+                // Удаляем гражданина из очереди/клиентов школы, если он там
+                if (serviceSchool.Clients.Contains(this))
+                    serviceSchool.Clients.Remove(this);
+                School = null;
+                AcademicProgress = 0f;
+
+                // Счастье повышается после окончания учебы
                 Happiness = Math.Min(100, Happiness + 5f);
             }
         }
-        
+
         /// <summary>
         /// Простейшее движение к цели (пока без поиска пути, просто X, Y).
         /// </summary>
@@ -297,9 +298,9 @@ namespace Core.Models.Mobs
                 MoveTo(X, Y + Math.Sign(deltaY));
             }
         }
-        
+
         // ======ДОПОЛНИТЕЛЬНЫЕ МЕТОДЫ======
-        
+
         /// <summary>
         /// Проверяет, находится ли гражданин на плитке целевой остановки.
         /// </summary>
@@ -312,25 +313,25 @@ namespace Core.Models.Mobs
         /// <summary>
         /// Проверяет, прибыл ли гражданин в конечный пункт (здание).
         /// </summary>
-        private bool IsArrivedAtDestination()
+        public bool IsArrivedAtDestination()
         {
             if (DestinationBuilding == null) return false;
 
             int targetX = DestinationBuilding.X;
             int targetY = DestinationBuilding.Y;
-            
+
             // Если в транспорте, проверяем его координаты
             if (IsOnTransport)
             {
                 targetX = CurrentTransport.X;
                 targetY = CurrentTransport.Y;
             }
-            
+
             // Считаем, что прибыл, если находится на тайле здания (или рядом, для больших зданий)
             return X >= targetX && X < targetX + DestinationBuilding.Width &&
                    Y >= targetY && Y < targetY + DestinationBuilding.Height;
         }
-        
+
         /// <summary>
         /// Упрощенная логика выбора цели (приоритет: Учеба -> Работа -> Дом).
         /// </summary>
@@ -347,28 +348,28 @@ namespace Core.Models.Mobs
             else if (Home != null)
             {
                 // Если других дел нет, идем домой
-                DestinationBuilding = Home; 
+                DestinationBuilding = Home;
             }
         }
-        
+
         /// <summary>
         /// Попытка высадки из транспорта при достижении цели.
         /// </summary>
         private void TryDisembarkFromTransport()
         {
             if (CurrentTransport == null || DestinationBuilding == null) return;
-            
-            CurrentTransport.TryDisembark(this); 
-            
+
+            CurrentTransport.TryDisembark(this);
+
             // Позиция гражданина становится позицией транспорта
-            X = CurrentTransport.X; 
-            Y = CurrentTransport.Y; 
+            X = CurrentTransport.X;
+            Y = CurrentTransport.Y;
 
             CurrentTransport = null; // Мы вышли
             TargetTransitStation = null; // Сбрасываем остановку
             // В следующем такте IsArrivedAtDestination() должен завершить перемещение.
         }
-        
+
         /// <summary>
         /// Упрощенный расчет расстояния до цели (для принятия решения о транспорте).
         /// </summary>
@@ -392,10 +393,10 @@ namespace Core.Models.Mobs
             foreach (var building in GameMap.Buildings)
             {
                 // Используем is с приведением типа, чтобы найти только остановки, которые рабочие
-                if (building is TransitStation station && station.IsOperational) 
+                if (building is TransitStation station && station.IsOperational)
                 {
                     double distanceSquared = Math.Pow(X - station.X, 2) + Math.Pow(Y - station.Y, 2);
-                    
+
                     if (distanceSquared < minDistance)
                     {
                         minDistance = distanceSquared;
@@ -403,7 +404,7 @@ namespace Core.Models.Mobs
                     }
                 }
             }
-            
+
             return nearestStation;
         }
     }

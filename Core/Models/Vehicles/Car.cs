@@ -1,7 +1,8 @@
 ﻿using Core.Models.Base;
 using Core.Models.Map;
+using Core.Models.Mobs;
 
-namespace Core.Models.Mobs
+namespace Core.Models.Vehicles
 {
     /// <summary>
     /// Класс для личного транспорта граждан.

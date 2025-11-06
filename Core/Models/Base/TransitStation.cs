@@ -22,10 +22,10 @@ public abstract class TransitStation : Building
     public List<PublicTransport> ServicedRoutes { get; set; } = new List<PublicTransport>();
 
     // Конструктор
-    public TransitStation() 
+    public TransitStation()
     {
         // Базовая стоимость и размеры могут быть переопределены в наследниках.
-        Width = 1; 
+        Width = 1;
         Height = 1;
         Floors = 1;
     }
@@ -35,8 +35,20 @@ public abstract class TransitStation : Building
     /// </summary>
     public void AddWaitingCitizen(Citizen citizen)
     {
-        // Здесь может быть логика, проверяющая, действительно ли гражданин на плитке станции.
+        if (citizen == null) return;
+
+        // Не добавляем дважды
+        if (WaitingCitizens.Contains(citizen)) return;
+
+        // Помещаем гражданина в очередь ожидания на этой станции
         WaitingCitizens.Add(citizen);
+
+        // Обновляем у гражданина цель ожидания и позицию на тайле станции
+        citizen.TargetTransitStation = this;
+
+        // Синхронизируем позицию гражданина с позицией станции (удобно для тестов и визуализации)
+        citizen.X = this.X;
+        citizen.Y = this.Y;
     }
 
     /// <summary>

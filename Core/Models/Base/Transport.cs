@@ -35,13 +35,21 @@ public abstract class Transport(int x, int y, GameMap map, int capacity)
     /// </summary>
     public virtual bool TryBoard(Citizen citizen)
     {
-        if (CanAcceptPassenger)
-        {
-            Passengers.Add(citizen);
-            // Наследники должны убедиться, что X и Y пассажира синхронизированы с транспортом.
-            return true;
-        }
-        return false;
+        if (citizen == null) return false;
+        if (!CanAcceptPassenger) return false;
+        if (Passengers.Contains(citizen)) return false;
+
+        Passengers.Add(citizen);
+
+        // Синхронизируем состояние гражданина
+        citizen.CurrentTransport = this;
+        citizen.TargetTransitStation = null;
+
+        // Помещаем гражданина в транспортную позицию
+        citizen.X = this.X;
+        citizen.Y = this.Y;
+
+        return true;
     }
 
     /// <summary>
@@ -49,6 +57,17 @@ public abstract class Transport(int x, int y, GameMap map, int capacity)
     /// </summary>
     public virtual bool TryDisembark(Citizen citizen)
     {
-        return Passengers.Remove(citizen);
+        if (citizen == null) return false;
+
+        bool removed = Passengers.Remove(citizen);
+        if (!removed) return false;
+
+        // Сбрасываем связь с транспортом и оставляем гражданина на текущей позиции транспорта
+        citizen.CurrentTransport = null;
+
+        citizen.X = this.X;
+        citizen.Y = this.Y;
+
+        return true;
     }
 }
