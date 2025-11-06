@@ -1,5 +1,6 @@
 ﻿using Core.Enums;
 using Core.Models.Map;
+using System;
 
 namespace Infrastructure.Services
 {
@@ -13,6 +14,7 @@ namespace Infrastructure.Services
     /// </summary>
     public static class StaticBigMapProvider
     {
+        private static readonly Random _random = new Random();
         /// <summary>
         /// Построить предопределённую карту 50×50.
         /// </summary>
@@ -137,6 +139,10 @@ namespace Infrastructure.Services
                         {
                             // Лес размещаем только на суше без гор
                             map.Tiles[x, y].Terrain = TerrainType.Forest;
+
+                            // ДОБАВЛЕНО: Добавляем деревья в лесу
+                            map.Tiles[x, y].TreeType = GetRandomTreeType();
+                            map.Tiles[x, y].TreeCount = _random.Next(5, 11); // 5-10 деревьев в лесу
                         }
                     }
                 }
@@ -282,6 +288,14 @@ namespace Infrastructure.Services
 
             // Карта готова
             return map;
+        }
+        /// <summary>
+        /// Возвращает случайный тип дерева
+        /// </summary>
+        private static TreeType GetRandomTreeType()
+        {
+            var treeTypes = (TreeType[])Enum.GetValues(typeof(TreeType));
+            return treeTypes[_random.Next(treeTypes.Length)];
         }
     }
 }
