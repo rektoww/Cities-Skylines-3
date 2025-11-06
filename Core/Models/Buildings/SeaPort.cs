@@ -1,9 +1,6 @@
 ﻿using Core.Models.Base;
 using Core.Resourses;
 
-using Core.Models.Base;
-using Core.Resourses;
-
 namespace Core.Models.Buildings
 {
     /// <summary>
@@ -12,7 +9,7 @@ namespace Core.Models.Buildings
     public class SeaPort : Port
     {
         // Параметры юнитов
-        protected override string ResourceType => "Steel"; // Тип ресурса
+        protected override string ResourceType => "Steel"; // Базовый тип ресурса
         protected override int UnitCapacity => 100; // Вместимость корабля
         protected override int UnitCooldown => 30; // Время одного цикла продажи (в тиках)
         protected override int UnitRevenue => 500; // Доход за один цикл продажи
@@ -24,7 +21,7 @@ namespace Core.Models.Buildings
 
         protected override PortUnit CreateUnit()
         {
-            return new PortUnit(ResourceType, UnitCapacity, UnitCooldown, UnitRevenue);
+            return new PortUnit(UnitCapacity, UnitCooldown, UnitRevenue);
         }
     }
 }
