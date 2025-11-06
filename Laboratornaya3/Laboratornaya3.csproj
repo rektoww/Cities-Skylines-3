@@ -9,6 +9,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Audio\**" />
+    <EmbeddedResource Remove="Audio\**" />
+    <None Remove="Audio\**" />
+    <Page Remove="Audio\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Resources\" />
   </ItemGroup>
 
