@@ -181,7 +181,8 @@
                                                 </DataTrigger>
                                                 <DataTrigger Binding="{Binding Terrain}" Value="Plain">
                                                     <Setter Property="Background" Value="PaleGreen" />
-                                                </DataTrigger>
+                                                </DataTrigger>                                               
+                                                
                                             </Style.Triggers>
                                         </Style>
                                     </Border.Style>
@@ -204,6 +205,30 @@
                                                        VerticalAlignment="Center"
                                                        TextWrapping="Wrap"
                                                        TextAlignment="Center"/>
+                                        </Border>
+
+                                        <!-- SmirnovMA - Парк -->
+                                        <Border Background="Green"
+                                                Margin="1"
+                                                CornerRadius="2">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Visibility"
+                                                            Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Building.Name}"
+                                                                     Value="Парк">
+                                                            <Setter Property="Visibility"
+                                                                    Value="Visible" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+
+                                            <TextBlock Text="🌳"
+                                                       FontSize="12"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center" />
                                         </Border>
                                     </Grid>
 
