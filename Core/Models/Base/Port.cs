@@ -1,124 +1,104 @@
-﻿using Core.Models.Map;
+﻿using Core.Enums;
+using Core.Resourses;
+    using System;
 using System.Collections.Generic;
-using Core.Models.Mobs;
 
-namespace Core.Models.Base;
-
-//TODO: РЕАЛИЗОВАТЬ ПОСЛЕ ИЗМЕНЕНИЙ ТРАНСПОРТА ТИП (КОРАБЛЬ, САМОЛЕТ) ТРАНСПОРТА, КОТОРЫЙ МОЖЕТ ПРИНИМАТЬ ПОРТ
-//      ПОКА ЧТО КОРАБЛЬ = САМОЛЕТ ДЛЯ ПОРТА
-
-/// <summary>
-/// Абстрактный базовый класс для всех портов (воздушных и морских).
-/// Наследуется от TransitStation, предоставляет базовую логику для портов.
-/// Сочетает функции остановки общественного транспорта и пункта прибытия коммерческих грузов.
-/// </summary>
-public abstract class Port : TransitStation
+namespace Core.Models.Base
 {
     /// <summary>
-    /// Вместимость порта (максимальное количество транспортов, которые можно отправить в порт).
+    /// Абстрактный класс для портов (морских и воздушных).
     /// </summary>
-    public int Capacity { get; protected set; }
-
-    /// <summary>
-    /// Текущее количество транспортов, направленных в порт.
-    /// </summary>
-    public int CurrentTransports { get; protected set; }
-
-    /// <summary>
-    /// Список прибывших транспортов (для учёта и возможной последующей разгрузки).
-    /// </summary>
-    public List<CommercialTransport> ArrivedTransports { get; private set; } = new List<CommercialTransport>();
-
-    /// <summary>
-    /// Конструктор порта.
-    /// </summary>
-    public Port()
+    public abstract class AirPort
     {
-        Width = 2;
-        Height = 2;
-        Floors = 1;
-        Capacity = 5;
-        CurrentTransports = 0;
-    }
+        public string Name { get; set; }
+        public int MaxUnits { get; protected set; } // Максимальное количество юнитов
+        public List<PortUnit> Units { get; private set; } = new(); // Список юнитов
+        public PlayerResources PlayerResources { get; private set; } // Ссылка на ресурсы игрока
 
-    /// <summary>
-    /// Проверяет, может ли порт принять еще один транспорт.
-    /// </summary>
-    public virtual bool CanAcceptTransport()
-    {
-        return CurrentTransports < Capacity;
-    }
+        // Параметры юнитов (определяются в наследниках)
+        protected abstract string ResourceType { get; } // Тип ресурса
+        protected abstract int UnitCapacity { get; } // Вместимость юнита
+        protected abstract int UnitCooldown { get; } // Время одного цикла продажи (в тиках)
+        protected abstract int UnitRevenue { get; } // Доход за один цикл продажи
 
-    /// <summary>
-    /// Увеличивает счетчик транспортов, направленных в порт.
-    /// </summary>
-    public virtual void AddTransport()
-    {
-        if (CanAcceptTransport())
-            CurrentTransports++;
-    }
-
-    /// <summary>
-    /// Уменьшает счетчик транспортов (при удалении транспорта).
-    /// </summary>
-    public virtual void RemoveTransport()
-    {
-        if (CurrentTransports > 0)
-            CurrentTransports--;
-    }
-
-    /// <summary>
-    /// Обрабатывает прибытие транспорта (самолет или корабль) в порт.
-    /// Проверяет достижение цели и при успешном прибытии добавляет транспорт в список прибывших.
-    /// </summary>
-    /// <param name="transport">Коммерческий транспорт</param>
-    public virtual void ReceiveTransport(CommercialTransport transport)
-    {
-        // Проверка типа и статуса прибытия
-        if (transport is Airplane airplane && airplane.HasReachedDestination)
+        protected AirPort(string name, int maxUnits, PlayerResources playerResources)
         {
-            if (CanAcceptTransport())
+            Name = name;
+            MaxUnits = maxUnits;
+            PlayerResources = playerResources;
+
+            // Создаем юниты при создании порта
+            InitializeUnits();
+        }
+
+        /// <summary>
+        /// Создает юниты для порта.
+        /// </summary>
+        private void InitializeUnits()
+        {
+            for (int i = 0; i < MaxUnits; i++)
             {
-                ArrivedTransports.Add(airplane);
-                AddTransport();
-                HideTransport(airplane);
+                Units.Add(CreateUnit());
             }
         }
-        else if (transport is Ship ship && ship.HasReachedDestination)
+
+        /// <summary>
+        /// Создает новый юнит с параметрами, определенными в наследниках.
+        /// </summary>
+        protected abstract PortUnit CreateUnit();
+
+        /// <summary>
+        /// Выполняет тик симуляции для всех юнитов порта.
+        /// </summary>
+        public void ProcessTick()
         {
-            if (CanAcceptTransport())
+            foreach (var unit in Units)
             {
-                ArrivedTransports.Add(ship);
-                AddTransport();
-                HideTransport(ship);
+                unit.Process(PlayerResources);
             }
         }
     }
 
-
-    // TODO: ПО-ХОРОШЕМУ РЕАЛИЗУЕТ МЕТОДЫ КЛАССА Mob
     /// <summary>
-    /// Абстрактный метод-заглушка для скрытия транспорта, достигшего конечной цели.
-    /// Реализуется в потомках (например, визуальное скрытие, снятие с карты и т.п.).
+    /// Базовый класс для юнитов порта (корабли/самолеты).
     /// </summary>
-    /// <param name="transport">Транспорт, который нужно скрыть</param>
-    public abstract void HideTransport(CommercialTransport transport);
-
-
-    /// <summary>
-    /// Удаляет транспорт с карты либо сам, либо через взаимодействие с классом CommercialTransport.
-    /// </summary>
-    public abstract void DeleteTransport(CommercialTransport transport);
-    
-        // TODO: метод для удаления мобов с карты, если транспорт не будет постоянным.
-    
-
-    /// <summary>
-    /// Получает количество доступных слотов для транспорта.
-    /// Использовать для логики отправки грузового транспорта в порт.
-    /// </summary>
-    public virtual int GetAvailableSlots()
+    public class PortUnit
     {
-        return Capacity - CurrentTransports;
+        private readonly string _resourceType; // Тип ресурса
+        private readonly int _capacity; // Вместимость юнита
+        private readonly int _cooldownMax; // Время одного цикла продажи
+        private readonly int _revenuePerDelivery; // Доход за один цикл продажи
+
+        private int _cooldown; // Текущий таймер до следующей продажи
+
+        public PortUnit(string resourceType, int capacity, int cooldownMax, int revenuePerDelivery)
+        {
+            _resourceType = resourceType;
+            _capacity = capacity;
+            _cooldownMax = cooldownMax;
+            _revenuePerDelivery = revenuePerDelivery;
+            _cooldown = cooldownMax; // Инициализируем таймер
+        }
+
+        /// <summary>
+        /// Выполняет тик симуляции для юнита.
+        /// </summary>
+        public void Process(PlayerResources playerResources)
+        {
+            if (_cooldown > 0)
+            {
+                _cooldown--;
+                return;
+            }
+
+            // Проверяем, есть ли ресурсы для продажи
+            if (playerResources.StoredMaterials.TryGetValue(Enum.Parse<ConstructionMaterial>(_resourceType), out int available) && available >= _capacity)
+            {
+                // Списываем ресурсы и начисляем деньги
+                playerResources.StoredMaterials[Enum.Parse<ConstructionMaterial>(_resourceType)] -= _capacity;
+                playerResources.Balance += _revenuePerDelivery;
+                _cooldown = _cooldownMax; // Сбрасываем таймер
+            }
+        }
     }
 }
