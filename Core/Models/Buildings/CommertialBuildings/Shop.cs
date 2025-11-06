@@ -23,6 +23,7 @@ namespace Core.Models.Buildings.CommertialBuildings
 
         public Shop() : base(CommercialBuildingType.Shop)
         {
+            Name = "Магазин";
         }
     }
 }

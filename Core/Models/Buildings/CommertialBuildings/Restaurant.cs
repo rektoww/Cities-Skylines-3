@@ -22,6 +22,7 @@ namespace Core.Models.Buildings.CommertialBuildings
             };
         public Restaurant() : base(CommercialBuildingType.Restaurant)
         {
+            Name = "Ресторан";
         }
     }
 }

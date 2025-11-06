@@ -23,6 +23,7 @@ namespace Core.Models.Buildings.CommertialBuildings
             };
         public Supermarket() : base(CommercialBuildingType.Supermarket)
         {
+            Name = "Супермаркет";
         }
     }
 }

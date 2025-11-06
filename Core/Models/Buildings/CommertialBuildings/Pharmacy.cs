@@ -22,6 +22,7 @@ namespace Core.Models.Buildings.CommertialBuildings
             };
         public Pharmacy() : base(CommercialBuildingType.Pharmacy)
         {
+            Name = "Аптека";
         }
     }
 }

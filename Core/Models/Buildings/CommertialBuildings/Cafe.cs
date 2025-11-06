@@ -22,6 +22,7 @@ namespace Core.Models.Buildings.CommertialBuildings
             };
         public Cafe() : base(CommercialBuildingType.Cafe)
         {
+            Name = "Кафе";
         }
     }
 }

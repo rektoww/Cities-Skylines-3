@@ -1,256 +1,305 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Core.Models.Base;
+using Core.Models.Buildings;
+using Core.Models.Buildings.CommertialBuildings;
+using Core.Models.Buildings.SocialBuildings;
 using Core.Models.Map;
-using Core.Services; // Добавляем для NatureManager
-using Infrastructure.Services; // Содержит StaticMapProvider и SaveLoadService
-using Laboratornaya3.ViewModels;
+using Core.Services;
+using Infrastructure.Services;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq; // Добавляем для работы с деревьями
+using System.Linq;
 using System.Text;
 using System.Windows;
-using System.Windows.Input;
 
 namespace Laboratornaya3.ViewModels
 {
-    // Штука для хранения название-иконка-категория для UI 
-    public class Building // TODO: Подумть над связкой с беком
+    public partial class BuildingUI : ObservableObject
     {
-        public string Name { get; set; }
-        public string Icon { get; set; }
-        public string Category { get; set; }
+        [ObservableProperty]
+        private string name;
+
+        [ObservableProperty]
+        private string icon;
+
+        [ObservableProperty]
+        private string category;
     }
 
-    public class TileViewModel : ViewModelBase // Наследуем от ViewModelBase!
+    public partial class MainViewModel : ObservableObject
     {
-        public int X { get; set; }
-        public int Y { get; set; }
-        public string Coordinates => $"({X}, {Y})";
-
-        private string _backgroundColor;
-        public string BackgroundColor
-        {
-            get => _backgroundColor;
-            set => SetProperty(ref _backgroundColor, value);
-        }
-    }
-
-    /// <summary>
-    /// Главная ViewModel приложения.
-    /// Отвечает за загрузку/сохранение статичной карты, предоставление данных для отрисовки
-    /// и показ информации о клетке по клику.
-    /// </summary>
-    public partial class MainViewModel : ViewModelBase
-    {
-        /// <summary>
-        /// Сервис сохранения/загрузки карты в/из JSON.
-        /// Хранится один инстанс на всю VM.
-        /// </summary>
         private readonly SaveLoadService _saveLoadService;
-
-        /// <summary>
-        /// Менеджер для работы с природными объектами
-        /// </summary>
         private readonly NatureManager _natureManager;
 
-        /// <summary>
-        /// Текущая карта (модель уровня Core). Не должна быть null при нормальной работе,
-        /// однако поле объявлено с «null!» для совместимости с генератором кода CommunityToolkit
-        /// и дальнейшей инициализации в конструкторе через вызов <see cref="LoadStatic"/>.
-        /// </summary>
-        private GameMap _currentMap = null!;
+        [ObservableProperty]
+        private GameMap _currentMap;
 
-        /// <summary>
-        /// Текущая игровая карта, которую видит UI.
-        /// При присвоении поднимает уведомление также для <see cref="TilesFlat"/>,
-        /// чтобы перерисовать сетку.
-        /// </summary>
-        public GameMap CurrentMap
-        {
-            get => _currentMap;
-            set
-            {
-                // SetProperty поднимет PropertyChanged только если значение изменилось
-                SetProperty(ref _currentMap, value);
-
-                // Очень важно: ItemsControl привязан к TilesFlat,
-                // поэтому после смены CurrentMap сообщаем, что TilesFlat тоже «изменился».
-                OnPropertyChanged(nameof(TilesFlat));
-            }
-        }
-
-        // Для активной категории
+        [ObservableProperty]
         private string _selectedCategoryName;
-        public string SelectedCategoryName
-        {
-            get => _selectedCategoryName;
-            set => SetProperty(ref _selectedCategoryName, value);
-        }
 
-        // Для списка зданий в нижней панели
-        private ObservableCollection<Building> _visibleBuildings;
-        public ObservableCollection<Building> VisibleBuildings
-        {
-            get => _visibleBuildings;
-            set => SetProperty(ref _visibleBuildings, value);
-        }
+        [ObservableProperty]
+        private ObservableCollection<BuildingUI> _visibleBuildings;
 
-        // Словарь для хранения всех данных
-        private readonly Dictionary<string, List<Building>> _buildingCategories = new Dictionary<string, List<Building>>();
+        [ObservableProperty]
+        private BuildingUI _selectedBuilding;
 
-        // 2. Команды для обработки действий
-        public ICommand SelectCategoryCommand { get; }
+        [ObservableProperty]
+        private bool _isBuildingMode;
 
-        /// <summary>
-        /// Плоское перечисление всех тайлов карты (для WPF ItemsControl).
-        /// Порядок: построчно — сначала Y от 0 до Height-1, внутри каждой строки X от 0 до Width-1.
-        /// Это соответствует тому, как <c>UniformGrid</c> раскладывает элементы слева направо и сверху вниз.
-        /// </summary>
+        private readonly Dictionary<string, List<BuildingUI>> _buildingCategories = new();
+
         public IEnumerable<Tile> TilesFlat
         {
             get
             {
                 if (CurrentMap == null) yield break;
 
-                // Внимание: карта хранится как двумерный массив Tile[,],
-                // поэтому обращаемся через индексы [x, y].
                 for (int y = 0; y < CurrentMap.Height; y++)
                     for (int x = 0; x < CurrentMap.Width; x++)
                         yield return CurrentMap.Tiles[x, y];
             }
         }
 
-        /// <summary>
-        /// Конструктор VM.
-        /// Инициализирует сервисы и сразу поднимает статичную карту,
-        /// чтобы окно при старте уже отображало содержимое.
-        /// </summary>
         public MainViewModel()
         {
             _saveLoadService = new SaveLoadService();
-            _natureManager = new NatureManager(); // Инициализируем менеджер природы
+            _natureManager = new NatureManager();
 
             InitializeCategories();
 
-            // Инициализация команды
-            SelectCategoryCommand = new RelayCommand(SelectCategory);
-
-            // Установка категории по умолчанию
             SelectedCategoryName = "Коммерция";
             UpdateBuildingsDisplay("Коммерция");
 
             LoadStatic();
         }
 
-        // !!! НОВЫЙ МЕТОД: Заполнение данных категорий
         private void InitializeCategories()
         {
-            _buildingCategories.Add("Производство", new List<Building>
+            _buildingCategories.Add("Производство", new List<BuildingUI>
             {
-                new Building { Name = "Завод", Icon = "🏭" },
-                new Building { Name = "Ферма", Icon = "🌾" },
-                new Building { Name = "Шахта", Icon = "⛏️" }
+                new BuildingUI { Name = "Завод", Icon = "🏭", Category = "Производство" },
+                new BuildingUI { Name = "Ферма", Icon = "🌾", Category = "Производство" },
+                new BuildingUI { Name = "Шахта", Icon = "⛏️", Category = "Производство" }
             });
 
-            _buildingCategories.Add("Коммерция", new List<Building>
+            _buildingCategories.Add("Коммерция", new List<BuildingUI>
             {
-                new Building { Name = "Магазин", Icon = "🛍️" },
-                new Building { Name = "Кафе", Icon = "☕" },
-                new Building { Name = "Ресторан", Icon = "🍴" },
-                new Building { Name = "Заправка", Icon = "⛽" }
+                new BuildingUI { Name = "Магазин", Icon = "🛍️", Category = "Коммерция" },
+                new BuildingUI { Name = "Супермаркет", Icon = "🛒", Category = "Коммерция" },
+                new BuildingUI { Name = "Аптека", Icon = "💊", Category = "Коммерция" },
+                new BuildingUI { Name = "Кафе", Icon = "☕", Category = "Коммерция" },
+                new BuildingUI { Name = "Ресторан", Icon = "🍴", Category = "Коммерция" },
+                new BuildingUI { Name = "Заправка", Icon = "⛽", Category = "Коммерция" }
             });
 
-            _buildingCategories.Add("Социум", new List<Building>
+            _buildingCategories.Add("Социум", new List<BuildingUI>
             {
-                new Building { Name = "Школа", Icon = "🏫" },
-                new Building { Name = "Больница", Icon = "🏥" },
-                new Building { Name = "Парк", Icon = "🌳" }
+                new BuildingUI { Name = "Школа", Icon = "🏫", Category = "Социум" },
+                new BuildingUI { Name = "Больница", Icon = "🏥", Category = "Социум" },
+                new BuildingUI { Name = "Парк", Icon = "🌳", Category = "Социум" }
             });
 
-            _buildingCategories.Add("Транспорт", new List<Building>
+            _buildingCategories.Add("Транспорт", new List<BuildingUI>
             {
-                new Building { Name = "Аэропорт", Icon = "✈️" },
-                new Building { Name = "Ж/Д Вокзал", Icon = "🚉" }
+                new BuildingUI { Name = "Аэропорт", Icon = "✈️", Category = "Транспорт" },
+                new BuildingUI { Name = "Ж/Д Вокзал", Icon = "🚉", Category = "Транспорт" }
             });
         }
 
-        // Метод, который будет вызываться командой
-        private void SelectCategory(object parameter)
+        [RelayCommand]
+        private void SelectCategory(string categoryName)
         {
-            if (parameter is string categoryName)
+            if (!string.IsNullOrEmpty(categoryName))
             {
                 SelectedCategoryName = categoryName;
                 UpdateBuildingsDisplay(categoryName);
             }
         }
 
-        // Логика обновления списка зданий
+        [RelayCommand]
+        private void SelectBuilding(BuildingUI building)
+        {
+            if (building != null)
+            {
+                SelectedBuilding = building;
+                IsBuildingMode = true;
+
+                MessageBox.Show($"Выбрано: {building.Name}. Кликните на карте для размещения.",
+                               "Режим строительства",
+                               MessageBoxButton.OK,
+                               MessageBoxImage.Information);
+            }
+        }
+
+        [RelayCommand]
+        private void CancelBuilding()
+        {
+            IsBuildingMode = false;
+            SelectedBuilding = null;
+        }
+
+        public bool TryPlaceBuilding(int x, int y)
+        {
+            if (!IsBuildingMode || SelectedBuilding == null || CurrentMap == null)
+            {
+                return false;
+            }
+
+            var realBuilding = CreateRealBuilding(SelectedBuilding);
+
+            bool canPlace = realBuilding.CanPlace(x, y, CurrentMap);
+
+            if (realBuilding != null && canPlace)
+            {
+                bool placementResult = realBuilding.TryPlace(x, y, CurrentMap);
+
+                if (placementResult)
+                {
+                    CurrentMap.Buildings.Add(realBuilding);
+                    RefreshMap();
+                    CancelBuilding();
+
+                    MessageBox.Show($"Здание '{realBuilding.Name}' успешно размещено!",
+                                   "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return true;
+                }
+            }
+
+            MessageBox.Show("Невозможно разместить здание здесь!\nПроверьте:\n• Достаточно ли места\n• Подходящий ли рельеф\n• Нет ли других зданий",
+                           "Ошибка размещения",
+                           MessageBoxButton.OK,
+                           MessageBoxImage.Warning);
+            return false;
+        }
+
+        private Core.Models.Base.Building CreateRealBuilding(BuildingUI uiBuilding)
+        {
+            return uiBuilding.Name switch
+            {
+                "Магазин" => new Shop(),
+                "Супермаркет" => new Supermarket(),
+                "Аптека" => new Pharmacy(),
+                "Кафе" => new Cafe(),
+                "Ресторан" => new Restaurant(),
+                "Заправка" => new GasStation(),
+                "Парк" => new Park(),
+                _ => new Shop()
+            };
+        }
+
         private void UpdateBuildingsDisplay(string categoryName)
         {
             if (_buildingCategories.TryGetValue(categoryName, out var buildings))
             {
-                VisibleBuildings = new ObservableCollection<Building>(buildings);
+                VisibleBuildings = new ObservableCollection<BuildingUI>(buildings);
             }
             else
             {
-                VisibleBuildings = new ObservableCollection<Building>();
+                VisibleBuildings = new ObservableCollection<BuildingUI>();
             }
         }
 
-        /// <summary>
-        /// Команда: загрузить статичную карту из <see cref="StaticMapProvider"/>.
-        /// Используется для первоначальной инициализации и по кнопке «Загрузить статичную карту».
-        /// </summary>
         [RelayCommand]
         private void LoadStatic()
         {
-            // Строим новый объект карты и публикуем его в CurrentMap.
-            // SetProperty + OnPropertyChanged(nameof(TilesFlat)) в сеттере CurrentMap
-            // обеспечат обновление UI.
             CurrentMap = StaticBigMapProvider.Build50();
         }
 
-        /// <summary>
-        /// Команда: сохранить карту в JSON-файл.
-        /// Файл сохраняется по относительному пути "saved_map.json" рядом с исполняемым файлом.
-        /// </summary>
         [RelayCommand]
         private void SaveMap()
         {
-            // На всякий случай проверяем, что карта есть.
             if (CurrentMap != null)
                 _saveLoadService.SaveMap(CurrentMap, "saved_map.json");
         }
 
-        /// <summary>
-        /// Команда: загрузить карту из JSON-файла "saved_map.json".
-        /// Перезаписывает <see cref="CurrentMap"/>, тем самым инициируя перерисовку сетки.
-        /// </summary>
         [RelayCommand]
         private void LoadMap()
         {
             CurrentMap = _saveLoadService.LoadMap("saved_map.json");
         }
 
-        /// <summary>
-        /// Команда: показать информацию по выбранной клетке (тайлу) во всплывающем окне.
-        /// Используется по клику на клетку — сам <see cref="Tile"/> передаётся в <c>CommandParameter</c>.
-        /// </summary>
-        /// <param name="tile">Тайл карты, по которому кликнули. Может быть null при ошибочном вызове.</param>
         [RelayCommand]
         private void ShowTileInfo(Tile tile)
         {
             if (tile == null)
                 return;
 
-            // Формируем понятный для пользователя текст:
-            // координаты, рельеф, перечень ресурсов (или сообщение «нет»),
-            // а также (опционально) сведения о здании, если оно присутствует.
             var sb = new StringBuilder();
             sb.AppendLine($"Координаты: ({tile.X}; {tile.Y})");
             sb.AppendLine($"Рельеф: {tile.Terrain}");
 
-            // НОВЫЙ КОД ДЛЯ ОТОБРАЖЕНИЯ ДЕРЕВЬЕВ
+            // Smirnov MA - ИНФОРМАЦИЯ О ИНФРАСТРУКТУРЕ
+            sb.Append("Инфраструктура: ");
+            var infrastructure = new List<string>();
+            if (tile.HasPark) infrastructure.Add("Парк");
+            if (tile.HasBikeLane) infrastructure.Add("Велодорожка");
+            if (tile.HasPedestrianPath) infrastructure.Add("Пешеходная дорожка");
+
+            if (infrastructure.Count > 0)
+                sb.AppendLine(string.Join(", ", infrastructure));
+            else
+                sb.AppendLine("нет");
+
+            if (tile.Building != null)
+            {
+                sb.AppendLine($"Здание: {tile.Building.Name}");
+
+                // SmirnovMA ОСОБАЯ ИНФОРМАЦИЯ ДЛЯ ПАРКА
+                if (tile.Building is Park park)
+                {
+                    sb.AppendLine($"--- Детали парка ---");
+                    sb.AppendLine($"Деревья в парке: {park.TreeCount} шт.");
+                    sb.AppendLine($"Скамейки: {park.BenchCount} шт.");
+                    sb.AppendLine($"Вместимость: {park.MaxOccupancy} человек");
+                    sb.AppendLine($"Размер: {park.Width}x{park.Height}");
+                }
+
+                // ИНФОРМАЦИЯ ДЛЯ КОММЕРЧЕСКИХ ЗДАНИЙ
+                else if (tile.Building is CommercialBuilding commercial)
+                {
+                    sb.AppendLine($"--- Детали {commercial.Name} ---");
+                    sb.AppendLine($"Тип: {commercial.Type}");
+                    sb.AppendLine($"Вместимость: {commercial.Capacity} человек");
+                    sb.AppendLine($"Сотрудники: {commercial.EmployeeCount} чел.");
+                    sb.AppendLine($"Размер: {commercial.Width}x{commercial.Height}");
+                    sb.AppendLine($"Этажи: {commercial.Floors}");
+
+                    // ЖКХ информация
+                    sb.AppendLine($"Коммуникации: {(commercial.IsOperational ? "✅ Все подключены" : "❌ Не все подключены")}");
+                    if (!commercial.IsOperational)
+                    {
+                        var missingUtils = new List<string>();
+                        if (!commercial.HasWater) missingUtils.Add("Вода");
+                        if (!commercial.HasGas) missingUtils.Add("Газ");
+                        if (!commercial.HasSewage) missingUtils.Add("Канализация");
+                        if (!commercial.HasElectricity) missingUtils.Add("Электричество");
+                        sb.AppendLine($"Отсутствуют: {string.Join(", ", missingUtils)}");
+                    }
+
+                    // Категории товаров
+                    if (commercial.ProductCategories?.Count > 0)
+                    {
+                        sb.AppendLine($"Категории товаров:");
+                        foreach (var category in commercial.ProductCategories)
+                        {
+                            sb.AppendLine($" • {category}");
+                        }
+                    }
+                }
+
+                // ОБЩАЯ ИНФОРМАЦИЯ ДЛЯ ЛЮБОГО ЗДАНИЯ
+                else
+                {
+                    sb.AppendLine($"--- Общая информация ---");
+                    sb.AppendLine($"Размер: {tile.Building.Width}x{tile.Building.Height}");
+                    sb.AppendLine($"Этажи: {tile.Building.Floors}");
+                    sb.AppendLine($"Вместимость: {tile.Building.MaxOccupancy} человек");
+                    sb.AppendLine($"Текущая заполненность: {tile.Building.CurrentOccupancy} человек");
+                    sb.AppendLine($"Состояние: {tile.Building.Condition}%");
+                }
+            }
+
             if (tile.TreeType.HasValue && tile.TreeCount > 0)
             {
                 sb.AppendLine($"Деревья: {tile.TreeType.Value} ({tile.TreeCount} шт.)");
@@ -271,11 +320,6 @@ namespace Laboratornaya3.ViewModels
                 sb.AppendLine("Ресурсы: нет");
             }
 
-            // Если в модели у клетки есть привязанное здание — тоже покажем.
-            if (tile.Building != null)
-                sb.AppendLine($"Здание: {tile.Building.Name}");
-
-            // Простое системное диалоговое окно — быстро и наглядно.
             MessageBox.Show(
                 sb.ToString(),
                 "Информация о клетке",
@@ -283,9 +327,6 @@ namespace Laboratornaya3.ViewModels
                 MessageBoxImage.Information);
         }
 
-        /// <summary>
-        /// Команда: показать статистику по деревьям на карте
-        /// </summary>
         [RelayCommand]
         private void ShowTreeStatistics()
         {
@@ -313,6 +354,11 @@ namespace Laboratornaya3.ViewModels
                 "Статистика деревьев",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
+        }
+
+        public void RefreshMap()
+        {
+            OnPropertyChanged(nameof(TilesFlat));
         }
     }
 }

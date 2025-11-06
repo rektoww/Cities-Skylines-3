@@ -25,25 +25,25 @@ namespace Core.Models.Buildings
             {
                 case CommercialBuildingType.Shop:
                     EmployeeCount = 3;
-                    Width = 2; Height = 1; Floors = 1;
+                    Width = 1; Height = 1; Floors = 1;
                     ProductCategories = new List<string> { "Продовольствие", "Напитки" };
                     break;
 
                 case CommercialBuildingType.Supermarket:
                     EmployeeCount = 15;
-                    Width = 3; Height = 2; Floors = 1;
+                    Width = 3; Height = 3; Floors = 1;
                     ProductCategories = new List<string> { "Продовольствие", "Напитки", "Хозтовары" };
                     break;
 
                 case CommercialBuildingType.Cafe:
                     EmployeeCount = 5;
-                    Width = 2; Height = 1; Floors = 1;
+                    Width = 1; Height = 1; Floors = 1;
                     ProductCategories = new List<string> { "Еда", "Напитки", "Десерты" };
                     break;
 
                 case CommercialBuildingType.Restaurant:
                     EmployeeCount = 12;
-                    Width = 3; Height = 2; Floors = 1;
+                    Width = 2; Height = 2; Floors = 1;
                     ProductCategories = new List<string> { "Еда", "Напитки", "Десерты", "Алкоголь" };
                     break;
 
@@ -55,7 +55,7 @@ namespace Core.Models.Buildings
 
                 case CommercialBuildingType.Pharmacy:
                     EmployeeCount = 4;
-                    Width = 2; Height = 1; Floors = 1;
+                    Width = 1; Height = 1; Floors = 1;
                     ProductCategories = new List<string> { "Лекарства", "Медицинские товары", "Витамины" };
                     break;
 
