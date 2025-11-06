@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using Core.Models.Base;
 using Core.Models.Buildings.CommertialBuildings;
+using Core.Models.Buildings.SocialBuildings;
 using Core.Models.Map;
 using Core.Services;
 using Infrastructure.Services;
@@ -177,6 +178,7 @@ namespace Laboratornaya3.ViewModels
                 "Кафе" => new Cafe(),
                 "Ресторан" => new Restaurant(),
                 "Заправка" => new GasStation(),
+                "Парк" => new Park(),
                 _ => new Shop()
             };
         }
@@ -222,6 +224,33 @@ namespace Laboratornaya3.ViewModels
             sb.AppendLine($"Координаты: ({tile.X}; {tile.Y})");
             sb.AppendLine($"Рельеф: {tile.Terrain}");
 
+            // Smirnov MA - ИНФОРМАЦИЯ О ИНФРАСТРУКТУРЕ
+            sb.Append("Инфраструктура: ");
+            var infrastructure = new List<string>();
+            if (tile.HasPark) infrastructure.Add("Парк");
+            if (tile.HasBikeLane) infrastructure.Add("Велодорожка");
+            if (tile.HasPedestrianPath) infrastructure.Add("Пешеходная дорожка");
+
+            if (infrastructure.Count > 0)
+                sb.AppendLine(string.Join(", ", infrastructure));
+            else
+                sb.AppendLine("нет");
+
+            if (tile.Building != null)
+            {
+                sb.AppendLine($"Здание: {tile.Building.Name}");
+
+                // SmirnovMA ОСОБАЯ ИНФОРМАЦИЯ ДЛЯ ПАРКА
+                if (tile.Building is Park park)
+                {
+                    sb.AppendLine($"--- Детали парка ---");
+                    sb.AppendLine($"Деревья в парке: {park.TreeCount} шт.");
+                    sb.AppendLine($"Скамейки: {park.BenchCount} шт.");
+                    sb.AppendLine($"Вместимость: {park.MaxOccupancy} человек");
+                    sb.AppendLine($"Размер: {park.Width}x{park.Height}");
+                }
+            }
+
             if (tile.TreeType.HasValue && tile.TreeCount > 0)
             {
                 sb.AppendLine($"Деревья: {tile.TreeType.Value} ({tile.TreeCount} шт.)");
@@ -241,9 +270,6 @@ namespace Laboratornaya3.ViewModels
             {
                 sb.AppendLine("Ресурсы: нет");
             }
-
-            if (tile.Building != null)
-                sb.AppendLine($"Здание: {tile.Building.Name}");
 
             MessageBox.Show(
                 sb.ToString(),
