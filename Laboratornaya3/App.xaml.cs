@@ -47,16 +47,18 @@ namespace Laboratornaya3
             try
             {
                 startupMusicPlayer = new MediaPlayer();
-                string basePath = AppDomain.CurrentDomain.BaseDirectory;
-                string audioPath = System.IO.Path.Combine(basePath, "Audio", "startup.mp3");
+
+                // Путь к папке проекта + Audio (3 уровня вверх из bin/Debug/)
+                string projectPath = System.IO.Path.GetFullPath(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", ".."));
+                string audioPath = System.IO.Path.Combine(projectPath, "Audio", "startup.mp3");
 
                 startupMusicPlayer.Open(new Uri(audioPath));
-                startupMusicPlayer.Volume = 0.13;
+                startupMusicPlayer.Volume = 0.8;
                 startupMusicPlayer.Play();
             }
-            catch (Exception ex)
+            catch
             {
-                System.Diagnostics.Debug.WriteLine($"Ошибка стартовой музыки: {ex.Message}");
+                // Игнорируем ошибки
             }
         }
 
@@ -65,22 +67,22 @@ namespace Laboratornaya3
             try
             {
                 backgroundMusicPlayer = new MediaPlayer();
-                string basePath = AppDomain.CurrentDomain.BaseDirectory;
-                string audioPath = System.IO.Path.Combine(basePath, "Audio", "background.mp3"); 
+
+                // Путь к папке проекта + Audio (3 уровня вверх из bin/Debug/)
+                string projectPath = System.IO.Path.GetFullPath(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", ".."));
+                string audioPath = System.IO.Path.Combine(projectPath, "Audio", "background.mp3");
 
                 backgroundMusicPlayer.Open(new Uri(audioPath));
-                backgroundMusicPlayer.Volume = 0.05; 
-                backgroundMusicPlayer.MediaEnded += BackgroundMusic_MediaEnded; // Зацикливание
+                backgroundMusicPlayer.Volume = 0.3;
+                backgroundMusicPlayer.MediaEnded += BackgroundMusic_MediaEnded;
                 backgroundMusicPlayer.Play();
-
             }
-            catch (Exception ex)
+            catch
             {
-                System.Diagnostics.Debug.WriteLine($"Ошибка фоновой музыки: {ex.Message}");
+                // Игнорируем ошибки
             }
         }
 
-        // Зацикливание фоновой музыки
         private void BackgroundMusic_MediaEnded(object sender, EventArgs e)
         {
             backgroundMusicPlayer.Position = TimeSpan.Zero;
