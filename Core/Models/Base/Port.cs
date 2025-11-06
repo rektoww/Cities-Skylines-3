@@ -1,6 +1,6 @@
 ﻿using Core.Models.Map;
 using System.Collections.Generic;
-using Core.Models.Mobs;
+using Core.Models.Vehicles;
 
 namespace Core.Models.Base;
 
