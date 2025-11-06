@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Core.Models.Base;
+using Core.Models.Buildings;
 using Core.Models.Buildings.CommertialBuildings;
 using Core.Models.Buildings.SocialBuildings;
 using Core.Models.Map;
@@ -85,6 +86,8 @@ namespace Laboratornaya3.ViewModels
             _buildingCategories.Add("Коммерция", new List<BuildingUI>
             {
                 new BuildingUI { Name = "Магазин", Icon = "🛍️", Category = "Коммерция" },
+                new BuildingUI { Name = "Супермаркет", Icon = "🛒", Category = "Коммерция" },
+                new BuildingUI { Name = "Аптека", Icon = "💊", Category = "Коммерция" },
                 new BuildingUI { Name = "Кафе", Icon = "☕", Category = "Коммерция" },
                 new BuildingUI { Name = "Ресторан", Icon = "🍴", Category = "Коммерция" },
                 new BuildingUI { Name = "Заправка", Icon = "⛽", Category = "Коммерция" }
@@ -175,6 +178,8 @@ namespace Laboratornaya3.ViewModels
             return uiBuilding.Name switch
             {
                 "Магазин" => new Shop(),
+                "Супермаркет" => new Supermarket(),
+                "Аптека" => new Pharmacy(),
                 "Кафе" => new Cafe(),
                 "Ресторан" => new Restaurant(),
                 "Заправка" => new GasStation(),
@@ -248,6 +253,50 @@ namespace Laboratornaya3.ViewModels
                     sb.AppendLine($"Скамейки: {park.BenchCount} шт.");
                     sb.AppendLine($"Вместимость: {park.MaxOccupancy} человек");
                     sb.AppendLine($"Размер: {park.Width}x{park.Height}");
+                }
+
+                // ИНФОРМАЦИЯ ДЛЯ КОММЕРЧЕСКИХ ЗДАНИЙ
+                else if (tile.Building is CommercialBuilding commercial)
+                {
+                    sb.AppendLine($"--- Детали {commercial.Name} ---");
+                    sb.AppendLine($"Тип: {commercial.Type}");
+                    sb.AppendLine($"Вместимость: {commercial.Capacity} человек");
+                    sb.AppendLine($"Сотрудники: {commercial.EmployeeCount} чел.");
+                    sb.AppendLine($"Размер: {commercial.Width}x{commercial.Height}");
+                    sb.AppendLine($"Этажи: {commercial.Floors}");
+
+                    // ЖКХ информация
+                    sb.AppendLine($"Коммуникации: {(commercial.IsOperational ? "✅ Все подключены" : "❌ Не все подключены")}");
+                    if (!commercial.IsOperational)
+                    {
+                        var missingUtils = new List<string>();
+                        if (!commercial.HasWater) missingUtils.Add("Вода");
+                        if (!commercial.HasGas) missingUtils.Add("Газ");
+                        if (!commercial.HasSewage) missingUtils.Add("Канализация");
+                        if (!commercial.HasElectricity) missingUtils.Add("Электричество");
+                        sb.AppendLine($"Отсутствуют: {string.Join(", ", missingUtils)}");
+                    }
+
+                    // Категории товаров
+                    if (commercial.ProductCategories?.Count > 0)
+                    {
+                        sb.AppendLine($"Категории товаров:");
+                        foreach (var category in commercial.ProductCategories)
+                        {
+                            sb.AppendLine($" • {category}");
+                        }
+                    }
+                }
+
+                // ОБЩАЯ ИНФОРМАЦИЯ ДЛЯ ЛЮБОГО ЗДАНИЯ
+                else
+                {
+                    sb.AppendLine($"--- Общая информация ---");
+                    sb.AppendLine($"Размер: {tile.Building.Width}x{tile.Building.Height}");
+                    sb.AppendLine($"Этажи: {tile.Building.Floors}");
+                    sb.AppendLine($"Вместимость: {tile.Building.MaxOccupancy} человек");
+                    sb.AppendLine($"Текущая заполненность: {tile.Building.CurrentOccupancy} человек");
+                    sb.AppendLine($"Состояние: {tile.Building.Condition}%");
                 }
             }
 

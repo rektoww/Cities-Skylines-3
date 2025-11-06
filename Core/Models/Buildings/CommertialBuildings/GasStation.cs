@@ -22,6 +22,7 @@ namespace Core.Models.Buildings.CommertialBuildings
             };
         public GasStation() : base(CommercialBuildingType.GasStation)
         {
+            Name = "Заправка";
         }
     }
 }
