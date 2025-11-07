@@ -1,3 +1,5 @@
+using Core.Enums;
+using Core.Interfaces;
 using Core.Models.Base;
 
 namespace Core.Models.Police
@@ -6,8 +8,18 @@ namespace Core.Models.Police
     /// Представляет полицейский участок.
     /// Управляет полицейскими и патрульными машинами, реагирует на преступления.
     /// </summary>
-    public class PoliceStation : Building
+    public class PoliceStation : Building, IConstructable<PoliceStation>
     {
+        // Стоимость и требуемые материалы для строительства полицейского участка
+        public static decimal BuildCost { get; protected set; } = 80000m;
+        public static Dictionary<ConstructionMaterial, int> RequiredMaterials { get; protected set; }
+            = new Dictionary<ConstructionMaterial, int>
+            {
+                { ConstructionMaterial.Steel, 4 },      // Сталь для укрепления
+                { ConstructionMaterial.Concrete, 5 },   // Бетон для стен
+                { ConstructionMaterial.Glass, 2 }       // Стекло для окон
+            };
+
         public List<PoliceOfficer> Officers { get; set; }
         public List<PoliceCar> PatrolCars { get; set; }
         public int CoverageRadius { get; set; }
@@ -15,7 +27,6 @@ namespace Core.Models.Police
         public float StationEfficiency { get; set; }
         public int MaxOfficers { get; set; }
         public int MaxPatrolCars { get; set; }
-        public decimal BuildCost { get; }
         public decimal MaintenanceCost { get; }
 
         /// <summary>
@@ -26,7 +37,6 @@ namespace Core.Models.Police
             Name = "Полицейский участок";
             Width = 3;
             Height = 3;
-            BuildCost = 25000m;
             MaintenanceCost = 500m;
             
             Officers = new List<PoliceOfficer>();

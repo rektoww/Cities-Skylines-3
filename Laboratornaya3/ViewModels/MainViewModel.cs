@@ -352,6 +352,10 @@ namespace Laboratornaya3.ViewModels
                     built = _constructionCompany.TryBuild<Mine>(x, y, CurrentMap, new object[] { }, out var mine);
                     builtBuilding = mine as Core.Models.Base.Building;
                     break;
+                case "Полицейский участок":
+                    built = _constructionCompany.TryBuild<PoliceStation>(x, y, CurrentMap, new object[] { }, out var policeStation);
+                    builtBuilding = policeStation as Core.Models.Base.Building;
+                    break;
                 default:
                     // Фолбэк: старое поведение для несопровождаемых типов
                     var realBuilding = CreateRealBuilding(SelectedBuilding);

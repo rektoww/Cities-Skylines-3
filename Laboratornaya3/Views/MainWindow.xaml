@@ -297,62 +297,17 @@
 
                                         <!-- Основное здание (красный блок) -->
                                         <Border Background="Red"
-                                        Margin="2"
-                                        CornerRadius="3"
-                                        Visibility="{Binding Building, Converter={StaticResource NullToVisibilityConverter}}">
+                                                Margin="2"
+                                                CornerRadius="3"
+                                                Visibility="{Binding Building, Converter={StaticResource NullToVisibilityConverter}}">
                                             <TextBlock Text="{Binding Building.Name}"
-                                               FontSize="8"
-                                               Foreground="White"
-                                               FontWeight="Bold"
-                                               HorizontalAlignment="Center"
-                                               VerticalAlignment="Center"
-                                               TextWrapping="Wrap"
-                                               TextAlignment="Center" />
-                                        </Border>
-                                        
-                                        <!-- Полицейский участок -->
-                                        <Border Background="Blue"
-                                                Margin="1"
-                                                CornerRadius="2">
-                                            <Border.Style>
-                                                <Style TargetType="Border">
-                                                    <Setter Property="Visibility"
-                                                            Value="Collapsed" />
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding Building.Name}"
-                                                                     Value="Полицейский участок">
-                                                            <Setter Property="Visibility"
-                                                                    Value="Visible" />
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Border.Style>
-
-                                            <TextBlock Text="🚓"
-                                                       FontSize="12"
+                                                       FontSize="8"
+                                                       Foreground="White"
+                                                       FontWeight="Bold"
                                                        HorizontalAlignment="Center"
-                                                       VerticalAlignment="Center" />
-                                        </Border>
-                                        <Border Background="#1e3a8a"
-                                                Margin="1"
-                                                CornerRadius="2">
-                                            <Border.Style>
-                                                <Style TargetType="Border">
-                                                    <Setter Property="Visibility"
-                                                            Value="Collapsed" />
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding Building.Name}"
-                                                                     Value="Полиция">
-                                                            <Setter Property="Visibility"
-                                                                    Value="Visible" />
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Border.Style>
-                                            <TextBlock Text="🚓"
-                                                       FontSize="12"
-                                                       HorizontalAlignment="Center"
-                                                       VerticalAlignment="Center" />
+                                                       VerticalAlignment="Center"
+                                                       TextWrapping="Wrap"
+                                                       TextAlignment="Center" />
                                         </Border>
                                     </Grid>
                                 </Border>
