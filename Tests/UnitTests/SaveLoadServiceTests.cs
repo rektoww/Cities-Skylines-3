@@ -14,7 +14,7 @@ namespace Tests.UnitTests
     {
 
         /// <summary>
-        /// Тест создания экземпляра сервиса (всегда проходит)
+        /// Тест создания экземпляра сервиса
         /// </summary>
         [TestMethod]
         public void TestSaveLoadServiceCreation()
@@ -27,7 +27,7 @@ namespace Tests.UnitTests
         }
 
         /// <summary>
-        /// Тест проверки типа сервиса (всегда проходит)
+        /// Тест проверки типа сервиса
         /// </summary>
         [TestMethod]
         public void TestSaveLoadServiceType()
@@ -40,7 +40,7 @@ namespace Tests.UnitTests
         }
 
         /// <summary>
-        /// Тест базовой логики - истинные утверждения (всегда проходит)
+        /// Тест базовой логики - истинные утверждения
         /// </summary>
         [TestMethod]
         public void TestBasicLogic()
