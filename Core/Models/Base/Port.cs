@@ -8,7 +8,7 @@ namespace Core.Models.Base
     /// <summary>
     /// Абстрактный класс для портов (морских и воздушных).
     /// </summary>
-    public abstract class Port
+    public abstract class Port : TransitStation
     {
         public string Name { get; set; }
 
@@ -24,12 +24,28 @@ namespace Core.Models.Base
         protected abstract int UnitCooldown { get; } // Время одного цикла продажи (в тиках)
         protected abstract int UnitRevenue { get; } // Доход за один цикл продажи
 
+        // События для UI/логики
+        // unitId, amountSold, revenueReceived
+        public event Action<int, int, decimal>? UnitSold;
+        public event Action<int>? UnitSuspended;
+        public event Action<int>? UnitResumed;
+        public event Action<int>? UnitAssignmentCleared;
+
         protected Port(string name, PlayerResources playerResources)
         {
             Name = name;
             PlayerResources = playerResources;
 
-            // Создаем юниты при создании порта
+            // НЕ создаём юниты здесь — инициализация происходит в OnBuildingPlaced,
+            // чтобы не вызывать абстрактные члены в конструкторе.
+        }
+
+        /// <summary>
+        /// Вызывается после размещения здания на карте (Building.TryPlace -> OnBuildingPlaced).
+        /// Здесь безопасно создавать юниты, потому что наследник полностью сконструирован.
+        /// </summary>
+        public override void OnBuildingPlaced()
+        {
             InitializeUnits();
         }
 
@@ -42,7 +58,15 @@ namespace Core.Models.Base
             var count = Math.Max(0, MaxUnits);
             for (int i = 0; i < count; i++)
             {
-                Units.Add(CreateUnit());
+                var unit = CreateUnit();
+                // Подписываемся на событие продажи внутри юнита, чтобы форвардить его наружу с id
+                unit.Sold += (u, amount, revenue) =>
+                {
+                    var id = Units.IndexOf(u);
+                    if (id >= 0)
+                        UnitSold?.Invoke(id, amount, revenue);
+                };
+                Units.Add(unit);
             }
         }
 
@@ -62,9 +86,9 @@ namespace Core.Models.Base
             }
         }
 
-
         /// <summary>
         /// Устанавливает тип ресурса, его количество и доход для юнита.
+        /// Возобновляет отправку (если юнит был в неактивном состоянии), т.к. игрок явно назначил ресурс.
         /// </summary>
         /// <param name="unitId">ID юнита</param>
         /// <param name="resourceType">Тип ресурса</param>
@@ -81,11 +105,59 @@ namespace Core.Models.Base
                 return false;
 
             unit.SetRevenue(revenue);
+            unit.ResumeSending(); // назначение ресурса подразумевает старт отправки
             return true;
         }
+
+        // Управление отправкой со стороны игрока
+        public void SuspendUnit(int unitId)
+        {
+            if (unitId < 0 || unitId >= Units.Count) return;
+            Units[unitId].SuspendSending();
+            UnitSuspended?.Invoke(unitId);
+        }
+
+        public void ResumeUnit(int unitId)
+        {
+            if (unitId < 0 || unitId >= Units.Count) return;
+            Units[unitId].ResumeSending();
+            UnitResumed?.Invoke(unitId);
+        }
+
+        public void ClearUnitAssignment(int unitId)
+        {
+            if (unitId < 0 || unitId >= Units.Count) return;
+            Units[unitId].ClearAssignment();
+            UnitAssignmentCleared?.Invoke(unitId);
+        }
+
+        /// <summary>
+        /// Возвращает снимок состояния всех юнитов для UI.
+        /// </summary>
+        public IReadOnlyList<PortUnitInfo> GetUnitsSnapshot()
+        {
+            var list = new List<PortUnitInfo>(Units.Count);
+            for (int i = 0; i < Units.Count; i++)
+            {
+                var u = Units[i];
+                list.Add(new PortUnitInfo(
+                    i,
+                    u.CurrentResourceType,
+                    u.ResourceAmount,
+                    u.RevenuePerDelivery,
+                    u.Cooldown,
+                    u.Capacity,
+                    u.IsSuspended));
+            }
+            return list;
+        }
+
+        public record PortUnitInfo(int Id, ConstructionMaterial? ResourceType, int Amount, int RevenuePerDelivery, int Cooldown, int Capacity, bool IsSuspended);
     }
 
-
+    /// <summary>   
+    /// Базовый класс для юнитов порта (корабли/самолеты).
+    /// </summary>
     public class PortUnit
     {
         private readonly int _capacity;
@@ -95,6 +167,10 @@ namespace Core.Models.Base
         private int _cooldown;
         private ConstructionMaterial? _resourceType;
         private int _resourceAmount;
+        private bool _suspended;
+
+        // Событие о факте продажи: sender (this), amountSold, revenueDecimal
+        public event Action<PortUnit, int, decimal>? Sold;
 
         public PortUnit(int capacity, int cooldownMax, int revenuePerDelivery)
         {
@@ -104,8 +180,24 @@ namespace Core.Models.Base
             _cooldown = -1;
             _resourceType = null;
             _resourceAmount = 0;
+            _suspended = false;
         }
 
+        // Публичные геттеры для UI (не меняем имена приватных полей)
+        public int Capacity => _capacity;
+        public int Cooldown => _cooldown;
+        public ConstructionMaterial? CurrentResourceType => _resourceType;
+        public int ResourceAmount => _resourceAmount;
+        public int RevenuePerDelivery => _revenuePerDelivery;
+        public bool IsSuspended => _suspended;
+
+        /// <summary>
+        /// Устанавливает тип ресурса и его количество для юнита.
+        /// Цикл запускается (ставится в 0) только после успешной установки ресурса.
+        /// </summary>
+        /// <param name="resourceType">Тип ресурса</param>
+        /// <param name="amount">Количество ресурса</param>
+        /// <returns>True если настройка применена успешно</returns>
         public bool SetResource(ConstructionMaterial resourceType, int amount)
         {
             if (amount <= 0 || amount > _capacity)
@@ -113,10 +205,14 @@ namespace Core.Models.Base
 
             _resourceType = resourceType;
             _resourceAmount = amount;
-            _cooldown = 0;
+            _cooldown = 0; // запуск цикла: следующая итерация Process попытается продать
             return true;
         }
 
+        /// <summary>
+        /// Устанавливает доход за один цикл продажи для юнита.
+        /// </summary>
+        /// <param name="revenue">Доход</param>
         public void SetRevenue(int revenue)
         {
             if (revenue > 0)
@@ -125,6 +221,19 @@ namespace Core.Models.Base
             }
         }
 
+        public void SuspendSending() => _suspended = true;
+        public void ResumeSending() => _suspended = false;
+
+        public void ClearAssignment()
+        {
+            _resourceType = null;
+            _resourceAmount = 0;
+            _cooldown = -1; // неактивен
+        }
+
+        /// <summary>
+        /// Выполняет тик симуляции для юнита.
+        /// </summary>
         public void Process(PlayerResources playerResources)
         {
             if (_cooldown < 0)
@@ -136,13 +245,17 @@ namespace Core.Models.Base
                 return;
             }
 
+            // _cooldown == 0: пробуем продать
             if (!_resourceType.HasValue)
                 return;
 
-            playerResources.StoredMaterials.TryGetValue(_resourceType.Value, out int available);
+            // если пользователь остановил отправку — не начинаем новую продажу
+            if (_suspended)
+                return;
 
-            if (available <= 0)
+            if (!playerResources.StoredMaterials.TryGetValue(_resourceType.Value, out int available) || available <= 0)
             {
+                // нет ресурса — оставляем _cooldown == 0, чтобы проверять каждую итерацию
                 return;
             }
 
@@ -150,12 +263,17 @@ namespace Core.Models.Base
 
             playerResources.StoredMaterials[_resourceType.Value] = available - amountToSell;
 
+            decimal revenueThisTime = 0m;
             if (_resourceAmount > 0)
             {
-                decimal revenueThisTime = (decimal)_revenuePerDelivery * amountToSell / _resourceAmount;
+                revenueThisTime = (decimal)_revenuePerDelivery * amountToSell / _resourceAmount;
                 playerResources.Balance += revenueThisTime;
             }
 
+            // Уведомляем подписчиков о продаже
+            Sold?.Invoke(this, amountToSell, revenueThisTime);
+
+            // Сбрасываем таймер после успешной продажи (полной или частичной)
             _cooldown = _cooldownMax;
         }
     }
