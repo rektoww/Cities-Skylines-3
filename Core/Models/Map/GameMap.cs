@@ -104,12 +104,14 @@ namespace Core.Models.Map
                 segment.StartY >= 0 && segment.StartY < Height)
             {
                 Tiles[segment.StartX, segment.StartY].HasRoad = true;
+                Tiles[segment.StartX, segment.StartY].RoadType = segment.RoadType;
             }
 
             if (segment.EndX >= 0 && segment.EndX < Width && 
                 segment.EndY >= 0 && segment.EndY < Height)
             {
                 Tiles[segment.EndX, segment.EndY].HasRoad = true;
+                Tiles[segment.EndX, segment.EndY].RoadType = segment.RoadType;
             }
 
             // Отмечаем промежуточные тайлы
@@ -123,6 +125,7 @@ namespace Core.Models.Map
                 if (x >= 0 && x < Width && y >= 0 && y < Height)
                 {
                     Tiles[x, y].HasRoad = true;
+                    Tiles[x, y].RoadType = segment.RoadType;
                 }
             }
         }

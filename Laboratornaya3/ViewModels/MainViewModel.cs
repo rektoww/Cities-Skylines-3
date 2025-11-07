@@ -12,6 +12,10 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Windows;
+using Core.Models.Roads;
+using Core.Models.Police;
+using Core.Models.Vehicles;
+using Core.Enums;
 
 namespace Laboratornaya3.ViewModels
 {
@@ -31,6 +35,8 @@ namespace Laboratornaya3.ViewModels
     {
         private readonly SaveLoadService _saveLoadService;
         private readonly NatureManager _natureManager;
+        private PathfindingService _pathfindingService;
+        private PoliceService _policeService;
 
         [ObservableProperty]
         private GameMap _currentMap;
@@ -48,6 +54,40 @@ namespace Laboratornaya3.ViewModels
         private bool _isBuildingMode;
 
         private readonly Dictionary<string, List<BuildingUI>> _buildingCategories = new();
+
+        // Режим размещения дорог
+        private bool _isRoadPlacementMode;
+        public bool IsRoadPlacementMode
+        {
+            get => _isRoadPlacementMode;
+            set => SetProperty(ref _isRoadPlacementMode, value);
+        }
+
+        private bool _isVehiclePlacementMode;
+        public bool IsVehiclePlacementMode
+        {
+            get => _isVehiclePlacementMode;
+            set => SetProperty(ref _isVehiclePlacementMode, value);
+        }
+
+        private RoadType _selectedRoadType = RoadType.Street;
+        public RoadType SelectedRoadType
+        {
+            get => _selectedRoadType;
+            set => SetProperty(ref _selectedRoadType, value);
+        }
+
+        private VehicleType _selectedVehicleType;
+        public VehicleType SelectedVehicleType
+        {
+            get => _selectedVehicleType;
+            set => SetProperty(ref _selectedVehicleType, value);
+        }
+
+        // Для рисования дорог
+        private Point _roadStartPoint;
+        private bool _isDrawingRoad;
+        private Tile tile;
 
         public IEnumerable<Tile> TilesFlat
         {
@@ -72,6 +112,10 @@ namespace Laboratornaya3.ViewModels
             UpdateBuildingsDisplay("Коммерция");
 
             LoadStatic();
+
+            _pathfindingService = new PathfindingService(CurrentMap);
+            _policeService = new PoliceService(CurrentMap);
+
         }
 
         private void InitializeCategories()
@@ -97,13 +141,26 @@ namespace Laboratornaya3.ViewModels
             {
                 new BuildingUI { Name = "Школа", Icon = "🏫", Category = "Социум" },
                 new BuildingUI { Name = "Больница", Icon = "🏥", Category = "Социум" },
-                new BuildingUI { Name = "Парк", Icon = "🌳", Category = "Социум" }
+                new BuildingUI { Name = "Парк", Icon = "🌳", Category = "Социум" },
+                new BuildingUI { Name = "Полицейский участок", Icon = "🚓", Category = "Социум" }
             });
 
             _buildingCategories.Add("Транспорт", new List<BuildingUI>
             {
                 new BuildingUI { Name = "Аэропорт", Icon = "✈️", Category = "Транспорт" },
-                new BuildingUI { Name = "Ж/Д Вокзал", Icon = "🚉", Category = "Транспорт" }
+                new BuildingUI { Name = "Ж/Д Вокзал", Icon = "🚉", Category = "Транспорт" },
+                new BuildingUI { Name = "Такси", Icon = "🚕", Category = "Транспорт" },
+                new BuildingUI { Name = "Грузовик", Icon = "🚚", Category = "Транспорт" },
+                new BuildingUI { Name = "Полицейская машина", Icon = "🚔", Category = "Транспорт" }
+            });
+
+            _buildingCategories.Add("Дороги", new List<BuildingUI>
+            {
+                new BuildingUI { Name = "Грунтовая дорога", Icon = "🛤️", Category = "Дороги"},
+                new BuildingUI { Name = "Городская дорога", Icon = "🛣️", Category = "Дороги" },
+                new BuildingUI { Name = "Широкая дорога", Icon = "🛣️", Category = "Дороги" },
+                new BuildingUI { Name = "Скоростное шоссе", Icon = "🏁", Category = "Дороги" },
+                new BuildingUI { Name = "Перекрёсток", Icon = "🚦", Category = "Дороги" }
             });
         }
 
@@ -123,12 +180,60 @@ namespace Laboratornaya3.ViewModels
             if (building != null)
             {
                 SelectedBuilding = building;
-                IsBuildingMode = true;
+                if (building.Category == "Дороги")
+                {
+                    // Режим строительства дорог
+                    IsRoadPlacementMode = true;
+                    IsBuildingMode = false;
+                    IsVehiclePlacementMode = false;
 
-                MessageBox.Show($"Выбрано: {building.Name}. Кликните на карте для размещения.",
-                               "Режим строительства",
-                               MessageBoxButton.OK,
-                               MessageBoxImage.Information);
+                    SelectedRoadType = building.Name switch
+                    {
+                        "Грунтовая дорога" => RoadType.Dirt,
+                        "Городская дорога" => RoadType.Street,
+                        "Широкая дорога" => RoadType.Avenue,
+                        "Скоростное шоссе" => RoadType.Highway,
+                        _ => RoadType.Street
+                    };
+
+                    MessageBox.Show($"Режим строительства дорог: {building.Name}. Кликните и протяните для создания дороги.",
+                                   "Режим строительства дорог",
+                                   MessageBoxButton.OK,
+                                   MessageBoxImage.Information);
+                }
+                else if (building.Category == "Транспорт")
+                {
+                    // Режим размещения транспорта
+                    IsVehiclePlacementMode = true;
+                    IsBuildingMode = false;
+                    IsRoadPlacementMode = false;
+
+                    SelectedVehicleType = building.Name switch
+                    {
+                        "Такси" => VehicleType.Taxi,
+                        "Грузовик" => VehicleType.Truck,
+                        "Полицейская машина" => VehicleType.PoliceCar,
+                        "Личный автомобиль" => VehicleType.Car,
+                        _ => VehicleType.Car
+                    };
+
+                    MessageBox.Show($"Режим размещения транспорта: {building.Name}. Кликните на дороге для размещения.",
+                                   "Режим размещения транспорта",
+                                   MessageBoxButton.OK,
+                                   MessageBoxImage.Information);
+                }
+                else
+                {
+                    // Режим строительства зданий
+                    IsBuildingMode = true;
+                    IsRoadPlacementMode = false;
+                    IsVehiclePlacementMode = false;
+
+                    MessageBox.Show($"Выбрано: {building.Name}. Кликните на карте для размещения.",
+                                   "Режим строительства",
+                                   MessageBoxButton.OK,
+                                   MessageBoxImage.Information);
+                }
             }
         }
 
@@ -136,7 +241,129 @@ namespace Laboratornaya3.ViewModels
         private void CancelBuilding()
         {
             IsBuildingMode = false;
+            IsRoadPlacementMode = false;
+            IsVehiclePlacementMode = false;
             SelectedBuilding = null;
+            _isDrawingRoad = false;
+        }
+
+        // Методы для работы с дорогами
+        public void StartRoadDrawing(int x, int y)
+        {
+            if (IsRoadPlacementMode)
+            {
+                _roadStartPoint = new Point(x, y);
+                _isDrawingRoad = true;
+            }
+        }
+
+        public void EndRoadDrawing(int x, int y)
+        {
+            if (IsRoadPlacementMode && _isDrawingRoad)
+            {
+                var endPoint = new Point(x, y);
+
+                // Создаем сегмент дороги (важно использовать целочисленный конструктор)
+                var roadSegment = new RoadSegment((int)_roadStartPoint.X, (int)_roadStartPoint.Y, x, y, _selectedRoadType);
+
+                // Пытаемся разместить дорогу
+                if (TryPlaceRoad(roadSegment))
+                {
+                    MessageBox.Show($"Дорога успешно построена от ({_roadStartPoint.X},{_roadStartPoint.Y}) до ({x},{y})",
+                                   "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+
+                _isDrawingRoad = false;
+            }
+        }
+
+        private bool TryPlaceRoad(RoadSegment roadSegment)
+        {
+            if (CurrentMap == null) return false;
+
+            // Проверяем возможность строительства дороги
+            if (CanBuildRoad(roadSegment))
+            {
+                // Добавляем дорогу на карту
+                CurrentMap.RoadSegments.Add(roadSegment);
+
+                // Обновляем тайлы, через которые проходит дорога
+                UpdateTilesWithRoad(roadSegment);
+
+                RefreshMap();
+                return true;
+            }
+
+            MessageBox.Show("Невозможно построить дорогу здесь!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
+        private bool CanBuildRoad(RoadSegment roadSegment)
+        {
+            // Проверяем, что координаты в пределах карты
+            if (roadSegment.StartX < 0 || roadSegment.StartX >= CurrentMap.Width ||
+                roadSegment.StartY < 0 || roadSegment.StartY >= CurrentMap.Height ||
+                roadSegment.EndX < 0 || roadSegment.EndX >= CurrentMap.Width ||
+                roadSegment.EndY < 0 || roadSegment.EndY >= CurrentMap.Height)
+            {
+                return false;
+            }
+
+            // Проверяем, что не строим через здания
+            var points = GetPointsAlongSegment(roadSegment);
+            foreach (var point in points)
+            {
+                var tile = CurrentMap.Tiles[(int)point.X, (int)point.Y];
+                if (tile.Building != null && !(tile.Building is Road))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private void UpdateTilesWithRoad(RoadSegment roadSegment)
+        {
+            var points = GetPointsAlongSegment(roadSegment);
+            foreach (var point in points)
+            {
+                if (point.X >= 0 && point.X < CurrentMap.Width && point.Y >= 0 && point.Y < CurrentMap.Height)
+                {
+                    CurrentMap.Tiles[(int)point.X, (int)point.Y].HasRoad = true;
+                    CurrentMap.Tiles[(int)point.X, (int)point.Y].RoadType = roadSegment.RoadType;
+                }
+            }
+        }
+
+        private List<Point> GetPointsAlongSegment(RoadSegment segment)
+        {
+            var points = new List<Point>();
+            int dx = Math.Abs(segment.EndX - segment.StartX);
+            int dy = Math.Abs(segment.EndY - segment.StartY);
+            int steps = Math.Max(dx, dy);
+
+            for (int i = 0; i <= steps; i++)
+            {
+                float t = (float)i / steps;
+                int x = (int)Math.Round(segment.StartX + t * (segment.EndX - segment.StartX));
+                int y = (int)Math.Round(segment.StartY + t * (segment.EndY - segment.StartY));
+                points.Add(new Point(x, y));
+            }
+
+            return points;
+        }
+
+        private Transport CreateVehicle(VehicleType vehicleType, int x, int y)
+        {
+            return vehicleType switch
+            {
+                VehicleType.Taxi => new Taxi(x, y, CurrentMap),
+                VehicleType.Truck => new Truck(x, y, CurrentMap),
+                VehicleType.PoliceCar => new PoliceCar(x, y, CurrentMap, null),
+                VehicleType.Car => new Car(x, y, CurrentMap),
+                _ => new Car(x, y, CurrentMap)
+            };
         }
 
         public bool TryPlaceBuilding(int x, int y)
@@ -184,6 +411,7 @@ namespace Laboratornaya3.ViewModels
                 "Ресторан" => new Restaurant(),
                 "Заправка" => new GasStation(),
                 "Парк" => new Park(),
+                "Полицейский участок" => new PoliceStation(),
                 _ => new Shop()
             };
         }
@@ -238,6 +466,13 @@ namespace Laboratornaya3.ViewModels
 
             if (infrastructure.Count > 0)
                 sb.AppendLine(string.Join(", ", infrastructure));
+            else
+                sb.AppendLine("нет");
+
+            // Дороги
+            sb.Append("Дорога: ");
+            if (tile.HasRoad)
+                sb.AppendLine($"{tile.RoadType}");
             else
                 sb.AppendLine("нет");
 
@@ -354,6 +589,148 @@ namespace Laboratornaya3.ViewModels
                 "Статистика деревьев",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
+        }
+
+        /// <summary>
+        /// Размещение дороги
+        /// </summary>
+        private void PlaceRoad(int x, int y)
+        {
+            if (x < 0 || x >= CurrentMap.Width || y < 0 || y >= CurrentMap.Height)
+                return;
+
+            // Создаём сегмент дороги
+            var segment = new RoadSegment(x, y, x, y, SelectedRoadType);
+            CurrentMap.AddRoadSegment(segment);
+
+            // Обновляем отображение
+            OnPropertyChanged(nameof(TilesFlat));
+        }
+
+        /// <summary>
+        /// Унифицированная попытка размещения выбранного элемента (здание/дорога/перекрёсток)
+        /// </summary>
+        public void TryPlaceSelected(int x, int y)
+        {
+            if (SelectedBuilding == null || CurrentMap == null)
+                return;
+
+            if (IsRoadPlacementMode || SelectedBuilding.Category == "Дороги")
+            {
+                if (SelectedBuilding.Name == "Перекрёсток")
+                {
+                    PlaceIntersection(x, y);
+                }
+                else
+                {
+                    PlaceRoad(x, y);
+                }
+                UpdateStatistics();
+                return;
+            }
+
+            if (IsVehiclePlacementMode || SelectedBuilding.Category == "Транспорт")
+            {
+                TryPlaceVehicle(x, y);
+                return;
+            }
+
+            // Обычное здание
+            TryPlaceBuilding(x, y);
+        }
+
+        /// <summary>
+        /// Размещение транспорта на дороге
+        /// </summary>
+        public void TryPlaceVehicle(int x, int y)
+        {
+            if (CurrentMap == null) return;
+            if (!IsVehiclePlacementMode && (SelectedBuilding == null || SelectedBuilding.Category != "Транспорт")) return;
+
+            var tile = CurrentMap.Tiles[x, y];
+            if (!tile.HasRoad)
+            {
+                MessageBox.Show("Транспорт можно размещать только на дороге", "Размещение транспорта", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var vehicle = CreateVehicle(SelectedVehicleType, x, y);
+
+            // Пиктограмма транспорта по типу
+            string icon = SelectedVehicleType switch
+            {
+                VehicleType.Taxi => "🚕",
+                VehicleType.Truck => "🚚",
+                VehicleType.PoliceCar => "🚓",
+                VehicleType.Bus => "🚌",
+                VehicleType.Car => "🚗",
+                _ => "🚗"
+            };
+            tile.VehicleIcons.Add(icon);
+
+            // Простейший учет: увеличиваем счетчик на тайле
+            tile.VehicleCount += 1;
+            tile.HasVehicle = tile.VehicleCount > 0;
+            RefreshMap();
+        }
+
+        /// <summary>
+        /// Размещение перекрёстка
+        /// </summary>
+        private void PlaceIntersection(int x, int y)
+        {
+            var intersection = new Intersection(x, y, true); // Со светофором
+            CurrentMap.AddIntersection(intersection);
+            // Помечаем только одну клетку как перекрёсток и дорогу выбранного типа
+            var tile = CurrentMap.Tiles[x, y];
+            tile.HasRoad = true;
+            tile.RoadType = SelectedRoadType;
+            tile.HasIntersection = true;
+
+            RefreshMap();
+        }
+
+        /// <summary>
+        /// Обновление статистики
+        /// </summary>
+        private void UpdateStatistics()
+        {
+            if (CurrentMap == null)
+                return;
+
+            var sb = new StringBuilder();
+            sb.AppendLine($"Дорог: {CurrentMap.RoadSegments.Count}");
+            sb.AppendLine($"Перекрёстков: {CurrentMap.Intersections.Count}");
+
+            var policeStations = CurrentMap.Buildings.OfType<PoliceStation>().Count();
+            sb.AppendLine($"Полицейских участков: {policeStations}");
+
+            if (_policeService != null)
+            {
+                sb.AppendLine($"Активных преступлений: {_policeService.GetActiveCrimeCount()}");
+                sb.AppendLine($"Раскрыто: {_policeService.TotalCrimesSolved}");
+            }
+
+            sb.ToString();
+        }
+
+        /// <summary>
+        /// Создать тестовое преступление
+        /// </summary>
+        [RelayCommand]
+        private void CreateTestCrime()
+        {
+            if (_policeService != null && CurrentMap != null)
+            {
+                var random = new Random();
+                int x = random.Next(0, CurrentMap.Width);
+                int y = random.Next(0, CurrentMap.Height);
+
+                _policeService.CreateCrime(CrimeType.Theft, x, y);
+                UpdateStatistics();
+
+                MessageBox.Show($"Преступление создано на ({x}, {y})", "Тест");
+            }
         }
 
         public void RefreshMap()

@@ -4,6 +4,7 @@
         xmlns:map="clr-namespace:Core.Models.Map;assembly=Core"
         xmlns:vm="clr-namespace:Laboratornaya3.ViewModels"
         xmlns:converters="clr-namespace:Laboratornaya3.Converters"
+        xmlns:enums="clr-namespace:Core.Enums;assembly=Core"
         Title="Cities: Skylines 3"
         Height="600"
         Width="1000"
@@ -49,6 +50,14 @@
         <Style x:Key="TransportButtonStyle" TargetType="Button" BasedOn="{StaticResource BaseCategoryStyle}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding SelectedCategoryName}" Value="Транспорт">
+                    <Setter Property="Background" Value="White" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="RoadButtonStyle" TargetType="Button" BasedOn="{StaticResource BaseCategoryStyle}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding SelectedCategoryName}" Value="Дороги">
                     <Setter Property="Background" Value="White" />
                 </DataTrigger>
             </Style.Triggers>
@@ -191,6 +200,74 @@
                                     <Grid>
                                         <!-- Фон тайла -->
                                         <Rectangle Fill="Transparent" />
+
+                                        <!-- Визуализация дороги -->
+                                        <Rectangle Fill="DarkGray" Margin="15">
+                                            <Rectangle.Style>
+                                                <Style TargetType="Rectangle">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding HasRoad}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </DataTrigger>
+                                                        <!-- Ширина дороги через отступы: меньше Margin => шире визуально -->
+                                                        <DataTrigger Binding="{Binding RoadType}" Value="{x:Static enums:RoadType.Avenue}">
+                                                            <Setter Property="Margin" Value="8" />
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding RoadType}" Value="{x:Static enums:RoadType.Highway}">
+                                                            <Setter Property="Margin" Value="4" />
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding RoadType}" Value="{x:Static enums:RoadType.Dirt}">
+                                                            <Setter Property="Margin" Value="18" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Rectangle.Style>
+                                        </Rectangle>
+
+                                        <!-- Транспорт (несколько иконок) -->
+                                        <ItemsControl ItemsSource="{Binding VehicleIcons}"
+                                                      HorizontalAlignment="Center"
+                                                      VerticalAlignment="Center">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <StackPanel Orientation="Horizontal" />
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding .}" FontSize="14" Margin="1,0" />
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                            <ItemsControl.Style>
+                                                <Style TargetType="ItemsControl">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding HasVehicle}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </ItemsControl.Style>
+                                        </ItemsControl>
+
+                                        <!-- Перекрёсток -->
+                                        <TextBlock Text="🚦"
+                                                   FontSize="14"
+                                                   HorizontalAlignment="Right"
+                                                   VerticalAlignment="Top"
+                                                   Margin="2">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding HasIntersection}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
 
                                         <!-- Основное здание (красный блок) -->
                                         <Border Background="Red"
@@ -368,6 +445,51 @@
                                                        HorizontalAlignment="Center"
                                                        VerticalAlignment="Center" />
                                         </Border>
+                                        
+                                        <!-- Полицейский участок -->
+                                        <Border Background="Blue"
+                                                Margin="1"
+                                                CornerRadius="2">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Visibility"
+                                                            Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Building.Name}"
+                                                                     Value="Полицейский участок">
+                                                            <Setter Property="Visibility"
+                                                                    Value="Visible" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+
+                                            <TextBlock Text="🚓"
+                                                       FontSize="12"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center" />
+                                        </Border>
+                                        <Border Background="#1e3a8a"
+                                                Margin="1"
+                                                CornerRadius="2">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Visibility"
+                                                            Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Building.Name}"
+                                                                     Value="Полиция">
+                                                            <Setter Property="Visibility"
+                                                                    Value="Visible" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <TextBlock Text="🚓"
+                                                       FontSize="12"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center" />
+                                        </Border>
                                     </Grid>
 
                                     <Border.InputBindings>
@@ -506,6 +628,11 @@
                         Command="{Binding SelectCategoryCommand}"
                         CommandParameter="Транспорт"
                         Style="{StaticResource TransportButtonStyle}" />
+
+                <Button Content="Дороги"
+                        Command="{Binding SelectCategoryCommand}"
+                        CommandParameter="Дороги"
+                        Style="{StaticResource RoadButtonStyle}" />
             </StackPanel>
 
             <ItemsControl Grid.Row="1" x:Name="BuildingsItemsControl" ItemsSource="{Binding VisibleBuildings}">
