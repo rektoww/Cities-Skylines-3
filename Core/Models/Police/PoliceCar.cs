@@ -24,6 +24,7 @@ namespace Core.Models.Police
         public PoliceCar(int x, int y, GameMap map, PoliceStation station) 
             : base(x, y, map, PoliceCarCapacity)
         {
+            Name = "Полицейская машина";
             Speed = 11f; // Полицейские машины быстрее обычных
             Officers = new List<PoliceOfficer>();
             IsOnPatrol = false;

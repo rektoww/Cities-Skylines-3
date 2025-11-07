@@ -1,7 +1,8 @@
-﻿using Core.Enums;
+using Core.Enums;
 using Core.Models.Base;
 using Core.Enums;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace Core.Models.Map
 {
@@ -15,6 +16,11 @@ namespace Core.Models.Map
 
         public Building Building { get; set; }
         public bool HasRoad { get; set; }
+
+        // Транспорт на тайле
+        public int VehicleCount { get; set; }
+        public bool HasVehicle { get; set; }
+        public ObservableCollection<string> VehicleIcons { get; set; }
 
         /// <summary>
         /// SmirnovMA - ПЕШЕХОДНАЯ ИНФРАСТРУКТУРА
@@ -51,10 +57,16 @@ namespace Core.Models.Map
         /// </summary>
         public bool HasForest => Terrain == TerrainType.Forest;
 
+        public RoadType RoadType { get; set; }
+        public bool HasIntersection { get; set; }
+
         public Tile()
         {
             Resources = new List<NaturalResource>();
             TreeCount = 0; // По умолчанию нет деревьев
+            VehicleIcons = new ObservableCollection<string>();
+            VehicleCount = 0;
+            HasVehicle = false;
         }
     }
 }

@@ -41,6 +41,28 @@ namespace Laboratornaya3
                 TryPlaceBuilding(e.GetPosition(MapGrid));
                 e.Handled = true;
             }
+            else if (viewModel?.IsRoadPlacementMode == true && e.ChangedButton == MouseButton.Right)
+            {
+                var tile = GetTileAtPosition(e.GetPosition(MapGrid));
+                if (tile != null)
+                {
+                    if (viewModel.SelectedBuilding?.Name == "Перекрёсток")
+                        viewModel.TryPlaceSelected(tile.X, tile.Y);
+                    else
+                        viewModel.StartRoadDrawing(tile.X, tile.Y);
+                }
+                e.Handled = true;
+            }
+            else if (viewModel?.IsVehiclePlacementMode == true && e.ChangedButton == MouseButton.Right)
+            {
+                // Размещение транспорта на дороге по клику (ПКМ)
+                var tile = GetTileAtPosition(e.GetPosition(MapGrid));
+                if (tile != null)
+                {
+                    viewModel.TryPlaceVehicle(tile.X, tile.Y);
+                }
+                e.Handled = true;
+            }
             else if (e.ChangedButton == MouseButton.Left)
             {
                 lastMousePosition = e.GetPosition(this);
@@ -48,8 +70,9 @@ namespace Laboratornaya3
                 MapScrollViewer.CaptureMouse();
                 MapScrollViewer.Cursor = Cursors.SizeAll;
             }
-            else if (e.ChangedButton == MouseButton.Right)
+            else if (e.ChangedButton == MouseButton.Right && viewModel?.IsRoadPlacementMode != true && viewModel?.IsVehiclePlacementMode != true)
             {
+                // ПКМ как отмена в остальных режимах, но не в режиме дорог/транспорта
                 viewModel?.CancelBuildingCommand.Execute(null);
             }
         }
@@ -62,6 +85,10 @@ namespace Laboratornaya3
             {
                 MapScrollViewer.Cursor = Cursors.Cross;
                 ShowBuildingPreview(e.GetPosition(MapGrid));
+            }
+            else if (viewModel?.IsRoadPlacementMode == true || viewModel?.IsVehiclePlacementMode == true)
+            {
+                MapScrollViewer.Cursor = Cursors.Cross;
             }
             else if (isDragging && lastMousePosition.HasValue)
             {
@@ -82,13 +109,24 @@ namespace Laboratornaya3
 
         private void MapScrollViewer_MouseUp(object sender, MouseButtonEventArgs e)
         {
+            var viewModel = DataContext as MainViewModel;
+
+            if (viewModel?.IsRoadPlacementMode == true && e.ChangedButton == MouseButton.Right)
+            {
+                var tile = GetTileAtPosition(e.GetPosition(MapGrid));
+                if (tile != null && viewModel.SelectedBuilding?.Name != "Перекрёсток")
+                {
+                    viewModel.EndRoadDrawing(tile.X, tile.Y);
+                }
+                e.Handled = true;
+            }
+
             if (e.ChangedButton == MouseButton.Left && isDragging)
             {
                 isDragging = false;
                 lastMousePosition = null;
                 MapScrollViewer.ReleaseMouseCapture();
 
-                var viewModel = DataContext as MainViewModel;
                 MapScrollViewer.Cursor = viewModel?.IsBuildingMode == true ? Cursors.Cross : Cursors.Arrow;
             }
         }
@@ -109,6 +147,20 @@ namespace Laboratornaya3
             if (tile != null)
             {
                 viewModel.TryPlaceBuilding(tile.X, tile.Y);
+            }
+        }
+
+        private void TryPlaceSelected(Point mousePosition)
+        {
+            var viewModel = DataContext as MainViewModel;
+            if (viewModel == null) return;
+
+            if (viewModel.SelectedBuilding == null) return;
+
+            var tile = GetTileAtPosition(mousePosition);
+            if (tile != null)
+            {
+                viewModel.TryPlaceSelected(tile.X, tile.Y);
             }
         }
 

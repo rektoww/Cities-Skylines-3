@@ -8,6 +8,12 @@ namespace Core.Models.Roads
     /// </summary>
     public class RoadSegment
     {
+        private double x1;
+        private double y1;
+        private int x2;
+        private int y2;
+        private RoadType selectedRoadType;
+
         public int StartX { get; set; }
         public int StartY { get; set; }
         public int EndX { get; set; }
@@ -29,6 +35,15 @@ namespace Core.Models.Roads
 
             // Устанавливаем характеристики в зависимости от типа дороги
             SetRoadCharacteristics();
+        }
+
+        public RoadSegment(double x1, double y1, int x2, int y2, RoadType selectedRoadType)
+        {
+            this.x1 = x1;
+            this.y1 = y1;
+            this.x2 = x2;
+            this.y2 = y2;
+            this.selectedRoadType = selectedRoadType;
         }
 
         /// <summary>

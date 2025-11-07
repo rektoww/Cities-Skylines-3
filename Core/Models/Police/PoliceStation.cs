@@ -23,6 +23,7 @@ namespace Core.Models.Police
         /// </summary>
         public PoliceStation()
         {
+            Name = "Полицейский участок";
             Width = 3;
             Height = 3;
             BuildCost = 25000m;
