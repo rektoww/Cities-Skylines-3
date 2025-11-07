@@ -41,7 +41,6 @@ namespace Core.Models.Base
         /// <param name="HasSewage"> канализация </param>
         /// <param name="HasElectricity"> электроснабжение </param>
         /// <param name="Floors"> кол-во этажей </param>
-        /// <param name="BuildCoast"> стоимость потройки </param>
         /// <param name="Width"> ширина на карте (x) </param>
         /// <param name="Height"> длина на карте (y) </param>
         protected Building(
@@ -50,8 +49,6 @@ namespace Core.Models.Base
             bool HasSewage = true,
             bool HasElectricity = true,
             int Floors = 1,
-            decimal _BuildCost = 0m,
-            
             int Width = 1,
             int Height = 1
             )

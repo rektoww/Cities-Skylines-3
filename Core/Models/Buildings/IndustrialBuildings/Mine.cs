@@ -50,7 +50,6 @@ namespace Core.Models.Buildings.IndustrialBuildings
             HasSewage: true,
             HasElectricity: true,
             Floors: 1,
-            _BuildCost: 30000m,
             Width: 2,
             Height: 2
         )

@@ -98,31 +98,8 @@ namespace Laboratornaya3.ViewModels
             UpdateBuildingsDisplay("Коммерция");
 
             LoadStatic();
-            PlaceInitialMine();
         }
 
-        private void PlaceInitialMine()
-        {
-            if (CurrentMap == null) return;
-
-            // Размещаем шахту на координатах 22,24
-            int mineX = 22;
-            int mineY = 24;
-
-            var mine = new Mine();
-            if (mine.TryPlace(mineX, mineY, CurrentMap))
-            {
-                CurrentMap.Buildings.Add(mine);
-                
-                // Сразу добываем немного ресурсов для теста
-                for (int i = 0; i < 5; i++)
-                {
-                    mine.ProduceResources();
-                }
-                
-                RefreshMap();
-            }
-        }
 
         private void InitializeCategories()
         {

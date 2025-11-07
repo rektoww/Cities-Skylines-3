@@ -17,6 +17,7 @@ namespace Core.Services
         /// <param name="prices">Цены за единицу материалов</param>
         /// <param name="finance">Финансовая система (для списания средств и отчетности)</param>
         /// <param name="playerResources">Инвентарь игрока (для зачисления материалов)</param>
+        /// <param name="totalCost">Общая стоимость покупки</param>
         /// <param name="category">Категория расхода для отчета</param>
         /// <returns>true, если покупка прошла успешно</returns>
         public bool TryBuyMaterials(
@@ -24,21 +25,23 @@ namespace Core.Services
             Dictionary<ConstructionMaterial, decimal> prices,
             FinancialSystem finance,
             PlayerResources playerResources,
+            out decimal totalCost,
             string category = "Materials: Purchase")
         {
+            totalCost = 0m;
+            
             if (quantities == null || quantities.Count == 0)
                 return false;
 
-            decimal total = 0m;
             foreach (var item in quantities)
             {
                 if (item.Value <= 0) return false;
                 if (!prices.TryGetValue(item.Key, out var unitPrice)) return false;
-                total += unitPrice * item.Value;
+                totalCost += unitPrice * item.Value;
             }
 
             // Проверяем и списываем деньги через финансовую систему (она сама проверит нехватку средств)
-            if (!finance.AddExpense(total, category))
+            if (!finance.AddExpense(totalCost, category))
                 return false;
 
             // Обновляем инвентарь игрока
@@ -51,7 +54,7 @@ namespace Core.Services
             }
 
             // Поддержка старого поля баланса (держим его в синхронизации)
-            playerResources.Balance -= total;
+            playerResources.Balance -= totalCost;
             return true;
         }
     }

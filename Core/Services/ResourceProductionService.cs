@@ -48,9 +48,12 @@ namespace Core.Services
         /// <param name="material">Тип материала</param>
         /// <param name="quantity">Количество для продажи</param>
         /// <param name="pricePerUnit">Цена за единицу</param>
+        /// <param name="totalRevenue">Общая выручка от продажи</param>
         /// <returns>true, если продажа прошла успешно</returns>
-        public bool TrySellMaterials(ConstructionMaterial material, int quantity, decimal pricePerUnit)
+        public bool TrySellMaterials(ConstructionMaterial material, int quantity, decimal pricePerUnit, out decimal totalRevenue)
         {
+            totalRevenue = 0m;
+            
             if (quantity <= 0)
                 return false;
 
@@ -58,7 +61,7 @@ namespace Core.Services
                 _playerResources.StoredMaterials[material] < quantity)
                 return false;
 
-            decimal totalRevenue = pricePerUnit * quantity;
+            totalRevenue = pricePerUnit * quantity;
 
             // Списываем материалы
             _playerResources.StoredMaterials[material] -= quantity;
@@ -75,8 +78,10 @@ namespace Core.Services
         /// <summary>
         /// Продает все доступные материалы одного типа.
         /// </summary>
-        public bool TrySellAllMaterials(ConstructionMaterial material, decimal pricePerUnit)
+        public bool TrySellAllMaterials(ConstructionMaterial material, decimal pricePerUnit, out decimal totalRevenue)
         {
+            totalRevenue = 0m;
+            
             if (!_playerResources.StoredMaterials.ContainsKey(material))
                 return false;
 
@@ -84,7 +89,7 @@ namespace Core.Services
             if (quantity == 0)
                 return false;
 
-            return TrySellMaterials(material, quantity, pricePerUnit);
+            return TrySellMaterials(material, quantity, pricePerUnit, out totalRevenue);
         }
     }
 }

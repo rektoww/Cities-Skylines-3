@@ -93,11 +93,12 @@ namespace Laboratornaya3.Views
                 EconomyConfig.MaterialPrices,
                 _financialSystem,
                 _playerResources,
+                out decimal actualCost,
                 "Purchase: Materials");
 
             if (success)
             {
-                MessageBox.Show($"Материалы успешно куплены!\nПотрачено: {totalCost:N0}$", 
+                MessageBox.Show($"Материалы успешно куплены!\nПотрачено: {actualCost:N0}$", 
                     "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
                 DialogResult = true;
                 Close();

@@ -26,7 +26,6 @@ namespace Core.Models.Buildings.SocialBuildings
             HasSewage: false,
             HasElectricity: false,
             Floors: 0,
-            _BuildCost: 1000m,   // Стоимость
             Width: 2,            // Размер 2x2
             Height: 2
         )

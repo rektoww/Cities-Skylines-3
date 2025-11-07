@@ -84,7 +84,7 @@ namespace Laboratornaya3.Views
             // Продаем каждый материал
             foreach (var item in itemsToSell)
             {
-                _productionService.TrySellMaterials(item.Material, item.QuantityToSell, item.PricePerUnit);
+                _productionService.TrySellMaterials(item.Material, item.QuantityToSell, item.PricePerUnit, out _);
             }
 
             SoldSuccessfully = true;
