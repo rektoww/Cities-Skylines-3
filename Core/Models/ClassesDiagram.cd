@@ -1,0 +1,511 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="Core.Models.Base.Building" Collapsed="true">
+    <Position X="9.75" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAEAEEBACBQAgACBAAAEAAAAAAAAAAAJwAAAABACA=</HashCode>
+      <FileName>Models\Base\Building.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Base.DisasterEvent" Collapsed="true">
+    <Position X="18.25" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AiQoCgAACBBEhIEBGEgAiAQJICABBICAAW0BYQBAAjg=</HashCode>
+      <FileName>Models\Base\DisasterEvent.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Base.GameObject" Collapsed="true">
+    <Position X="12.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAAAAgEAAAAAQAAIAAAAAAAAAAAAAAYAA=</HashCode>
+      <FileName>Models\Base\GameObject.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Base.Mob" Collapsed="true">
+    <Position X="14" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAGAAAAIAAAAAAAAAAAAAAAAAIAAAAAACAAAAAAAA=</HashCode>
+      <FileName>Models\Base\Mob.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Base.Port" Collapsed="true">
+    <Position X="1.75" Y="8.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAAIAAAAAAAAASAAAAQAgQAADAiAQAEIAAAAAEBAY=</HashCode>
+      <FileName>Models\Base\Port.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Base.PortUnit" Collapsed="true">
+    <Position X="1.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAACAACAAAQCAAAAoACABRCAAAAAAAgoAAAYAAUCAA=</HashCode>
+      <FileName>Models\Base\Port.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Base.PublicTransport" Collapsed="true">
+    <Position X="15" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAIAAAAAAAEAAgAAAAAAAAAABBAIAAAAAAAA=</HashCode>
+      <FileName>Models\Base\PublicTransport.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Base.TransitStation" Collapsed="true">
+    <Position X="2.5" Y="5.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAkAAAAAAAAAAAAAAAAAIAAAAAABAA=</HashCode>
+      <FileName>Models\Base\TransitStation.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Base.Transport" Collapsed="true">
+    <Position X="14.25" Y="5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABAIAAAAAAQAAAAAAAAAAAABAAAAAAAAAAAAAIAAQAA=</HashCode>
+      <FileName>Models\Base\Transport.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Buildings.BusStop" Collapsed="true">
+    <Position X="4" Y="9" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAgIQAAAAAAAA=</HashCode>
+      <FileName>Models\Buildings\BusStop.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Core.Models.Buildings.CollegeBuilding" Collapsed="true">
+    <Position X="10" Y="12" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Buildings\CollegeBuilding.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Buildings.CommercialBuilding" Collapsed="true">
+    <Position X="7" Y="9" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAABAAAAAAAAABAAAAACAAAAAAAAAYAACAAAAgA=</HashCode>
+      <FileName>Models\Buildings\CommercialBuilding.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Buildings.ResidentialBuilding" Collapsed="true">
+    <Position X="5" Y="4.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAgAAAAAAACACAABAAAAABYgAAAAAAiA=</HashCode>
+      <FileName>Models\Buildings\ResidentialBuilding.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Buildings.SchoolBuilding" Collapsed="true">
+    <Position X="8.25" Y="12" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Buildings\SchoolBuilding.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Buildings.ServiceBuilding" Collapsed="true">
+    <Position X="11.25" Y="8" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAABAAAAIAAAACAAAAACAAAAAAgAA4gQAAAAIgA=</HashCode>
+      <FileName>Models\Buildings\ServiceBuilding.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Buildings.UniversityBuilding" Collapsed="true">
+    <Position X="11.75" Y="12" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Buildings\UniversityBuilding.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Buildings.AirPort" Collapsed="true">
+    <Position X="2.5" Y="10.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAASAAAAQAgAAAAAAAQAAAQAAAAAAAQ=</HashCode>
+      <FileName>Models\Buildings\AirPort.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Buildings.SeaPort" Collapsed="true">
+    <Position X="0.5" Y="10.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAASAAAAQAgAAAAAAAQAAAQAAAAAAAQ=</HashCode>
+      <FileName>Models\Buildings\SeaPort.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ExtractionFacility" Collapsed="true">
+    <Position X="14.5" Y="9.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QIQIAAAAACAAAAIwAAAAQAQAgAAAAAAAAAAAAAAgAAA=</HashCode>
+      <FileName>Models\Buildings\ExtractionFacility.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ProcessingPlant" Collapsed="true">
+    <Position X="16.25" Y="9.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CAAKAAACBABAAAIAAAABAAAQhAgCQEQCAQAEAAAAAAA=</HashCode>
+      <FileName>Models\Buildings\ProcessingPlant.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="WoodProcessingFactory" Collapsed="true">
+    <Position X="12.75" Y="9.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CAAKAAAAAAAAAAIAAAABABAAgAACAAiABBAAAAAAAAA=</HashCode>
+      <FileName>Models\Buildings\WoodProcessingFactory.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Buildings.CommertialBuildings.Cafe" Collapsed="true">
+    <Position X="3" Y="12" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAgAAAAAAAAAA=</HashCode>
+      <FileName>Models\Buildings\CommertialBuildings\Cafe.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Core.Models.Buildings.CommertialBuildings.GasStation" Collapsed="true">
+    <Position X="1.25" Y="14" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAgAAAAAAAAAA=</HashCode>
+      <FileName>Models\Buildings\CommertialBuildings\GasStation.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Core.Models.Buildings.CommertialBuildings.Pharmacy" Collapsed="true">
+    <Position X="1.25" Y="15" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAgAAAAAAAAAA=</HashCode>
+      <FileName>Models\Buildings\CommertialBuildings\Pharmacy.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Core.Models.Buildings.CommertialBuildings.Restaurant" Collapsed="true">
+    <Position X="1.25" Y="12" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAgAAAAAAAAAA=</HashCode>
+      <FileName>Models\Buildings\CommertialBuildings\Restaurant.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Core.Models.Buildings.CommertialBuildings.Shop" Collapsed="true">
+    <Position X="3" Y="14" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAgAAAAAAAAAA=</HashCode>
+      <FileName>Models\Buildings\CommertialBuildings\Shop.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Core.Models.Buildings.CommertialBuildings.Supermarket" Collapsed="true">
+    <Position X="3" Y="15" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAgAAAAAAAAAA=</HashCode>
+      <FileName>Models\Buildings\CommertialBuildings\Supermarket.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Core.Models.Buildings.CommercialBuildings.LogisticsCompany" Collapsed="true">
+    <Position X="1.25" Y="13" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QESVBAAAACIAAgCAgIAgAAACgIAAgAiAi4AAAAAAAIg=</HashCode>
+      <FileName>Models\Buildings\CommertialBuildings\LogisticsCompany.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Core.Models.Buildings.CommercialBuildings.DeliveryOrder" Collapsed="true">
+    <Position X="18" Y="9.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAUgAAAAAAAAAIAAAAgAIBAAAAQAAAAgAAAAAA=</HashCode>
+      <FileName>Models\Buildings\CommertialBuildings\LogisticsCompany.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Buildings.IndustrialBuildings.AgriculturalComplex" Collapsed="true">
+    <Position X="1.25" Y="23" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CIAKAAAACAAAAAIAgAwJQgAAgAACAAiAgIAEAAgEgAA=</HashCode>
+      <FileName>Models\Buildings\IndustrialBuildings\AgriculturalComplex.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Core.Models.Buildings.IndustrialBuildings.AlcoholFactory" Collapsed="true">
+    <Position X="3" Y="17" Width="1.5" />
+    <InheritanceLine Type="Core.Models.Buildings.CommercialBuilding" FixedToPoint="true">
+      <Path>
+        <Point X="7.75" Y="9.691" />
+        <Point X="7.75" Y="16.625" />
+        <Point X="3.75" Y="16.625" />
+        <Point X="3.75" Y="17" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>CIAKAAAACAAAAAIAgAwJQAAAgAACAAiAgIAEAAgEgAA=</HashCode>
+      <FileName>Models\Buildings\IndustrialBuildings\AlcoholFactory.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Core.Models.Buildings.IndustrialBuildings.AutoIndustryFactory" Collapsed="true">
+    <Position X="3" Y="23" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CIAKAAAACAAAAAIAgAwJQAAAgAACAAiAgIAEAAgEgAA=</HashCode>
+      <FileName>Models\Buildings\IndustrialBuildings\AutoIndustryFactory.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Core.Models.Buildings.IndustrialBuildings.CardboardFactory" Collapsed="true">
+    <Position X="14.5" Y="10.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CIAKAAAICAAAAAIAACwBQAAAgAAAAACAAAAEAAgEgAA=</HashCode>
+      <FileName>Models\Buildings\IndustrialBuildings\CardboardFactory.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Buildings.IndustrialBuildings.ChemicalPlant" Collapsed="true">
+    <Position X="1.25" Y="19.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AwAAAAEAEABACAAAgA1KIAAAgAQACAAAjIIEAB0AhAA=</HashCode>
+      <FileName>Models\Buildings\IndustrialBuildings\ChemicalPlant.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Core.Models.Buildings.IndustrialBuildings.ChemicalReactor" Collapsed="true">
+    <Position X="16.25" Y="10.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAABAAAgAAAAAAIgAAAAQCAAAgAAAAAAAAAAAAAAg=</HashCode>
+      <FileName>Models\Buildings\IndustrialBuildings\ChemicalPlant.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Buildings.IndustrialBuildings.CosmeticsFactory" Collapsed="true">
+    <Position X="3" Y="19.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CIAKAAAACAAAAAIAgAwJQAAAgAACAAiAgIAEAAgEgAA=</HashCode>
+      <FileName>Models\Buildings\IndustrialBuildings\CosmeticsFactory.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Core.Models.Buildings.IndustrialBuildings.EnergyFactory" Collapsed="true">
+    <Position X="3" Y="13" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CIAKAAAIAAAAAAIAgCQBQAAAgAgCAAAAgIAEoAgEgAA=</HashCode>
+      <FileName>Models\Buildings\IndustrialBuildings\EnergyFactory.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Core.Models.Buildings.IndustrialBuildings.FisheryComplex" Collapsed="true">
+    <Position X="1.25" Y="18.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CIAKAAAACAAAAAIAgAwJQAAAgAACAAiAgIAEAAgEhAA=</HashCode>
+      <FileName>Models\Buildings\IndustrialBuildings\FisheryComplex.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Core.Models.Buildings.IndustrialBuildings.FoodProcessingFactory" Collapsed="true">
+    <Position X="1.25" Y="20.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CIAKAAAACAAAAAIAgAwJQAAAgAACAAiAgIAEAAgEgAA=</HashCode>
+      <FileName>Models\Buildings\IndustrialBuildings\FoodProcessingFactory.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Core.Models.Buildings.IndustrialBuildings.GlassFactory" Collapsed="true">
+    <Position X="18" Y="10.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CIAKAAAICAAAAAJAACwDQAAAgAAAAACAAAAEAAgEgAA=</HashCode>
+      <FileName>Models\Buildings\IndustrialBuildings\GlassFactory.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Buildings.IndustrialBuildings.HouseholdAppliancesFactory" Collapsed="true">
+    <Position X="3" Y="20.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAIAEQAGBAMASIAhRhIAAIggAACGBCgoIAEgQAABAA=</HashCode>
+      <FileName>Models\Buildings\IndustrialBuildings\HouseholdAppliancesFactory.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Core.Models.Buildings.IndustrialBuildings.JewelryFactory" Collapsed="true">
+    <Position X="14.5" Y="11.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CIAKAAAICAAAAAJAACwDQAAAgAAAAACAAAAEAAgEgAA=</HashCode>
+      <FileName>Models\Buildings\IndustrialBuildings\JewelryFactory.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Buildings.IndustrialBuildings.PackagingFactory" Collapsed="true">
+    <Position X="16.25" Y="11.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CIAKAAAICAAAAAIAACwBQAAAgAAAAACAAAAEAAgEgAA=</HashCode>
+      <FileName>Models\Buildings\IndustrialBuildings\PackagingFactory.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Buildings.IndustrialBuildings.PaintAndVarnishFactory" Collapsed="true">
+    <Position X="1.25" Y="22" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>KIAKAAAACEAAAAIAgAwJQAIAgAACABiggIAEAAgEgAQ=</HashCode>
+      <FileName>Models\Buildings\IndustrialBuildings\PaintAndVarnishFactory.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Core.Models.Buildings.IndustrialBuildings.PharmaceuticalFactory" Collapsed="true">
+    <Position X="3" Y="18.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CIAKAAAACAAAAAMAgAwJQAAAgAACAAiAgJAEAAgEgAA=</HashCode>
+      <FileName>Models\Buildings\IndustrialBuildings\PharmaceuticalFactory.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Core.Models.Buildings.IndustrialBuildings.RecyclingPlant" Collapsed="true">
+    <Position X="3" Y="22" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CAgKAYEAAAABACqEwAwJAAAAgAAACAAAgIAAAAgAgBA=</HashCode>
+      <FileName>Models\Buildings\IndustrialBuildings\RecyclingPlant .cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Core.Models.Buildings.IndustrialBuildings.TextileFactory" Collapsed="true">
+    <Position X="1.25" Y="17" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CIAKAAAACAAAAAIAgAwJQAAAgAACAAiAgIAEAAgEgAA=</HashCode>
+      <FileName>Models\Buildings\IndustrialBuildings\TextileFactory.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Core.Models.Buildings.IndustrialBuildings.Mine" Collapsed="true">
+    <Position X="12" Y="5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAgAAAAAAAQAAAgAAgAAAAAAACQAAEgIAAAAAAAAA=</HashCode>
+      <FileName>Models\Buildings\IndustrialBuildings\Mine.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Core.Models.Buildings.SocialBuildings.Park" Collapsed="true">
+    <Position X="10" Y="6.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAACAAAAAAgAAAAAAAAAAABAAAgJAAAAAAAQA=</HashCode>
+      <FileName>Models\Buildings\SocialBuildings\Park.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Core.Models.Components.Workshop" Collapsed="true">
+    <Position X="5.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BAAAAAAAAgQAAAAAAgAAAAQAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Components\Workshop.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.HR.Department" Collapsed="true">
+    <Position X="7" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAgAAAAAAAQAIQAAQACAIAAAAAAQAAAAAAgAA=</HashCode>
+      <FileName>Models\HR\Department.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.HR.Employee" Collapsed="true">
+    <Position X="1.75" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAAAACAAAAAAAAAEAAAAAAAAEAAAAAAAAAAAAAEAAgA=</HashCode>
+      <FileName>Models\HR\Employee.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Map.GameMap" Collapsed="true">
+    <Position X="19.75" Y="9.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACABAEBAAEAAAQAAEBEEAAAQAAAAIAAAAAAIIAAAQ=</HashCode>
+      <FileName>Models\Map\GameMap.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Map.NaturalResource" Collapsed="true">
+    <Position X="21.5" Y="9.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAQAAAAAAAAA=</HashCode>
+      <FileName>Models\Map\NaturalResource.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Map.Tile" Collapsed="true">
+    <Position X="19.75" Y="10.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAABAAJCAAAQAAAAAAQAAAAAAAgACAAEAEBAAAYAA=</HashCode>
+      <FileName>Models\Map\Tile.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Mobs.Citizen" Collapsed="true">
+    <Position X="19" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAgGCSgCBIAICBEAZFAEDQAAAARAgAEAUBBoAAAIAAg=</HashCode>
+      <FileName>Models\Mobs\Citizen.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Police.Crime" Collapsed="true">
+    <Position X="3.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAIAABAAAAAAIAIAAAAIAAAAACAAAQCAABAAAAA=</HashCode>
+      <FileName>Models\Police\Crime.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Police.PoliceCar" Collapsed="true">
+    <Position X="13.25" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAACAQCAIAAAhAAAAAABQAAAAAAACAAAAAAQJAAIQE=</HashCode>
+      <FileName>Models\Police\PoliceCar.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Police.PoliceOfficer" Collapsed="true">
+    <Position X="16.5" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAABAIAAAIACAAAAAAAAAAQACABAAGAAAAAAQMAAAAA=</HashCode>
+      <FileName>Models\Police\PoliceOfficer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Police.PoliceStation" Collapsed="true">
+    <Position X="8.75" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CIAAAgBAQAAAAAAAgEkBAAAAAQAEIAAgAIJAAAAAIQA=</HashCode>
+      <FileName>Models\Police\PoliceStation.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Roads.Intersection" Collapsed="true">
+    <Position X="5.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAACQAAAAEAAQICAEEAgAAAAAAAAAAAYAA=</HashCode>
+      <FileName>Models\Roads\Intersection.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Roads.Road" Collapsed="true">
+    <Position X="7" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQKAAAAAAACAAABAgAAAAQAACAAAAAQAQAAAAAAAAA=</HashCode>
+      <FileName>Models\Roads\Road.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Roads.RoadSegment" Collapsed="true">
+    <Position X="3.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAyQCAAAEhAAAAAAAAAAAAgAAAAAAAAAEAAA=</HashCode>
+      <FileName>Models\Roads\RoadSegment.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Vehicles.Bus" Collapsed="true">
+    <Position X="14" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAIAAAAAAAAAAAAAAAAAAAAACAAAAAAgAAAA=</HashCode>
+      <FileName>Models\Vehicles\Bus.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Vehicles.Car" Collapsed="true">
+    <Position X="19" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAACAAIAAAAAAAAAAAAAAAAAAgAAAAAAAAAIAAAA=</HashCode>
+      <FileName>Models\Vehicles\Car.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Vehicles.Taxi" Collapsed="true">
+    <Position X="17" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAEAAAAAIAAABAABIAAAAAAAAAAAAAAAAACAKAAAAA=</HashCode>
+      <FileName>Models\Vehicles\Taxi.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Core.Models.Vehicles.Truck" Collapsed="true">
+    <Position X="20.75" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAAAQAAAIIAAQBAABAAAAABAAIAAAAAAABAAIAAAEAA=</HashCode>
+      <FileName>Models\Vehicles\Truck.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Enum Name="Core.Models.Buildings.CommercialBuildings.DeliveryStatus" Collapsed="true">
+    <Position X="18" Y="11.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAACAAAAIAAAAAAAAAAAAAAAAAAAAAIBAAAIA=</HashCode>
+      <FileName>Models\Buildings\CommertialBuildings\LogisticsCompany.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

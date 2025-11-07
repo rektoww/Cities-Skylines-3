@@ -1,0 +1,207 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Enum Name="Core.Enums.AgricultureType" Collapsed="true">
+    <Position X="0.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CAAAAAAAAQAAABCAAAIAABAAAACgAAAgAAAAAIAAAAA=</HashCode>
+      <FileName>Enums\AgricultureType.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Core.Enums.ChemicalIndustryType" Collapsed="true">
+    <Position X="4" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAUAAAAAAEAAKEAEAkAAAAAAAAAAAAAAgIAAAARAA=</HashCode>
+      <FileName>Enums\ChemicalIndustryType.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Core.Enums.ChemicalMaterial" Collapsed="true">
+    <Position X="5.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QABAASAAAQABAgIAAAAAEQCNAAAAAAAgIAAAgAACAAA=</HashCode>
+      <FileName>Enums\ChemicalIndustryType.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Core.Enums.ChemicalProduct" Collapsed="true">
+    <Position X="9.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QgAAgiAAAQABgCLAEABAAgCBAFABAAAAAAAQAgAIAIA=</HashCode>
+      <FileName>Enums\ChemicalIndustryType.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Core.Enums.ChemicalProcess" Collapsed="true">
+    <Position X="7.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAQAABAAAAAAAAAIAAABAAQAAEAAAAAAAAkkA=</HashCode>
+      <FileName>Enums\ChemicalIndustryType.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Core.Enums.CommercialBuildingType" Collapsed="true">
+    <Position X="0.5" Y="1.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IACgAAAAAAAAAAAAIgAAAAAAAACAAAAAAAAAAAAAAAE=</HashCode>
+      <FileName>Enums\CommercialBuildingType.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Core.Enums.ConstructionMaterial" Collapsed="true">
+    <Position X="2.25" Y="1.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAABAAAAAAAQAAAAAAAAAAAEAAAAAAgAAA=</HashCode>
+      <FileName>Enums\ConstructionMaterial.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Core.Enums.CrimeType" Collapsed="true">
+    <Position X="4" Y="1.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAQAAAAAAAAAAEBAAAAAAACAAgAA=</HashCode>
+      <FileName>Enums\CrimeType.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Core.Enums.DepartmentType" Collapsed="true">
+    <Position X="5.75" Y="1.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAQAAAAAAABAAAAAAAAAIAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Enums\DepartmentType.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Core.Enums.DisasterType" Collapsed="true">
+    <Position X="7.5" Y="1.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAgAAAAEABAAAAAAAAAEAEAAAAAAAAAAAAA=</HashCode>
+      <FileName>Enums\DisasterType.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Core.Enums.EducationLevel" Collapsed="true">
+    <Position X="9.25" Y="1.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAQAAAAAAAAAAAAAAAQAAAIAQAAAAAAAAAA=</HashCode>
+      <FileName>Enums\EducationLevel.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Core.Enums.EmergencyType" Collapsed="true">
+    <Position X="0.5" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAIAAAAAAAAAAgEAAAAAAAAABAAAAA=</HashCode>
+      <FileName>Enums\EmergencyType.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Core.Enums.EmployeeGrade" Collapsed="true">
+    <Position X="2.25" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AgBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA=</HashCode>
+      <FileName>Enums\EmployeeGrade.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Core.Enums.EnergyType" Collapsed="true">
+    <Position X="5.75" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAABAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Enums\EnergyType.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Core.Enums.EnergySource" Collapsed="true">
+    <Position X="4" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAQAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Enums\EnergyType.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Core.Enums.FisheryType" Collapsed="true">
+    <Position X="7.5" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABAAAAAAAAAAAAAAAAAQAAAAIAAAAAAAAAAAAAACAAI=</HashCode>
+      <FileName>Enums\FisheryType.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Core.Enums.JobType" Collapsed="true">
+    <Position X="9.25" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIEAAhAIAEAIAASAAAAAAAEAAIACBAQAACAAAAAAAAA=</HashCode>
+      <FileName>Enums\JobType.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Core.Enums.LogisticsType" Collapsed="true">
+    <Position X="0.5" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAEAAAABAAAQIQgIABAIAQQAAAABAAAIAAAAAA=</HashCode>
+      <FileName>Enums\LogisticsType.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Core.Enums.CargoType" Collapsed="true">
+    <Position X="2.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AECAAAAAAgAIAAACAgAAgACAAIAAAAACAAAAAAABAAA=</HashCode>
+      <FileName>Enums\LogisticsType.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Core.Enums.LogisticsVehicle" Collapsed="true">
+    <Position X="2.25" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAEQAIAAIAAAIAgIAAAQIAAAAAAAAAgBAAAA=</HashCode>
+      <FileName>Enums\LogisticsType.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Core.Enums.ResidentialType" Collapsed="true">
+    <Position X="4" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAEAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAQAAAAAA=</HashCode>
+      <FileName>Enums\ResidentialType.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Core.Enums.ResourceType" Collapsed="true">
+    <Position X="5.75" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAQAAAAAAAQAAAAAAAAAAAAAAAAAAgAAAAAAA=</HashCode>
+      <FileName>Enums\ResourceType.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Core.Enums.RoadType" Collapsed="true">
+    <Position X="7.5" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAIAAABAAAAAAAAAAAAAAAAAAIAAAAAAgA=</HashCode>
+      <FileName>Enums\RoadType.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Core.Enums.SeasonType" Collapsed="true">
+    <Position X="9.25" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAABAAAAAAEAgAAAAAAAQAAAAAAAAAAA=</HashCode>
+      <FileName>Enums\SeasonType.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Core.Enums.ServiceBuildingType" Collapsed="true">
+    <Position X="0.5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAAAAAAAAAQAAAAAAAAAAAAAAAAAAAIAQAAAAAAAAAA=</HashCode>
+      <FileName>Enums\ServiceBuildingType.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Core.Enums.TerrainType" Collapsed="true">
+    <Position X="2.25" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAIAAAAAACAAAAAAIAAAAAAAAgAAAAAgAAAAAAAAA=</HashCode>
+      <FileName>Enums\TerrainType.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Core.Enums.TransportedGoods" Collapsed="true">
+    <Position X="4" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAABAAAAAAAQAAAAAAAAAAAEAAAAAAgAAA=</HashCode>
+      <FileName>Enums\TransportedGoods.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Core.Enums.TreeType" Collapsed="true">
+    <Position X="5.75" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAABAEAAAAAAABACAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Enums\TreeType.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Core.Enums.UtilityType" Collapsed="true">
+    <Position X="7.5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAQAAAAAAAAAAAAAAAAIAgAAAEAAAAAAAAAAA=</HashCode>
+      <FileName>Enums\UtilityType.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
