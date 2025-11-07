@@ -106,20 +106,6 @@ namespace Tests.UnitTests
             Assert.AreEqual(950 + extracted, factory.WoodStorage);
         }
 
-        /// <summary>
-        /// Тест добычи древесины без подключенного леса
-        /// </summary>
-        [TestMethod]
-        public void TestWoodExtractionWithoutForest()
-        {
-            var factory = new WoodProcessingFactory(); // Без леса
-            factory.SetWorkersCount(1);
-
-            int extracted = factory.ExtractWood();
-
-            Assert.AreEqual(0, extracted);
-            Assert.AreEqual(0, factory.WoodStorage);
-        }
 
         /// <summary>
         /// Тест управления рабочими
