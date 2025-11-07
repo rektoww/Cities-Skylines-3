@@ -434,17 +434,47 @@ namespace Laboratornaya3.ViewModels
             CurrentMap = StaticBigMapProvider.Build50();
         }
 
+        /// <summary>
+        /// Сохраняет текущее состояние игры
+        /// </summary>
         [RelayCommand]
-        private void SaveMap()
+        private void SaveGame()
         {
-            if (CurrentMap != null)
-                _saveLoadService.SaveMap(CurrentMap, "saved_map.json");
+            try
+            {
+                _saveLoadService.SaveGame(CurrentMap, "save.json");
+                MessageBox.Show($"Сохранено!\nЗданий: {CurrentMap.Buildings.Count}\nДорог: {CurrentMap.RoadSegments.Count}",
+                              "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
+        /// <summary>
+        /// Загружает состояние игры из сохранения
+        /// </summary>
         [RelayCommand]
-        private void LoadMap()
+        private void LoadGame()
         {
-            CurrentMap = _saveLoadService.LoadMap("saved_map.json");
+            try
+            {
+                _saveLoadService.LoadGame(CurrentMap, "save.json");
+
+                // Обновляем отображение карты
+                RefreshMap();
+
+                // Уведомляем об изменении коллекции тайлов
+                OnPropertyChanged(nameof(TilesFlat));
+
+                MessageBox.Show($"Загружено!\nЗданий: {CurrentMap.Buildings.Count}\nДорог: {CurrentMap.RoadSegments.Count}",
+                              "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         [RelayCommand]

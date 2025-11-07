@@ -89,28 +89,34 @@
                         FontSize="16"
                         Margin="0,0,10,0"
                         Visibility="{Binding IsBuildingMode, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                
-                <Button Content="🛍️ Купить" 
+                <Button Content="💾"
+                        Command="{Binding SaveGameCommand}"
+                        ToolTip="Сохранить игру"
+                        Background="#87CEEB"
+                        Margin="0,0,5,0"
+                        Padding="3,2" />
+
+                <Button Content="📂"
+                        Command="{Binding LoadGameCommand}"
+                        ToolTip="Загрузить игру"
+                        Background="#98FB98"
+                        Margin="0,0,5,0"
+                        Padding="3,2" />
+
+                <Button Content="🛍️ Купить"
                         Command="{Binding BuyMaterialsCommand}"
                         ToolTip="Открыть диалог покупки материалов"
                         Background="#90EE90"
                         Margin="0,0,10,0"
-                        Padding="5,2"/>
-
-                <Button Content="💰 Продать" 
+                        Padding="5,2" />
+                
+                <Button Content="💰 Продать"
                         Command="{Binding SellMaterialsCommand}"
-                        ToolTip="Открыть диалог продажи материалов"
+                        ToolTip="Продать материалы"
                         Background="#FFD700"
-                        Margin="0,0,10,0"
-                        Padding="5,2"/>
-
-                <Button Content="🧪 Тест"
-                        Click="TestButton_Click"
-                        ToolTip="Тестовые функции"
-                        Background="LightGreen"
-                        Margin="0,0,10,0"
-                        Padding="5,2"/>
-
+                        Margin="0,0,5,0"
+                        Padding="3,2" />
+                
                 <Button Content="🗑️ Очистить" 
                         Click="ClearBuildings_Click"
                         ToolTip="Удалить все здания"
