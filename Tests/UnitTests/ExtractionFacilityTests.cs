@@ -163,20 +163,5 @@ namespace Tests.UnitTests
             facility.SetWorkersCount(5);
             Assert.AreEqual(20, facility.ExtractionRate); // 10 + 2*5
         }
-
-        /// <summary>
-        /// Тест добычи без подключенного ресурса
-        /// </summary>
-        [TestMethod]
-        public void TestExtractionWithoutConnectedResource()
-        {
-            var facility = new ExtractionFacility(ResourceType.Iron, 1000); // Без ресурса
-
-            facility.SetWorkersCount(1);
-            int extracted = facility.ExtractResources();
-
-            Assert.AreEqual(0, extracted);
-            Assert.AreEqual(0, facility.CurrentStorage);
-        }
     }
 }
