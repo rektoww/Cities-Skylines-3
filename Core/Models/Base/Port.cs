@@ -10,18 +10,15 @@ namespace Core.Models.Base
     /// </summary>
     public abstract class Port : TransitStation
     {
-        public string Name { get; set; }
-
-        // УПРОЩЕНИЕ: Оставляем только одно абстрактное свойство, которое должны реализовать наследники.
         protected abstract int MaxUnits { get; }
 
         public List<PortUnit> Units { get; private set; } = new(); // Список юнитов
         public PlayerResources PlayerResources { get; private set; } // Ссылка на ресурсы игрока
 
         // Параметры юнитов
-        protected abstract string ResourceType { get; } // Тип ресурса
+        protected abstract string ResourceType { get; } // Тип ресурса 
         protected abstract int UnitCapacity { get; } // Вместимость юнита
-        protected abstract int UnitCooldown { get; } // Время одного цикла продажи (в тиках)
+        protected abstract int UnitCooldown { get; } // Время одного цикла продажи в тиках
         protected abstract int UnitRevenue { get; } // Доход за один цикл продажи
 
         // События для UI/логики
@@ -31,13 +28,10 @@ namespace Core.Models.Base
         public event Action<int>? UnitResumed;
         public event Action<int>? UnitAssignmentCleared;
 
-        protected Port(string name, PlayerResources playerResources)
+        // Теперь конструктор принимает имя и ресурсы игрока
+        protected Port(PlayerResources playerResources)
         {
-            Name = name;
             PlayerResources = playerResources;
-
-            // НЕ создаём юниты здесь — инициализация происходит в OnBuildingPlaced,
-            // чтобы не вызывать абстрактные члены в конструкторе.
         }
 
         /// <summary>
@@ -169,7 +163,7 @@ namespace Core.Models.Base
         private int _resourceAmount;
         private bool _suspended;
 
-        // Событие о факте продажи: sender (this), amountSold, revenueDecimal
+        // Событие о факте продажи: sender , amountSold, revenueDecimal
         public event Action<PortUnit, int, decimal>? Sold;
 
         public PortUnit(int capacity, int cooldownMax, int revenuePerDelivery)

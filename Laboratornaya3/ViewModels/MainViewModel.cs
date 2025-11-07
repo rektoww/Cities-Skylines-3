@@ -103,6 +103,7 @@ namespace Laboratornaya3.ViewModels
             _buildingCategories.Add("Транспорт", new List<BuildingUI>
             {
                 new BuildingUI { Name = "Аэропорт", Icon = "✈️", Category = "Транспорт" },
+                new BuildingUI { Name = "Морской порт", Icon = "⚓", Category = "Транспорт" },
                 new BuildingUI { Name = "Ж/Д Вокзал", Icon = "🚉", Category = "Транспорт" }
             });
         }
@@ -183,7 +184,9 @@ namespace Laboratornaya3.ViewModels
                 "Кафе" => new Cafe(),
                 "Ресторан" => new Restaurant(),
                 "Заправка" => new GasStation(),
-                "Парк" => new Park(),
+                "Парк" => new Park(), //длинная штуа ниже чисто затычка, ибо нормальной работы с ресурсами у нас нет
+                "Аэропорт" => new AirPort(new Core.Resourses.PlayerResources(0m, new Dictionary<Core.Enums.ConstructionMaterial, int>())),
+                "Морской порт" => new SeaPort(new Core.Resourses.PlayerResources(0m, new Dictionary<Core.Enums.ConstructionMaterial, int>())),
                 _ => new Shop()
             };
         }

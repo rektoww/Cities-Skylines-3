@@ -14,14 +14,17 @@ namespace Core.Models.Buildings
         protected override int MaxUnits => 10;
 
         // Параметры юнитов
-        protected override string ResourceType => "SeaCargo"; // Базовый тип ресурса
+        protected override string ResourceType => ""; // Базовый тип ресурса 
         protected override int UnitCapacity => 200; // Вместимость корабля
-        protected override int UnitCooldown => 5; // Время одного цикла продажи (в тиках)
+        protected override int UnitCooldown => 5; // Время одного цикла продажи в тиках
         protected override int UnitRevenue => 300; // Доход за один цикл продажи
 
-        public SeaPort(string name, PlayerResources playerResources)
-            : base(name, playerResources)
+        public SeaPort(PlayerResources playerResources)
+            : base(playerResources)
         {
+            Width = 3;
+            Height = 2;
+            Name = "Морской порт";
         }
 
         protected override PortUnit CreateUnit()
@@ -39,6 +42,9 @@ namespace Core.Models.Buildings
             {
                 for (int ty = y; ty < y + Height; ty++)
                 {
+                    if (tx < 0 || tx >= map.Width || ty < 0 || ty >= map.Height)
+                        continue;
+
                     var neighbors = new (int dx, int dy)[] { (1, 0), (-1, 0), (0, 1), (0, -1) };
                     foreach (var n in neighbors)
                     {

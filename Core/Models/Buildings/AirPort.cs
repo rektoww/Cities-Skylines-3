@@ -13,14 +13,18 @@ namespace Core.Models.Buildings
         // Количество юнитов по умолчанию для аэропорта
         protected override int MaxUnits => 5;
 
-        protected override string ResourceType => "AirCargo"; // Базовый тип ресурса
+        protected override string ResourceType => ""; // Базовый тип ресурса 
         protected override int UnitCapacity => 100; // Вместимость самолета
-        protected override int UnitCooldown => 3; // Время одного цикла продажи (в тиках)
+        protected override int UnitCooldown => 3; // Время одного цикла продажи в тиках
         protected override int UnitRevenue => 200; // Доход за один цикл продажи
 
-        public AirPort(string name, PlayerResources playerResources)
-            : base(name, playerResources)
+        public AirPort(PlayerResources playerResources)
+            : base(playerResources)
         {
+            // Width/Height можно настроить при создании (наследуется от Building/TransitStation)
+            Width = 2;
+            Height = 2;
+            Name = "Аэропорт";
         }
 
         protected override PortUnit CreateUnit()
