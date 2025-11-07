@@ -88,7 +88,7 @@ namespace Core.Services
         /// Создание новой финансовой системы города
         /// </summary>
         /// <param name="initialBudget">Начальный бюджет города (по умолчанию 100,000)</param>
-        public FinancialSystem(decimal initialBudget = 100000m)
+        public FinancialSystem(decimal initialBudget = 8000000m)
         {
             // Проверка на корректность начального бюджета
             if (initialBudget < 0)

@@ -231,5 +231,11 @@ namespace Laboratornaya3
             var position = e.GetPosition(MapGrid);
             var tile = GetTileAtPosition(position);
         }
+
+        private void BudgetPanel_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            var viewModel = DataContext as MainViewModel;
+            viewModel?.ShowFinanceInfoCommand.Execute(null);
+        }
     }
 }

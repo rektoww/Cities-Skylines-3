@@ -1,5 +1,7 @@
 ﻿using System.Xml.Linq;
+using System.Collections.Generic;
 using Core.Enums;
+using Core.Interfaces;
 using Core.Models.Base;
 using Core.Models.Map;
 
@@ -9,8 +11,12 @@ namespace Core.Models.Buildings.SocialBuildings
     /// SmirnovMA
     /// Класс парка - зеленая зона для отдыха
     /// </summary>
-    public class Park : Building
+    public class Park : Building, IConstructable<Park>
     {
+        // Стоимость и требуемые материалы для строительства парка
+        public static decimal BuildCost { get; protected set; } = 1000m;
+        public static Dictionary<ConstructionMaterial, int> RequiredMaterials { get; protected set; } = new();
+
         public int TreeCount { get; set; }
         public int BenchCount { get; set; }
 
@@ -20,7 +26,6 @@ namespace Core.Models.Buildings.SocialBuildings
             HasSewage: false,
             HasElectricity: false,
             Floors: 0,
-            _BuildCost: 1000m,   // Стоимость
             Width: 2,            // Размер 2x2
             Height: 2
         )
