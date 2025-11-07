@@ -6,8 +6,8 @@ using Core.Resourses;
 namespace Core.Services
 {
     /// <summary>
-    /// Сервис импорта материалов из внешнего мира.
-    /// Использует ExternalConnectionsManager для управления торговлей.
+    /// Сервис импорта материалов из внешнего мира
+    /// Использует ExternalConnectionsManager для управления торговлей
     /// </summary>
     public class MarketService
     {

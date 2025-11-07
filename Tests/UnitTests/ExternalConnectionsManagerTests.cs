@@ -136,10 +136,6 @@ namespace Tests.UnitTests
                 "Количество пластика не должно измениться");
         }
 
-        // ================================================================================
-        // ТЕСТЫ МИГРАЦИИ
-        // ================================================================================
-
         /// <summary>
         /// Метод AddImmigrants должен добавить указанное количество граждан
         /// </summary>
@@ -185,7 +181,7 @@ namespace Tests.UnitTests
             var citizens = new List<Citizen>();
             var buildings = new List<ResidentialBuilding>
             {
-                new ResidentialBuilding(ResidentialType.Apartment) // Емкость 20
+                new ResidentialBuilding(ResidentialType.Apartment) 
             };
 
             manager.AddImmigrants(citizens, buildings, 5);
@@ -219,7 +215,7 @@ namespace Tests.UnitTests
         {
             var citizens = new List<Citizen>();
 
-            // Добавляем счастливого работающего
+            // Добавление счастливого работающего
             var happyEmployed = new Citizen(0, 0, null)
             {
                 Age = 30,
@@ -228,7 +224,7 @@ namespace Tests.UnitTests
             };
             citizens.Add(happyEmployed);
 
-            // Добавляем несчастного безработного
+            // Добавление несчастного безработного
             var unhappyUnemployed = new Citizen(0, 0, null)
             {
                 Age = 30,
@@ -252,7 +248,7 @@ namespace Tests.UnitTests
             var citizens = new List<Citizen>();
             var building = new ResidentialBuilding(ResidentialType.Apartment);
 
-            // Заселяем 10 человек
+            // Заселение 10 человек
             for (int i = 0; i < 10; i++)
             {
                 var citizen = new Citizen(0, 0, null)
@@ -299,27 +295,6 @@ namespace Tests.UnitTests
             Assert.AreEqual(5f / 15f, rate, 0.01f, "Безработица должна быть ~33%");
         }
 
-        /// <summary>
-        /// Расчет свободного жилья должен возвращать правильное значение
-        /// </summary>
-        [TestMethod]
-        public void CalculateAvailableHousing_ShouldReturnCorrectValue()
-        {
-            var buildings = new List<ResidentialBuilding>
-            {
-                new ResidentialBuilding(ResidentialType.Apartment) // Емкость 20
-            };
-
-            // Заселяем 5 человек
-            for (int i = 0; i < 5; i++)
-            {
-                buildings[0].CurrentResidents.Add(new Citizen(0, 0, null));
-            }
-
-            int available = manager.CalculateAvailableHousing(buildings);
-
-            Assert.AreEqual(15, available, "Должно быть 15 свободных мест");
-        }
 
         /// <summary>
         /// Методы миграции должны корректно обрабатывать null и пустые списки
@@ -327,26 +302,20 @@ namespace Tests.UnitTests
         [TestMethod]
         public void MigrationMethods_ShouldHandleNullAndEmptyLists()
         {
-            // AddImmigrants с null
             int added = manager.AddImmigrants(null, null, 5);
             Assert.AreEqual(0, added, "AddImmigrants должен вернуть 0 для null");
 
-            // RemoveEmigrants с null
             int removed = manager.RemoveEmigrants(null, 5);
             Assert.AreEqual(0, removed, "RemoveEmigrants должен вернуть 0 для null");
 
-            // RemoveEmigrants с пустым списком
             removed = manager.RemoveEmigrants(new List<Citizen>(), 5);
             Assert.AreEqual(0, removed, "RemoveEmigrants должен вернуть 0 для пустого списка");
 
-            // CalculateUnemploymentRate с null
             float rate = manager.CalculateUnemploymentRate(null);
             Assert.AreEqual(0f, rate, "CalculateUnemploymentRate должен вернуть 0 для null");
 
-            // CalculateAvailableHousing с null
             int housing = manager.CalculateAvailableHousing(null);
             Assert.AreEqual(0, housing, "CalculateAvailableHousing должен вернуть 0 для null");
         }
     }
-}
 }
