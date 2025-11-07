@@ -63,7 +63,7 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Top Panel -->
+        <!-- Верхняя панель -->
         <Grid Grid.Row="0" Background="#F0F0F0" Height="50">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -81,7 +81,6 @@
                         Margin="0,0,10,0"
                         Visibility="{Binding IsBuildingMode, Converter={StaticResource BooleanToVisibilityConverter}}"/>
 
-                <!-- Кнопки для тестирования -->
                 <Button Content="🧪 Тест" 
                         Click="TestButton_Click"
                         ToolTip="Тестовые функции"
@@ -127,25 +126,23 @@
             </StackPanel>
         </Grid>
 
-        <!-- Map Area -->
+        <!-- Область карты -->
+        <!-- Область карты -->
         <ScrollViewer Grid.Row="1"
-                      x:Name="MapScrollViewer"
-                      HorizontalScrollBarVisibility="Auto"
-                      VerticalScrollBarVisibility="Auto"
-                      PreviewMouseWheel="MapScrollViewer_PreviewMouseWheel"
-                      MouseDown="MapScrollViewer_MouseDown"
-                      MouseMove="MapScrollViewer_MouseMove"
-                      MouseUp="MapScrollViewer_MouseUp"
-                      Background="#ADD8E6">
+              x:Name="MapScrollViewer"
+              HorizontalScrollBarVisibility="Auto"
+              VerticalScrollBarVisibility="Auto"
+              PreviewMouseWheel="MapScrollViewer_PreviewMouseWheel"
+              MouseDown="MapScrollViewer_MouseDown"
+              MouseMove="MapScrollViewer_MouseMove"
+              MouseUp="MapScrollViewer_MouseUp"
+              Background="#ADD8E6">
 
             <ContentControl x:Name="MapContainer">
-                <Grid x:Name="MapGrid" 
-                      RenderTransformOrigin="0,0"
-                      Width="2500"
-                      Height="2500"
-                      MouseDown="MapGrid_MouseDown"
-                      VerticalAlignment="Center"
-                      HorizontalAlignment="Center">
+                <Grid x:Name="MapGrid"
+              RenderTransformOrigin="0,0"
+              VerticalAlignment="Center"
+              HorizontalAlignment="Center">
                     <Grid.RenderTransform>
                         <TransformGroup>
                             <TranslateTransform x:Name="TranslateTransform" />
@@ -153,16 +150,27 @@
                         </TransformGroup>
                     </Grid.RenderTransform>
 
-                    <ItemsControl x:Name="TilesItemsControl" ItemsSource="{Binding TilesFlat}">
+                    <!-- список тайлов -->
+                    <ItemsControl x:Name="TilesItemsControl"
+                          ItemsSource="{Binding TilesFlat}"
+                          BorderThickness="0"
+                          Background="Transparent">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <UniformGrid Columns="{Binding CurrentMap.Width}" Rows="{Binding CurrentMap.Height}" />
+                                <UniformGrid Columns="{Binding CurrentMap.Width}"
+                                     Rows="{Binding CurrentMap.Height}" />
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
 
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="{x:Type map:Tile}">
-                                <Border Width="50" Height="50" BorderBrush="#333333" BorderThickness="1">
+                                <Border Width="50"
+                                Height="50"
+                                BorderBrush="#333"
+                                BorderThickness="1"
+                                MouseLeftButtonDown="Tile_LeftClick"
+                                MouseRightButtonDown="Tile_RightClick">
+
                                     <Border.Style>
                                         <Style TargetType="Border">
                                             <Setter Property="Background" Value="PaleGreen" />
@@ -181,242 +189,27 @@
                                                 </DataTrigger>
                                                 <DataTrigger Binding="{Binding Terrain}" Value="Plain">
                                                     <Setter Property="Background" Value="PaleGreen" />
-                                                </DataTrigger>                                               
-                                                
+                                                </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
                                     </Border.Style>
 
-                                    <!-- ВИЗУАЛИЗАЦИЯ ЗДАНИЙ -->
                                     <Grid>
-                                        <!-- Фон тайла -->
                                         <Rectangle Fill="Transparent" />
-
-                                        <!-- Основное здание (красный блок) -->
                                         <Border Background="Red"
-                                                Margin="2"
-                                                CornerRadius="3"
-                                                Visibility="{Binding Building, Converter={StaticResource NullToVisibilityConverter}}">
+                                        Margin="2"
+                                        CornerRadius="3"
+                                        Visibility="{Binding Building, Converter={StaticResource NullToVisibilityConverter}}">
                                             <TextBlock Text="{Binding Building.Name}"
-                                                       FontSize="8"
-                                                       Foreground="White"
-                                                       FontWeight="Bold"
-                                                       HorizontalAlignment="Center"
-                                                       VerticalAlignment="Center"
-                                                       TextWrapping="Wrap"
-                                                       TextAlignment="Center" />
-                                        </Border>
-
-                                        <!-- SmirnovMA - Парк -->
-                                        <Border Background="Green"
-                                                Margin="1"
-                                                CornerRadius="2">
-                                            <Border.Style>
-                                                <Style TargetType="Border">
-                                                    <Setter Property="Visibility"
-                                                            Value="Collapsed" />
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding Building.Name}"
-                                                                     Value="Парк">
-                                                            <Setter Property="Visibility"
-                                                                    Value="Visible" />
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Border.Style>
-
-                                            <TextBlock Text="🌳"
-                                                       FontSize="12"
-                                                       HorizontalAlignment="Center"
-                                                       VerticalAlignment="Center" />
-                                        </Border>
-
-                                        <!-- Магазин -->
-                                        <Border Background="#da7aeb"
-                                                Margin="1"
-                                                CornerRadius="2">
-                                            <Border.Style>
-                                                <Style TargetType="Border">
-                                                    <Setter Property="Visibility"
-                                                            Value="Collapsed" />
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding Building.Name}"
-                                                                     Value="Магазин">
-                                                            <Setter Property="Visibility"
-                                                                    Value="Visible" />
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Border.Style>
-                                            <TextBlock Text="🛍️"
-                                                       FontSize="12"
-                                                       HorizontalAlignment="Center"
-                                                       VerticalAlignment="Center" />
-                                        </Border>
-
-                                        <!-- Супермаркет -->
-                                        <Border Background="#da7aeb"
-                                                Margin="1"
-                                                CornerRadius="2">
-                                            <Border.Style>
-                                                <Style TargetType="Border">
-                                                    <Setter Property="Visibility"
-                                                            Value="Collapsed" />
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding Building.Name}"
-                                                                     Value="Супермаркет">
-                                                            <Setter Property="Visibility"
-                                                                    Value="Visible" />
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Border.Style>
-                                            <TextBlock Text="🛒"
-                                                       FontSize="12"
-                                                       HorizontalAlignment="Center"
-                                                       VerticalAlignment="Center" />
-                                        </Border>
-
-                                        <!-- Аптека -->
-                                        <Border Background="#ffffff"
-                                                Margin="1"
-                                                CornerRadius="2">
-                                            <Border.Style>
-                                                <Style TargetType="Border">
-                                                    <Setter Property="Visibility"
-                                                            Value="Collapsed" />
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding Building.Name}"
-                                                                     Value="Аптека">
-                                                            <Setter Property="Visibility"
-                                                                    Value="Visible" />
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Border.Style>
-                                            <TextBlock Text="💊"
-                                                       FontSize="12"
-                                                       HorizontalAlignment="Center"
-                                                       VerticalAlignment="Center" />
-                                        </Border>
-
-                                        <!-- Кафе -->
-                                        <Border Background="#754652"
-                                                Margin="1"
-                                                CornerRadius="2">
-                                            <Border.Style>
-                                                <Style TargetType="Border">
-                                                    <Setter Property="Visibility"
-                                                            Value="Collapsed" />
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding Building.Name}"
-                                                                     Value="Кафе">
-                                                            <Setter Property="Visibility"
-                                                                    Value="Visible" />
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Border.Style>
-                                            <TextBlock Text="☕"
-                                                       FontSize="12"
-                                                       HorizontalAlignment="Center"
-                                                       VerticalAlignment="Center" />
-                                        </Border>
-
-                                        <!-- Ресторан -->
-                                        <Border Background="#612131"
-                                                Margin="1"
-                                                CornerRadius="2">
-                                            <Border.Style>
-                                                <Style TargetType="Border">
-                                                    <Setter Property="Visibility"
-                                                            Value="Collapsed" />
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding Building.Name}"
-                                                                     Value="Ресторан">
-                                                            <Setter Property="Visibility"
-                                                                    Value="Visible" />
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Border.Style>
-                                            <TextBlock Text="🍴"
-                                                       FontSize="12"
-                                                       HorizontalAlignment="Center"
-                                                       VerticalAlignment="Center" />
-                                        </Border>
-
-                                        <!-- Заправка -->
-                                        <Border Background="#f7d62f"
-                                                Margin="1"
-                                                CornerRadius="2">
-                                            <Border.Style>
-                                                <Style TargetType="Border">
-                                                    <Setter Property="Visibility"
-                                                            Value="Collapsed" />
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding Building.Name}"
-                                                                     Value="Заправка">
-                                                            <Setter Property="Visibility"
-                                                                    Value="Visible" />
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Border.Style>
-                                            <TextBlock Text="⛽"
-                                                       FontSize="12"
-                                                       HorizontalAlignment="Center"
-                                                       VerticalAlignment="Center" />
+                                               FontSize="8"
+                                               Foreground="White"
+                                               FontWeight="Bold"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               TextWrapping="Wrap"
+                                               TextAlignment="Center" />
                                         </Border>
                                     </Grid>
-
-                                    <Border.InputBindings>
-                                        <MouseBinding MouseAction="LeftClick" 
-                                                      Command="{Binding DataContext.ShowTileInfoCommand, 
-                                                              RelativeSource={RelativeSource AncestorType=Window}}"
-                                                      CommandParameter="{Binding}" />
-                                    </Border.InputBindings>
-
-                                    <Border.ToolTip>
-                                        <StackPanel>
-                                            <TextBlock>
-                                                <Run Text="Рельеф: " /><Run Text="{Binding Terrain}" />
-                                            </TextBlock>
-                                            <TextBlock>
-                                                <Run Text="Координаты: " /><Run Text="{Binding X}" /><Run Text=", " /><Run Text="{Binding Y}" />
-                                            </TextBlock>
-                                            <TextBlock Text="Ресурсы:" FontWeight="Bold" Margin="0,6,0,2" />
-                                            <ItemsControl x:Name="resList" ItemsSource="{Binding Resources}">
-                                                <ItemsControl.ItemTemplate>
-                                                    <DataTemplate>
-                                                        <TextBlock>
-                                                            <Run Text="{Binding Type}" /><Run Text=" — " /><Run Text="{Binding Amount}" />
-                                                        </TextBlock>
-                                                    </DataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                            </ItemsControl>
-                                            <TextBlock Text="(нет)" Foreground="Gray">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="Visibility" Value="Collapsed" />
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding HasItems, ElementName=resList}" Value="False">
-                                                                <Setter Property="Visibility" Value="Visible" />
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
-
-                                            <!-- Информация о здании -->
-                                            <TextBlock Text="Здание:" FontWeight="Bold" Margin="0,6,0,2" 
-                                                       Visibility="{Binding Building, Converter={StaticResource NullToVisibilityConverter}}"/>
-                                            <TextBlock Text="{Binding Building.Name}" 
-                                                       Visibility="{Binding Building, Converter={StaticResource NullToVisibilityConverter}}"/>
-                                            <TextBlock Text="Нет здания" Foreground="Gray"
-                                                       Visibility="{Binding Building, Converter={StaticResource NullToCollapsedVisibilityConverter}}"/>
-                                        </StackPanel>
-                                    </Border.ToolTip>
                                 </Border>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -425,7 +218,8 @@
             </ContentControl>
         </ScrollViewer>
 
-        <!-- Legend Panel -->
+
+        <!-- Легенда -->
         <Canvas Grid.Row="1">
             <Button Content="Легенда"
                     x:Name="LegendButton"
@@ -468,7 +262,6 @@
                         <TextBlock Text="Равнина (Plain)" />
                     </StackPanel>
 
-                    <!-- Легенда для зданий -->
                     <Separator Margin="0,8,0,8" />
                     <TextBlock Text="Обозначения Зданий" FontWeight="Bold" Margin="0,0,0,5" />
                     <StackPanel Orientation="Horizontal" Margin="0,5">
@@ -479,7 +272,7 @@
             </Border>
         </Canvas>
 
-        <!-- Bottom Panel -->
+        <!-- Нижняя панель -->
         <Grid Grid.Row="2" Background="#DEDEDE">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -520,8 +313,7 @@
                         <Border BorderBrush="Gray" BorderThickness="1" Width="80" Height="80" Margin="5,0" Background="White" CornerRadius="5" Cursor="Hand">
                             <Border.InputBindings>
                                 <MouseBinding MouseAction="LeftClick" 
-                                              Command="{Binding DataContext.SelectBuildingCommand, 
-                                                      RelativeSource={RelativeSource AncestorType=Window}}"
+                                              Command="{Binding DataContext.SelectBuildingCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                               CommandParameter="{Binding}" />
                             </Border.InputBindings>
 
@@ -535,4 +327,4 @@
             </ItemsControl>
         </Grid>
     </Grid>
-</Window>   
+</Window>

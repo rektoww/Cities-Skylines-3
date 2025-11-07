@@ -179,6 +179,30 @@ namespace Laboratornaya3
                 }
             }
         }
+        private void Tile_LeftClick(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is Border border && border.DataContext is Tile tile)
+            {
+                if (DataContext is MainViewModel vm)
+                {
+                    // просто вызвать команду показа информации
+                    if (vm.ShowTileInfoCommand.CanExecute(tile))
+                        vm.ShowTileInfoCommand.Execute(tile);
+                }
+            }
+        }
+
+        // ПКМ — поставить здание
+        private void Tile_RightClick(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is Border border && border.DataContext is Tile tile)
+            {
+                if (DataContext is MainViewModel vm)
+                {
+                    vm.TryPlaceBuilding(tile.X, tile.Y);
+                }
+            }
+        }
 
         private void ClearBuildings_Click(object sender, RoutedEventArgs e)
         {
