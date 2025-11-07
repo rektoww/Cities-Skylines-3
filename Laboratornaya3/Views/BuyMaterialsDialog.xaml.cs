@@ -91,10 +91,7 @@ namespace Laboratornaya3.Views
             bool success = _marketService.TryBuyMaterials(
                 quantities,
                 EconomyConfig.MaterialPrices,
-                _financialSystem,
-                _playerResources,
-                out decimal actualCost,
-                "Purchase: Materials");
+                out decimal actualCost);
 
             if (success)
             {

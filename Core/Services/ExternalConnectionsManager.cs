@@ -13,6 +13,7 @@ namespace Core.Services
     {
         // Зависимости от других систем города
         private readonly PlayerResources _playerResources;
+        private readonly FinancialSystem _financialSystem; // Опционально
         private readonly List<Citizen> _citizens;
         private readonly List<ResidentialBuilding> _residentialBuildings;
 
@@ -40,14 +41,17 @@ namespace Core.Services
         /// Конструктор менеджера внешних связей
         /// </summary>
         /// <param name="playerResources">Ссылка на ресурсы игрока (бюджет и материалы)</param>
+        /// <param name="financialSystem">Финансовая система (опционально)</param>
         /// <param name="citizens">Ссылка на список граждан города</param>
         /// <param name="residentialBuildings">Ссылка на список жилых зданий</param>
         public ExternalConnectionsManager(
-            PlayerResources playerResources, 
+            PlayerResources playerResources,
+            FinancialSystem financialSystem,
             List<Citizen> citizens, 
             List<ResidentialBuilding> residentialBuildings)
         {
             _playerResources = playerResources;
+            _financialSystem = financialSystem;
             _citizens = citizens;
             _residentialBuildings = residentialBuildings;
 
@@ -420,6 +424,148 @@ namespace Core.Services
             }
 
             return total;
+        }
+
+        // ================================================================================
+        // РУЧНАЯ ТОРГОВЛЯ (ИМПОРТ/ЭКСПОРТ ПО ЗАПРОСУ ИГРОКА)
+        // ================================================================================
+
+        /// <summary>
+        /// Ручной импорт материалов из внешнего мира (покупка по запросу игрока)
+        /// </summary>
+        /// <param name="quantities">Материалы и их количество для импорта</param>
+        /// <param name="prices">Цены импорта за единицу</param>
+        /// <param name="totalCost">Общая стоимость импорта</param>
+        /// <returns>true, если импорт успешен</returns>
+        public bool TryImportMaterials(
+            Dictionary<ConstructionMaterial, int> quantities,
+            Dictionary<ConstructionMaterial, decimal> prices,
+            out decimal totalCost)
+        {
+            totalCost = 0m;
+
+            if (quantities == null || quantities.Count == 0)
+                return false;
+
+            // Расчёт общей стоимости импорта
+            foreach (var item in quantities)
+            {
+                if (item.Value <= 0) return false;
+                if (!prices.TryGetValue(item.Key, out var unitPrice)) return false;
+                totalCost += unitPrice * item.Value;
+            }
+
+            // Проверка бюджета (приоритет FinancialSystem)
+            decimal availableBudget = _financialSystem?.CityBudget ?? _playerResources.Balance;
+            if (availableBudget < totalCost)
+                return false;
+
+            // Списание средств через финансовую систему
+            if (_financialSystem != null)
+            {
+                if (!_financialSystem.AddExpense(totalCost, "Import: Materials"))
+                    return false;
+            }
+            else
+            {
+                _playerResources.Balance -= totalCost;
+            }
+
+            // Добавление импортированных материалов в инвентарь
+            foreach (var item in quantities)
+            {
+                if (_playerResources.StoredMaterials.ContainsKey(item.Key))
+                    _playerResources.StoredMaterials[item.Key] += item.Value;
+                else
+                    _playerResources.StoredMaterials[item.Key] = item.Value;
+
+                // Статистика импорта
+                _importVolumes[item.Key] += item.Value;
+            }
+
+            // Синхронизация баланса игрока
+            if (_financialSystem != null)
+                _playerResources.Balance -= totalCost;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Ручной экспорт материалов во внешний мир (продажа по запросу игрока)
+        /// </summary>
+        /// <param name="material">Тип материала для экспорта</param>
+        /// <param name="quantity">Количество для экспорта</param>
+        /// <param name="pricePerUnit">Цена экспорта за единицу</param>
+        /// <param name="totalRevenue">Общая выручка от экспорта</param>
+        /// <returns>true, если экспорт успешен</returns>
+        public bool TryExportMaterials(
+            ConstructionMaterial material,
+            int quantity,
+            decimal pricePerUnit,
+            out decimal totalRevenue)
+        {
+            totalRevenue = 0m;
+
+            if (quantity <= 0)
+                return false;
+
+            // Проверка наличия материалов для экспорта
+            if (!_playerResources.StoredMaterials.ContainsKey(material) ||
+                _playerResources.StoredMaterials[material] < quantity)
+                return false;
+
+            totalRevenue = pricePerUnit * quantity;
+
+            // Удаление материалов из инвентаря
+            _playerResources.StoredMaterials[material] -= quantity;
+
+            // Добавление дохода от экспорта
+            if (_financialSystem != null)
+            {
+                _financialSystem.AddIncome(totalRevenue, $"Export: {material} x{quantity}");
+            }
+            _playerResources.Balance += totalRevenue;
+
+            // Статистика экспорта
+            _exportVolumes[material] += quantity;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Экспорт всех доступных материалов одного типа
+        /// </summary>
+        public bool TryExportAllMaterials(
+            ConstructionMaterial material,
+            decimal pricePerUnit,
+            out decimal totalRevenue)
+        {
+            totalRevenue = 0m;
+
+            if (!_playerResources.StoredMaterials.ContainsKey(material))
+                return false;
+
+            int quantity = _playerResources.StoredMaterials[material];
+            if (quantity == 0)
+                return false;
+
+            return TryExportMaterials(material, quantity, pricePerUnit, out totalRevenue);
+        }
+
+        /// <summary>
+        /// Получение цены импорта для конкретного материала
+        /// </summary>
+        public decimal GetImportPrice(ConstructionMaterial material, int basePrice)
+        {
+            return basePrice * IMPORT_PRICE_MULTIPLIER;
+        }
+
+        /// <summary>
+        /// Получение цены экспорта для конкретного материала
+        /// </summary>
+        public decimal GetExportPrice(ConstructionMaterial material, int basePrice)
+        {
+            return basePrice * EXPORT_PRICE_MULTIPLIER;
         }
     }
 }

@@ -6,23 +6,23 @@ using Core.Resourses;
 namespace Core.Services
 {
     /// <summary>
-    /// Сервис производства ресурсов и продажи за деньги.
-    /// Управляет производством материалов через шахты/заводы и их продажей.
+    /// Сервис производства ресурсов и экспорта во внешний мир.
+    /// Управляет производством материалов через шахты/заводы и экспортом через ExternalConnectionsManager.
     /// </summary>
     public class ResourceProductionService
     {
         private readonly PlayerResources _playerResources;
-        private readonly FinancialSystem _financialSystem;
+        private readonly ExternalConnectionsManager _externalConnections;
 
         /// <summary>
         /// Количество ресурсов, добываемых шахтой за тик (для теста).
         /// </summary>
         public int MineProductionRate { get; set; } = 5;
 
-        public ResourceProductionService(PlayerResources playerResources, FinancialSystem financialSystem)
+        public ResourceProductionService(PlayerResources playerResources, ExternalConnectionsManager externalConnections)
         {
             _playerResources = playerResources;
-            _financialSystem = financialSystem;
+            _externalConnections = externalConnections;
         }
 
         /// <summary>
@@ -42,54 +42,19 @@ namespace Core.Services
         }
 
         /// <summary>
-        /// Продает указанное количество материалов по рыночным ценам.
-        /// Деньги зачисляются в FinancialSystem как доход от торговли.
+        /// Экспорт (продажа) материалов во внешний мир
         /// </summary>
-        /// <param name="material">Тип материала</param>
-        /// <param name="quantity">Количество для продажи</param>
-        /// <param name="pricePerUnit">Цена за единицу</param>
-        /// <param name="totalRevenue">Общая выручка от продажи</param>
-        /// <returns>true, если продажа прошла успешно</returns>
         public bool TrySellMaterials(ConstructionMaterial material, int quantity, decimal pricePerUnit, out decimal totalRevenue)
         {
-            totalRevenue = 0m;
-            
-            if (quantity <= 0)
-                return false;
-
-            if (!_playerResources.StoredMaterials.ContainsKey(material) || 
-                _playerResources.StoredMaterials[material] < quantity)
-                return false;
-
-            totalRevenue = pricePerUnit * quantity;
-
-            // Списываем материалы
-            _playerResources.StoredMaterials[material] -= quantity;
-
-            // Зачисляем деньги через финансовую систему (доход от продажи)
-            _financialSystem.AddIncome(totalRevenue, $"Sale: {material} x{quantity}");
-
-            // Синхронизируем PlayerResources.Balance
-            _playerResources.Balance += totalRevenue;
-
-            return true;
+            return _externalConnections.TryExportMaterials(material, quantity, pricePerUnit, out totalRevenue);
         }
 
         /// <summary>
-        /// Продает все доступные материалы одного типа.
+        /// Экспорт всех доступных материалов одного типа
         /// </summary>
         public bool TrySellAllMaterials(ConstructionMaterial material, decimal pricePerUnit, out decimal totalRevenue)
         {
-            totalRevenue = 0m;
-            
-            if (!_playerResources.StoredMaterials.ContainsKey(material))
-                return false;
-
-            int quantity = _playerResources.StoredMaterials[material];
-            if (quantity == 0)
-                return false;
-
-            return TrySellMaterials(material, quantity, pricePerUnit, out totalRevenue);
+            return _externalConnections.TryExportAllMaterials(material, pricePerUnit, out totalRevenue);
         }
     }
 }

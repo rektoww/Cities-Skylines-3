@@ -39,6 +39,7 @@ namespace Laboratornaya3.ViewModels
         // Экономика/ресурсы
         private readonly FinancialSystem _financialSystem;
         private readonly PlayerResources _playerResources;
+        private readonly ExternalConnectionsManager _externalConnections;
         private readonly ConstructionCompany _constructionCompany;
         private readonly MarketService _marketService;
         private readonly ResourceProductionService _productionService;
@@ -88,9 +89,18 @@ namespace Laboratornaya3.ViewModels
                 balance: EconomyConfig.DefaultCityBudget,
                 materials: new Dictionary<ConstructionMaterial, int>(EconomyConfig.DefaultStartMaterials)
             );
+            
+            // Система внешних связей (импорт/экспорт + миграция)
+            _externalConnections = new ExternalConnectionsManager(
+                _playerResources,
+                _financialSystem,
+                new List<Core.Models.Mobs.Citizen>(), // TODO: подключить реальный список
+                new List<Core.Models.Buildings.ResidentialBuilding>() // TODO: подключить реальный список
+            );
+            
             _constructionCompany = new ConstructionCompany(_playerResources, _financialSystem);
-            _marketService = new MarketService();
-            _productionService = new ResourceProductionService(_playerResources, _financialSystem);
+            _marketService = new MarketService(_externalConnections);
+            _productionService = new ResourceProductionService(_playerResources, _externalConnections);
 
             InitializeCategories();
 
