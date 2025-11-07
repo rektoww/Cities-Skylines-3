@@ -90,13 +90,8 @@ namespace Laboratornaya3.ViewModels
                 materials: new Dictionary<ConstructionMaterial, int>(EconomyConfig.DefaultStartMaterials)
             );
             
-            // Система внешних связей (импорт/экспорт + миграция)
-            _externalConnections = new ExternalConnectionsManager(
-                _playerResources,
-                _financialSystem,
-                new List<Core.Models.Mobs.Citizen>(), // TODO: подключить реальный список
-                new List<Core.Models.Buildings.ResidentialBuilding>() // TODO: подключить реальный список
-            );
+            // Система внешних связей (импорт/экспорт)
+            _externalConnections = new ExternalConnectionsManager(_playerResources, _financialSystem);
             
             _constructionCompany = new ConstructionCompany(_playerResources, _financialSystem);
             _marketService = new MarketService(_externalConnections);
