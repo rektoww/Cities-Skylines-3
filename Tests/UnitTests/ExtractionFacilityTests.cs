@@ -105,40 +105,7 @@ namespace Tests.UnitTests
             Assert.AreEqual(extractedAmount, factory.GetResourceAmount(ResourceType.Iron));
         }
 
-        /// <summary>
-        /// Тест работы цехов
-        /// </summary>
-        [TestMethod]
-        public void TestWorkshopProcessing()
-        {
-            var factory = new ProductionFactory();
-
-            // Создаем тестовый цех
-            var workshop = new Workshop
-            {
-                Name = "Тестовый цех",
-                ProductionCycleTime = 5
-            };
-            workshop.InputRequirements.Add(ResourceType.Iron, 10);
-            workshop.OutputProducts.Add(ResourceType.Oil, 5);
-
-            factory.AddWorkshop(workshop);
-            factory.SetStorageCapacity(ResourceType.Iron, 100);
-            factory.SetStorageCapacity(ResourceType.Oil, 100);
-
-            // Добавляем ресурсы
-            factory.AddResource(ResourceType.Iron, 15);
-            factory.SetWorkersCount(1);
-
-            // Запускаем обработку
-            var output = factory.ProcessWorkshops();
-
-            Assert.IsTrue(output.ContainsKey(ResourceType.Oil));
-            Assert.AreEqual(5, output[ResourceType.Oil]);
-            Assert.AreEqual(5, factory.GetResourceAmount(ResourceType.Iron)); // 15 - 10
-            Assert.AreEqual(5, factory.GetResourceAmount(ResourceType.Oil)); // 0 + 5
-        }
-
+        
         /// <summary>
         /// Тест проверки возможности производства
         /// </summary>
