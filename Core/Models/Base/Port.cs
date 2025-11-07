@@ -11,20 +11,22 @@ namespace Core.Models.Base
     public abstract class Port
     {
         public string Name { get; set; }
-        public int MaxUnits { get; protected set; } // Максимальное количество юнитов
+
+        // УПРОЩЕНИЕ: Оставляем только одно абстрактное свойство, которое должны реализовать наследники.
+        protected abstract int MaxUnits { get; }
+
         public List<PortUnit> Units { get; private set; } = new(); // Список юнитов
         public PlayerResources PlayerResources { get; private set; } // Ссылка на ресурсы игрока
 
-        // Параметры юнитов (определяются в наследниках)
+        // Параметры юнитов
         protected abstract string ResourceType { get; } // Тип ресурса
         protected abstract int UnitCapacity { get; } // Вместимость юнита
         protected abstract int UnitCooldown { get; } // Время одного цикла продажи (в тиках)
         protected abstract int UnitRevenue { get; } // Доход за один цикл продажи
 
-        protected Port(string name, int maxUnits, PlayerResources playerResources)
+        protected Port(string name, PlayerResources playerResources)
         {
             Name = name;
-            MaxUnits = maxUnits;
             PlayerResources = playerResources;
 
             // Создаем юниты при создании порта
@@ -36,7 +38,9 @@ namespace Core.Models.Base
         /// </summary>
         private void InitializeUnits()
         {
-            for (int i = 0; i < MaxUnits; i++)
+            // Защита от некорректных значений
+            var count = Math.Max(0, MaxUnits);
+            for (int i = 0; i < count; i++)
             {
                 Units.Add(CreateUnit());
             }
@@ -58,83 +62,101 @@ namespace Core.Models.Base
             }
         }
 
+
         /// <summary>
-        /// Устанавливает тип ресурса и его количество для юнита.
+        /// Устанавливает тип ресурса, его количество и доход для юнита.
         /// </summary>
         /// <param name="unitId">ID юнита</param>
         /// <param name="resourceType">Тип ресурса</param>
         /// <param name="amount">Количество ресурса</param>
+        /// <param name="revenue">Доход за один цикл продажи</param>
         /// <returns>True если настройка применена успешно</returns>
-        public bool SetUnitResource(int unitId, ConstructionMaterial resourceType, int amount)
+        public bool SetUnitResourceAndRevenue(int unitId, ConstructionMaterial resourceType, int amount, int revenue)
         {
             if (unitId < 0 || unitId >= Units.Count)
                 return false;
 
             var unit = Units[unitId];
-            return unit.SetResource(resourceType, amount);
+            if (!unit.SetResource(resourceType, amount))
+                return false;
+
+            unit.SetRevenue(revenue);
+            return true;
         }
     }
 
-    /// <summary>
-    /// Базовый класс для юнитов порта (корабли/самолеты).
-    /// </summary>
+
     public class PortUnit
     {
-        private readonly int _capacity; // Вместимость юнита
-        private readonly int _cooldownMax; // Время одного цикла продажи
-        private readonly int _revenuePerDelivery; // Доход за один цикл продажи
+        private readonly int _capacity;
+        private readonly int _cooldownMax;
+        private int _revenuePerDelivery;
 
-        private int _cooldown; // Текущий таймер до следующей продажи
-        private ConstructionMaterial? _resourceType; // Текущий тип ресурса
-        private int _resourceAmount; // Текущее количество ресурса
+        private int _cooldown;
+        private ConstructionMaterial? _resourceType;
+        private int _resourceAmount;
 
         public PortUnit(int capacity, int cooldownMax, int revenuePerDelivery)
         {
             _capacity = capacity;
-            _cooldownMax = cooldownMax;
-            _revenuePerDelivery = revenuePerDelivery;
-            _cooldown = cooldownMax; // Инициализируем таймер
+            _cooldownMax = Math.Max(1, cooldownMax);
+            _revenuePerDelivery = Math.Max(0, revenuePerDelivery);
+            _cooldown = -1;
             _resourceType = null;
             _resourceAmount = 0;
         }
 
-        /// <summary>
-        /// Устанавливает тип ресурса и его количество для юнита.
-        /// </summary>
-        /// <param name="resourceType">Тип ресурса</param>
-        /// <param name="amount">Количество ресурса</param>
-        /// <returns>True если настройка применена успешно</returns>
         public bool SetResource(ConstructionMaterial resourceType, int amount)
         {
-            if (amount <= 0)
+            if (amount <= 0 || amount > _capacity)
                 return false;
 
             _resourceType = resourceType;
             _resourceAmount = amount;
+            _cooldown = 0;
             return true;
         }
 
-        /// <summary>
-        /// Выполняет тик симуляции для юнита.
-        /// </summary>
+        public void SetRevenue(int revenue)
+        {
+            if (revenue > 0)
+            {
+                _revenuePerDelivery = revenue;
+            }
+        }
+
         public void Process(PlayerResources playerResources)
         {
+            if (_cooldown < 0)
+                return;
+
             if (_cooldown > 0)
             {
                 _cooldown--;
                 return;
             }
 
-            // Проверяем, установлен ли тип ресурса и есть ли ресурсы для продажи
-            if (_resourceType.HasValue &&
-                playerResources.StoredMaterials.TryGetValue(_resourceType.Value, out int available) &&
-                available >= _resourceAmount)
+            if (!_resourceType.HasValue)
+                return;
+
+            playerResources.StoredMaterials.TryGetValue(_resourceType.Value, out int available);
+
+            if (available <= 0)
             {
-                // Списываем ресурсы и начисляем деньги
-                playerResources.StoredMaterials[_resourceType.Value] -= _resourceAmount;
-                playerResources.Balance += _revenuePerDelivery;
-                _cooldown = _cooldownMax; // Сбрасываем таймер
+                return;
             }
+
+            int amountToSell = Math.Min(_resourceAmount, available);
+
+            playerResources.StoredMaterials[_resourceType.Value] = available - amountToSell;
+
+            if (_resourceAmount > 0)
+            {
+                decimal revenueThisTime = (decimal)_revenuePerDelivery * amountToSell / _resourceAmount;
+                playerResources.Balance += revenueThisTime;
+            }
+
+            _cooldown = _cooldownMax;
         }
     }
 }

@@ -8,14 +8,16 @@ namespace Core.Models.Buildings
     /// </summary>
     public class AirPort : Port
     {
-        // Параметры юнитов
-        protected override string ResourceType => "Concrete"; // Базовый тип ресурса
-        protected override int UnitCapacity => 25; // Вместимость самолета
-        protected override int UnitCooldown => 10; // Время одного цикла продажи (в тиках)
+        // Количество юнитов: теперь просто реализуем абстрактное свойство
+        protected override int MaxUnits => 5;
+
+        protected override string ResourceType => ""; 
+        protected override int UnitCapacity => 100; // Вместимость самолета
+        protected override int UnitCooldown => 3; // Время одного цикла продажи (в тиках)
         protected override int UnitRevenue => 200; // Доход за один цикл продажи
 
-        public AirPort(string name, int maxUnits, PlayerResources playerResources)
-            : base(name, maxUnits, playerResources)
+        public AirPort(string name, PlayerResources playerResources)
+            : base(name, playerResources)
         {
         }
 
