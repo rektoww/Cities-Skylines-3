@@ -11,11 +11,14 @@ using Core.Resourses;
 using Core.Enums;
 using Core.Config;
 using Infrastructure.Services;
+using Core.Models.Mobs;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Windows;
+using System.Windows.Threading;
 
 namespace Laboratornaya3.ViewModels
 {
@@ -51,6 +54,28 @@ namespace Laboratornaya3.ViewModels
         /// Бюджет города для отображения в UI
         /// </summary>
         public decimal CityBudget => _financialSystem?.CityBudget ?? 0m;
+
+        /// <summary>
+        /// Количество граждан для отображения в UI
+        /// </summary>
+        [ObservableProperty]
+        private int _citizenCount;
+
+        /// <summary>
+        /// Список граждан города
+        /// </summary>
+        private List<Citizen> _citizens = new();
+
+        /// <summary>
+        /// Список жилых зданий
+        /// </summary>
+        private List<ResidentialBuilding> _residentialBuildings = new();
+
+        /// <summary>
+        /// Таймер для автоматической миграции
+        /// </summary>
+        private DispatcherTimer? _migrationTimer;
+        private readonly Random _random = new Random();
 
         [ObservableProperty]
         private string _selectedCategoryName;
@@ -103,6 +128,9 @@ namespace Laboratornaya3.ViewModels
             UpdateBuildingsDisplay("Коммерция");
 
             LoadStatic();
+
+            // Инициализация таймера миграции
+            InitializeMigrationTimer();
         }
 
 
@@ -630,6 +658,58 @@ namespace Laboratornaya3.ViewModels
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
             }
+        }
+
+        /// <summary>
+        /// Инициализация таймера для автоматической миграции
+        /// </summary>
+        private void InitializeMigrationTimer()
+        {
+            _migrationTimer = new DispatcherTimer();
+            _migrationTimer.Tick += MigrationTimer_Tick;
+            SetRandomMigrationInterval();
+            _migrationTimer.Start();
+        }
+
+        /// <summary>
+        /// Установка случайного интервала от 10 до 60 секунд
+        /// </summary>
+        private void SetRandomMigrationInterval()
+        {
+            if (_migrationTimer == null) return;
+            
+            int seconds = _random.Next(10, 61); // от 10 до 60 секунд
+            _migrationTimer.Interval = TimeSpan.FromSeconds(seconds);
+        }
+
+        /// <summary>
+        /// Обработчик таймера миграции
+        /// </summary>
+        private void MigrationTimer_Tick(object? sender, EventArgs e)
+        {
+            // Проверяем наличие транспортного здания
+            if (HasTransportBuilding())
+            {
+                // Добавляем 5-10 иммигрантов
+                int count = _random.Next(5, 11);
+                int added = _externalConnections.AddImmigrants(_citizens, _residentialBuildings, count);
+                CitizenCount = _citizens.Count;
+            }
+
+            // Устанавливаем новый случайный интервал
+            SetRandomMigrationInterval();
+        }
+
+        /// <summary>
+        /// Проверка наличия транспортного здания на карте (Аэропорт или Морской порт)
+        /// </summary>
+        private bool HasTransportBuilding()
+        {
+            if (CurrentMap?.Buildings == null)
+                return false;
+
+            return CurrentMap.Buildings.Any(b => 
+                b.Name == "Аэропорт" || b.Name == "Морской порт");
         }
 
         public void RefreshMap()

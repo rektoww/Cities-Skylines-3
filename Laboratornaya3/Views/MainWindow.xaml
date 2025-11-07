@@ -117,7 +117,7 @@
                         Padding="5,2"/>
 
                 <TextBlock Text="👤" FontSize="20" Margin="0,0,3,0" VerticalAlignment="Center" FontWeight="Bold" />
-                <TextBlock Text="0" FontSize="20" VerticalAlignment="Center" FontWeight="Bold" />
+                <TextBlock Text="{Binding CitizenCount}" FontSize="20" VerticalAlignment="Center" FontWeight="Bold" />
             </StackPanel>
 
             <Border Grid.Column="1" CornerRadius="20" Background="Yellow" Width="60" Height="40" Margin="0,-5,0,0">
