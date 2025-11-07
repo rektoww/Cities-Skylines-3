@@ -356,6 +356,14 @@ namespace Laboratornaya3.ViewModels
                     built = _constructionCompany.TryBuild<PoliceStation>(x, y, CurrentMap, new object[] { }, out var policeStation);
                     builtBuilding = policeStation as Core.Models.Base.Building;
                     break;
+                case "Аэропорт":
+                    built = _constructionCompany.TryBuild<AirPort>(x, y, CurrentMap, new object[] { _playerResources }, out var airport);
+                    builtBuilding = airport as Core.Models.Base.Building;
+                    break;
+                case "Морской порт":
+                    built = _constructionCompany.TryBuild<SeaPort>(x, y, CurrentMap, new object[] { _playerResources }, out var seaport);
+                    builtBuilding = seaport as Core.Models.Base.Building;
+                    break;
                 default:
                     // Фолбэк: старое поведение для несопровождаемых типов
                     var realBuilding = CreateRealBuilding(SelectedBuilding);

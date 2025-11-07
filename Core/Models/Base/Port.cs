@@ -1,5 +1,8 @@
 ﻿using Core.Enums;
 using Core.Resourses;
+
+using Core.Enums;
+using Core.Resourses;
 using System;
 using System.Collections.Generic;
 
@@ -8,7 +11,7 @@ namespace Core.Models.Base
     /// <summary>
     /// Абстрактный класс для портов (морских и воздушных).
     /// </summary>
-    public abstract class Port : TransitStation
+    public abstract class Port : Building
     {
         protected abstract int MaxUnits { get; }
 
@@ -21,6 +24,9 @@ namespace Core.Models.Base
         protected abstract int UnitCooldown { get; } // Время одного цикла продажи в тиках
         protected abstract int UnitRevenue { get; } // Доход за один цикл продажи
 
+        // Новый: сколько людей в одном юните (самолёт/корабль)
+        protected abstract int PassengersPerUnit { get; }
+
         // События для UI/логики
         // unitId, amountSold, revenueReceived
         public event Action<int, int, decimal>? UnitSold;
@@ -28,7 +34,7 @@ namespace Core.Models.Base
         public event Action<int>? UnitResumed;
         public event Action<int>? UnitAssignmentCleared;
 
-        // Теперь конструктор принимает имя и ресурсы игрока
+        // Теперь конструктор принимает ресурсы игрока
         protected Port(PlayerResources playerResources)
         {
             PlayerResources = playerResources;
@@ -40,6 +46,17 @@ namespace Core.Models.Base
         /// </summary>
         public override void OnBuildingPlaced()
         {
+            // Устанавливаем вместимость людей в здании исходя из числа юнитов и пассажиров на юнит
+            // (MaxOccupancy — поле класса Building)
+            try
+            {
+                MaxOccupancy = Math.Max(0, MaxUnits * PassengersPerUnit);
+            }
+            catch
+            {
+                MaxOccupancy = 0;
+            }
+
             InitializeUnits();
         }
 
@@ -209,7 +226,7 @@ namespace Core.Models.Base
         /// <param name="revenue">Доход</param>
         public void SetRevenue(int revenue)
         {
-            if (revenue > 0)
+            if (revenue >= 0)
             {
                 _revenuePerDelivery = revenue;
             }
@@ -258,7 +275,7 @@ namespace Core.Models.Base
             playerResources.StoredMaterials[_resourceType.Value] = available - amountToSell;
 
             decimal revenueThisTime = 0m;
-            if (_resourceAmount > 0)
+            if (_resourceAmount > 0 && _revenuePerDelivery > 0)
             {
                 revenueThisTime = (decimal)_revenuePerDelivery * amountToSell / _resourceAmount;
                 playerResources.Balance += revenueThisTime;

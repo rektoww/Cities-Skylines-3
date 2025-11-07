@@ -1,14 +1,22 @@
-﻿using Core.Models.Base;
+﻿using Core.Enums;
+using Core.Interfaces;
+using Core.Models.Base;
+using Core.Models.Map;
+using Core.Resourses;
+using System.Xml.Linq;
+using Core.Models.Base;
 using Core.Resourses;
 using Core.Models.Map;
 using Core.Enums;
+using Core.Interfaces;
+using System.Collections.Generic;
 
 namespace Core.Models.Buildings
 {
     /// <summary>
     /// Воздушный порт.
     /// </summary>
-    public class AirPort : Port
+    public class AirPort : Port, IConstructable<AirPort>
     {
         // Количество юнитов по умолчанию для аэропорта
         protected override int MaxUnits => 5;
@@ -17,6 +25,19 @@ namespace Core.Models.Buildings
         protected override int UnitCapacity => 100; // Вместимость самолета
         protected override int UnitCooldown => 3; // Время одного цикла продажи в тиках
         protected override int UnitRevenue => 200; // Доход за один цикл продажи
+
+        // Сколько людей помещается в одном самолёте (требование)
+        protected override int PassengersPerUnit => 10;
+
+        // Статические параметры для строительства (IConstructable)
+        public static decimal BuildCost { get; } = 50000m;
+        public static Dictionary<ConstructionMaterial, int> RequiredMaterials { get; } =
+            new Dictionary<ConstructionMaterial, int>
+            {
+                { ConstructionMaterial.Steel, 6 },
+                { ConstructionMaterial.Glass, 4 },
+                { ConstructionMaterial.Concrete, 3 }
+            };
 
         public AirPort(PlayerResources playerResources)
             : base(playerResources)
