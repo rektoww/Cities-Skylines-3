@@ -82,6 +82,13 @@
                         Visibility="{Binding IsBuildingMode, Converter={StaticResource BooleanToVisibilityConverter}}"/>
 
                 
+                <Button Content="🛍️ Купить" 
+                        Command="{Binding BuyMaterialsCommand}"
+                        ToolTip="Открыть диалог покупки материалов"
+                        Background="#90EE90"
+                        Margin="0,0,10,0"
+                        Padding="5,2"/>
+
                 <Button Content="💰 Продать" 
                         Command="{Binding SellMaterialsCommand}"
                         ToolTip="Открыть диалог продажи материалов"

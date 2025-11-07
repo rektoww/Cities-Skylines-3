@@ -616,6 +616,37 @@ namespace Laboratornaya3.ViewModels
             }
         }
 
+        [RelayCommand]
+        private void BuyMaterials()
+        {
+            try
+            {
+                var dialog = new Views.BuyMaterialsDialog(_marketService, _financialSystem, _playerResources);
+                
+                // Пытаемся найти главное окно
+                var mainWindow = Application.Current?.Windows.OfType<Window>().FirstOrDefault(w => w.IsActive) 
+                               ?? Application.Current?.MainWindow;
+                
+                if (mainWindow != null)
+                {
+                    dialog.Owner = mainWindow;
+                }
+                
+                if (dialog.ShowDialog() == true)
+                {
+                    OnPropertyChanged(nameof(CityBudget));
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Ошибка при открытии диалога покупки:\n{ex.Message}",
+                    "Ошибка",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+        }
+
         public void RefreshMap()
         {
             OnPropertyChanged(nameof(TilesFlat));
