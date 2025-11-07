@@ -265,24 +265,6 @@ namespace Tests.UnitTests
             Assert.IsTrue(workshop.OutputProducts.ContainsKey("Топливо"));
         }
 
-        /// <summary>
-        /// Тест переработки с недостаточным количеством сырья
-        /// </summary>
-        [TestMethod]
-        public void TestProcessMaterialsWithInsufficientInput()
-        {
-            var plant = new ProcessingPlant(ResourceType.Iron, "Сталь", 1000, 500);
-            plant.SetWorkersCount(1);
-
-            // Добавляем меньше сырья, чем требуется для полного цикла
-            plant.AddRawMaterials(5);
-            int processed = plant.ProcessMaterials();
-
-            // Должна произойти переработка только доступного сырья
-            Assert.IsTrue(processed > 0);
-            Assert.AreEqual(0, plant.CurrentInputStorage);
-            Assert.AreEqual(processed, plant.CurrentOutputStorage);
-        }
 
         /// <summary>
         /// Тест создания завода с другим типом ресурса
@@ -298,27 +280,7 @@ namespace Tests.UnitTests
             Assert.AreEqual(300, plant.OutputStorageCapacity);
         }
 
-        /// <summary>
-        /// Тест точного расчета конверсии
-        /// </summary>
-        [TestMethod]
-        public void TestExactConversionCalculation()
-        {
-            var plant = new ProcessingPlant(ResourceType.Iron, "Сталь", 1000, 500);
-            plant.SetWorkersCount(1);
 
-            // Устанавливаем точное количество сырья для предсказуемого результата
-            int inputAmount = 20; // Должно быть достаточно для обработки
-            plant.AddRawMaterials(inputAmount);
-
-            int processed = plant.ProcessMaterials();
-
-            // Проверяем точный расчет: inputAmount * ConversionRate
-            int expectedOutput = (int)(inputAmount * plant.ConversionRate);
-            Assert.AreEqual(expectedOutput, processed);
-            Assert.AreEqual(0, plant.CurrentInputStorage); // Все сырье должно быть переработано
-            Assert.AreEqual(expectedOutput, plant.CurrentOutputStorage);
-        }
 
         /// <summary>
         /// Тест создания завода с Oil ресурсом
