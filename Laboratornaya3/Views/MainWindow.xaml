@@ -81,7 +81,14 @@
                         Margin="0,0,10,0"
                         Visibility="{Binding IsBuildingMode, Converter={StaticResource BooleanToVisibilityConverter}}"/>
 
-                <!-- Кнопки для тестирования -->
+                
+                <Button Content="💰 Продать" 
+                        Command="{Binding SellMaterialsCommand}"
+                        ToolTip="Открыть диалог продажи материалов"
+                        Background="#FFD700"
+                        Margin="0,0,10,0"
+                        Padding="5,2"/>
+
                 <Button Content="🧪 Тест" 
                         Click="TestButton_Click"
                         ToolTip="Тестовые функции"
@@ -93,6 +100,13 @@
                         Click="ClearBuildings_Click"
                         ToolTip="Удалить все здания"
                         Background="LightCoral"
+                        Margin="0,0,10,0"
+                        Padding="5,2"/>
+
+                <Button Content="📦 Ресурсы" 
+                        Command="{Binding ShowResourcesInfoCommand}"
+                        ToolTip="Показать инвентарь материалов"
+                        Background="LightCyan"
                         Margin="0,0,10,0"
                         Padding="5,2"/>
 
@@ -120,9 +134,9 @@
                     <TextBlock Text="0" FontSize="20" VerticalAlignment="Center" />
                 </StackPanel>
 
-                <StackPanel Orientation="Horizontal">
+                <StackPanel Orientation="Horizontal" Cursor="Hand" MouseDown="BudgetPanel_MouseDown" ToolTip="Кликните для подробностей">
                     <TextBlock Text="💵" Margin="0,0,3,0" FontSize="20" VerticalAlignment="Center" />
-                    <TextBlock Text="0$" FontSize="20" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding CityBudget, StringFormat='{}{0:N0}$'}" FontSize="20" VerticalAlignment="Center" FontWeight="Bold" />
                 </StackPanel>
             </StackPanel>
         </Grid>

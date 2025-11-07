@@ -1,11 +1,15 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Core.Models.Base;
 using Core.Models.Buildings;
 using Core.Models.Buildings.CommertialBuildings;
 using Core.Models.Buildings.SocialBuildings;
+using Core.Models.Buildings.IndustrialBuildings;
 using Core.Models.Map;
 using Core.Services;
+using Core.Resourses;
+using Core.Enums;
+using Core.Config;
 using Infrastructure.Services;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -32,8 +36,20 @@ namespace Laboratornaya3.ViewModels
         private readonly SaveLoadService _saveLoadService;
         private readonly NatureManager _natureManager;
 
+        // Экономика/ресурсы
+        private readonly FinancialSystem _financialSystem;
+        private readonly PlayerResources _playerResources;
+        private readonly ConstructionCompany _constructionCompany;
+        private readonly MarketService _marketService;
+        private readonly ResourceProductionService _productionService;
+
         [ObservableProperty]
         private GameMap _currentMap;
+
+        /// <summary>
+        /// Бюджет города для отображения в UI
+        /// </summary>
+        public decimal CityBudget => _financialSystem?.CityBudget ?? 0m;
 
         [ObservableProperty]
         private string _selectedCategoryName;
@@ -66,12 +82,46 @@ namespace Laboratornaya3.ViewModels
             _saveLoadService = new SaveLoadService();
             _natureManager = new NatureManager();
 
+            // Инициализация экономики и ресурсов 
+            _financialSystem = new FinancialSystem(initialBudget: EconomyConfig.DefaultCityBudget);
+            _playerResources = new PlayerResources(
+                balance: EconomyConfig.DefaultCityBudget,
+                materials: new Dictionary<ConstructionMaterial, int>(EconomyConfig.DefaultStartMaterials)
+            );
+            _constructionCompany = new ConstructionCompany(_playerResources, _financialSystem);
+            _marketService = new MarketService();
+            _productionService = new ResourceProductionService(_playerResources, _financialSystem);
+
             InitializeCategories();
 
             SelectedCategoryName = "Коммерция";
             UpdateBuildingsDisplay("Коммерция");
 
             LoadStatic();
+            PlaceInitialMine();
+        }
+
+        private void PlaceInitialMine()
+        {
+            if (CurrentMap == null) return;
+
+            // Размещаем шахту на координатах 22,24
+            int mineX = 22;
+            int mineY = 24;
+
+            var mine = new Mine();
+            if (mine.TryPlace(mineX, mineY, CurrentMap))
+            {
+                CurrentMap.Buildings.Add(mine);
+                
+                // Сразу добываем немного ресурсов для теста
+                for (int i = 0; i < 5; i++)
+                {
+                    mine.ProduceResources();
+                }
+                
+                RefreshMap();
+            }
         }
 
         private void InitializeCategories()
@@ -146,28 +196,72 @@ namespace Laboratornaya3.ViewModels
                 return false;
             }
 
-            var realBuilding = CreateRealBuilding(SelectedBuilding);
+            // Строим через ConstructionCompany, чтобы списались деньги и материалы
+            bool built = false;
+            Core.Models.Base.Building builtBuilding = null;
 
-            bool canPlace = realBuilding.CanPlace(x, y, CurrentMap);
-
-            if (realBuilding != null && canPlace)
+            switch (SelectedBuilding.Name)
             {
-                bool placementResult = realBuilding.TryPlace(x, y, CurrentMap);
-
-                if (placementResult)
-                {
-                    CurrentMap.Buildings.Add(realBuilding);
-                    RefreshMap();
-                    CancelBuilding();
-
-                    MessageBox.Show($"Здание '{realBuilding.Name}' успешно размещено!",
-                                   "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
-                    return true;
-                }
+                case "Парк":
+                    built = _constructionCompany.TryBuild<Park>(x, y, CurrentMap, new object[] { }, out var park);
+                    builtBuilding = park as Core.Models.Base.Building;
+                    break;
+                case "Магазин":
+                    built = _constructionCompany.TryBuild<Shop>(x, y, CurrentMap, new object[] { }, out var shop);
+                    builtBuilding = shop as Core.Models.Base.Building;
+                    break;
+                case "Супермаркет":
+                    built = _constructionCompany.TryBuild<Supermarket>(x, y, CurrentMap, new object[] { }, out var supermarket);
+                    builtBuilding = supermarket as Core.Models.Base.Building;
+                    break;
+                case "Аптека":
+                    built = _constructionCompany.TryBuild<Pharmacy>(x, y, CurrentMap, new object[] { }, out var pharmacy);
+                    builtBuilding = pharmacy as Core.Models.Base.Building;
+                    break;
+                case "Кафе":
+                    built = _constructionCompany.TryBuild<Cafe>(x, y, CurrentMap, new object[] { }, out var cafe);
+                    builtBuilding = cafe as Core.Models.Base.Building;
+                    break;
+                case "Ресторан":
+                    built = _constructionCompany.TryBuild<Restaurant>(x, y, CurrentMap, new object[] { }, out var restaurant);
+                    builtBuilding = restaurant as Core.Models.Base.Building;
+                    break;
+                case "Заправка":
+                    built = _constructionCompany.TryBuild<GasStation>(x, y, CurrentMap, new object[] { }, out var gasStation);
+                    builtBuilding = gasStation as Core.Models.Base.Building;
+                    break;
+                case "Шахта":
+                    built = _constructionCompany.TryBuild<Mine>(x, y, CurrentMap, new object[] { }, out var mine);
+                    builtBuilding = mine as Core.Models.Base.Building;
+                    break;
+                default:
+                    // Фолбэк: старое поведение для несопровождаемых типов
+                    var realBuilding = CreateRealBuilding(SelectedBuilding);
+                    if (realBuilding != null && realBuilding.CanPlace(x, y, CurrentMap) && realBuilding.TryPlace(x, y, CurrentMap))
+                    {
+                        built = true;
+                        builtBuilding = realBuilding;
+                    }
+                    break;
             }
 
-            MessageBox.Show("Невозможно разместить здание здесь!\nПроверьте:\n• Достаточно ли места\n• Подходящий ли рельеф\n• Нет ли других зданий",
-                           "Ошибка размещения",
+            if (built && builtBuilding != null)
+            {
+                CurrentMap.Buildings.Add(builtBuilding);
+                RefreshMap();
+                CancelBuilding();
+
+                // Обновляем бюджет в UI
+                OnPropertyChanged(nameof(CityBudget));
+
+                MessageBox.Show($"Здание '{builtBuilding.Name}' успешно построено!\n" +
+                                $"Бюджет: {_financialSystem.CityBudget:N0} | Баланс игрока: {_playerResources.Balance:N0}",
+                                "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                return true;
+            }
+
+            MessageBox.Show("Нельзя построить здесь. Возможные причины:\n• Недостаточно бюджета или материалов\n• Недостаточно места\n• Неподходящий рельеф\n• Место занято",
+                           "Ошибка строительства",
                            MessageBoxButton.OK,
                            MessageBoxImage.Warning);
             return false;
@@ -184,6 +278,7 @@ namespace Laboratornaya3.ViewModels
                 "Ресторан" => new Restaurant(),
                 "Заправка" => new GasStation(),
                 "Парк" => new Park(),
+                "Шахта" => new Mine(),
                 _ => new Shop()
             };
         }
@@ -253,6 +348,49 @@ namespace Laboratornaya3.ViewModels
                     sb.AppendLine($"Скамейки: {park.BenchCount} шт.");
                     sb.AppendLine($"Вместимость: {park.MaxOccupancy} человек");
                     sb.AppendLine($"Размер: {park.Width}x{park.Height}");
+                }
+
+                // ИНФОРМАЦИЯ ДЛЯ ШАХТЫ
+                else if (tile.Building is Mine mine)
+                {
+                    sb.AppendLine($"--- Детали шахты ---");
+                    sb.AppendLine($"Добывает: {mine.ProducedMaterial}");
+                    sb.AppendLine($"Накоплено: {mine.StoredResources}/{mine.MaxStorage}");
+                    sb.AppendLine($"Скорость: {mine.ProductionRate} ед./тик");
+                    sb.AppendLine($"Размер: {mine.Width}x{mine.Height}");
+
+                    MessageBox.Show(
+                        sb.ToString(),
+                        "Информация о клетке",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+
+                    // Предложить собрать ресурсы
+                    if (mine.StoredResources > 0)
+                    {
+                        var result = MessageBox.Show(
+                            $"Собрать {mine.StoredResources} ед. {mine.ProducedMaterial}?",
+                            "Сбор ресурсов",
+                            MessageBoxButton.YesNo,
+                            MessageBoxImage.Question);
+
+                        if (result == MessageBoxResult.Yes)
+                        {
+                            int collected = mine.CollectResources();
+                            if (_playerResources.StoredMaterials.ContainsKey(mine.ProducedMaterial))
+                                _playerResources.StoredMaterials[mine.ProducedMaterial] += collected;
+                            else
+                                _playerResources.StoredMaterials[mine.ProducedMaterial] = collected;
+
+                            RefreshMap();
+                            MessageBox.Show(
+                                $"Собрано: {collected} ед. {mine.ProducedMaterial}",
+                                "Успех",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Information);
+                        }
+                    }
+                    return; // Early return after handling mine
                 }
 
                 // ИНФОРМАЦИЯ ДЛЯ КОММЕРЧЕСКИХ ЗДАНИЙ
@@ -354,6 +492,128 @@ namespace Laboratornaya3.ViewModels
                 "Статистика деревьев",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
+        }
+
+        [RelayCommand]
+        private void ShowResourcesInfo()
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("Инвентарь строительных материалов:");
+            sb.AppendLine();
+            foreach (var mat in _playerResources.StoredMaterials)
+            {
+                sb.AppendLine($" • {mat.Key}: {mat.Value} шт.");
+            }
+            sb.AppendLine();
+            sb.AppendLine($"Баланс игрока: {_playerResources.Balance:N0} валюты");
+
+            MessageBox.Show(
+                sb.ToString(),
+                "Ресурсы",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
+
+        [RelayCommand]
+        private void ShowFinanceInfo()
+        {
+            var report = _financialSystem.GetFinancialReport();
+            var sb = new StringBuilder();
+            sb.AppendLine("Финансовый отчет города:");
+            sb.AppendLine();
+            sb.AppendLine($"Бюджет: {report.CurrentBudget:N0} валюты");
+            sb.AppendLine($"Доходы: {report.TotalIncome:N0} валюты");
+            sb.AppendLine($"Расходы: {report.TotalExpenses:N0} валюты");
+            sb.AppendLine($"Чистый баланс за период: {report.PeriodBalance:N0} валюты");
+            sb.AppendLine();
+
+            if (report.ExpensesByCategory.Count > 0)
+            {
+                sb.AppendLine("Расходы по категориям:");
+                foreach (var exp in report.ExpensesByCategory)
+                {
+                    if (exp.Value > 0)
+                        sb.AppendLine($" • {exp.Key}: {exp.Value:N0}");
+                }
+            }
+
+            if (report.IncomesBySource.Count > 0)
+            {
+                sb.AppendLine();
+                sb.AppendLine("Доходы по источникам:");
+                foreach (var inc in report.IncomesBySource)
+                {
+                    if (inc.Value > 0)
+                        sb.AppendLine($" • {inc.Key}: {inc.Value:N0}");
+                }
+            }
+
+            MessageBox.Show(
+                sb.ToString(),
+                "Финансы",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
+
+        [RelayCommand]
+        private void ProduceMines()
+        {
+            // Производство ресурсов на всех шахтах
+            if (CurrentMap?.Buildings == null) return;
+
+            int totalProduced = 0;
+            foreach (var building in CurrentMap.Buildings.OfType<Mine>())
+            {
+                building.ProduceResources();
+                totalProduced += building.ProductionRate;
+            }
+
+            RefreshMap();
+
+            if (totalProduced > 0)
+            {
+                MessageBox.Show(
+                    $"Шахты произвели ресурсы!\nКликните по шахте чтобы собрать.",
+                    "Производство",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+        }
+
+        [RelayCommand]
+        private void SellMaterials()
+        {
+            try
+            {
+                var dialog = new Views.SellMaterialsDialog(_playerResources, _productionService);
+                
+                // Пытаемся найти главное окно
+                var mainWindow = Application.Current?.Windows.OfType<Window>().FirstOrDefault(w => w.IsActive) 
+                               ?? Application.Current?.MainWindow;
+                
+                if (mainWindow != null)
+                {
+                    dialog.Owner = mainWindow;
+                }
+                
+                if (dialog.ShowDialog() == true && dialog.SoldSuccessfully)
+                {
+                    OnPropertyChanged(nameof(CityBudget));
+                    MessageBox.Show(
+                        $"Продано материалов на {dialog.TotalRevenue:N0} валюты!\nНовый бюджет: {_financialSystem.CityBudget:N0}",
+                        "Успех",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Ошибка при открытии диалога продажи:\n{ex.Message}",
+                    "Ошибка",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
         }
 
         public void RefreshMap()

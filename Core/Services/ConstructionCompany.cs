@@ -15,10 +15,13 @@ namespace Core.Services
     {
         // Игровые данные
         private readonly PlayerResources _resources;
+        // Опционально: финансовая система города для учета расходов и проверки бюджета
+        private readonly FinancialSystem? _financialSystem;
 
-        public ConstructionCompany(PlayerResources resources)
+        public ConstructionCompany(PlayerResources resources, FinancialSystem? financialSystem = null)
         {
             _resources = resources;
+            _financialSystem = financialSystem;
         }
 
         public decimal Balance => _resources.Balance;
@@ -57,11 +60,11 @@ namespace Core.Services
         public bool TryBuild<T>(int x, int y, GameMap map, object[] parameters, out IConstructable<T>? building)
             where T : Building, IConstructable<T>
         {
-            var RequiredMaterials = T.RequiredMaterials;
-            var BuildCost = T.BuildCost;
+            var requiredMaterials = T.RequiredMaterials;
+            var buildCost = T.BuildCost;
 
-            // Проверка достаточности материалов
-            foreach (var material in RequiredMaterials)
+            // 1) Проверяем материалы (без списания)
+            foreach (var material in requiredMaterials)
             {
                 if (!_resources.StoredMaterials.ContainsKey(material.Key) || _resources.StoredMaterials[material.Key] < material.Value)
                 {
@@ -70,23 +73,37 @@ namespace Core.Services
                 }
             }
 
-            // Вычитание материалов
-            foreach (var material in RequiredMaterials)
+            // 2) Проверяем бюджет (если подключена финансовая система — по ней, иначе по локальному балансу)
+            var availableBudget = _financialSystem?.CityBudget ?? _resources.Balance;
+            if (availableBudget < buildCost)
             {
-                TryRemoveMaterial(material.Key, material.Value, out _);
+                building = null;
+                return false;
             }
 
-            // Создание объекта здания
+            // 3) Создаем объект здания и пытаемся разместить
             building = (T)Activator.CreateInstance(typeof(T), parameters);
-
             if (!building.TryPlace(x, y, map))
             {
                 building = null;
                 return false;
             }
 
-            // Вычитание стоимости
-            _resources.Balance -= BuildCost;
+            // 4) Списываем материалы (после успешного размещения)
+            foreach (var material in requiredMaterials)
+            {
+                TryRemoveMaterial(material.Key, material.Value, out _);
+            }
+
+            // 5) Списываем деньги: через финансовую систему (для отчетности) + синхронизируем локальный баланс для обратной совместимости
+            if (_financialSystem != null)
+            {
+                // Категория расхода: Строительство: <Тип>
+                _financialSystem.AddExpense(buildCost, $"Construction: {typeof(T).Name}");
+            }
+
+            // Поддерживаем старую логику баланса игрока
+            _resources.Balance -= buildCost;
 
             return true;
         }

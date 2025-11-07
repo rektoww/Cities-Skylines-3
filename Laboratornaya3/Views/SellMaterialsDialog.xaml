@@ -1,0 +1,98 @@
+<Window x:Class="Laboratornaya3.Views.SellMaterialsDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Продажа материалов" 
+        Height="400" 
+        Width="500"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" 
+                   Text="Выберите материалы для продажи:" 
+                   FontSize="16" 
+                   FontWeight="Bold"
+                   Margin="0,0,0,10"/>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <ItemsControl x:Name="MaterialsItemsControl">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border BorderBrush="LightGray" 
+                                BorderThickness="1" 
+                                Padding="10" 
+                                Margin="0,0,0,10"
+                                Background="White">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="{Binding MaterialName}" 
+                                               FontWeight="Bold" 
+                                               FontSize="14"/>
+                                    <TextBlock Text="{Binding AvailableText}" 
+                                               Foreground="Gray"/>
+                                    <TextBlock Text="{Binding PriceText}" 
+                                               Foreground="Green"/>
+                                </StackPanel>
+
+                                <TextBox Grid.Column="2" 
+                                         Text="{Binding QuantityToSell, UpdateSourceTrigger=PropertyChanged}" 
+                                         VerticalContentAlignment="Center"
+                                         HorizontalContentAlignment="Center"
+                                         Margin="5,0"/>
+
+                                <TextBlock Grid.Column="3" 
+                                           Text="{Binding TotalText}" 
+                                           FontWeight="Bold"
+                                           VerticalAlignment="Center"
+                                           Margin="10,0,0,0"
+                                           MinWidth="80"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <Border Grid.Row="2" 
+                Background="LightYellow" 
+                Padding="10" 
+                Margin="0,10,0,10"
+                BorderBrush="Gold"
+                BorderThickness="2">
+            <TextBlock x:Name="TotalRevenueText" 
+                       Text="Общая выручка: 0 валюты" 
+                       FontSize="16" 
+                       FontWeight="Bold"
+                       HorizontalAlignment="Center"/>
+        </Border>
+
+        <StackPanel Grid.Row="3" 
+                    Orientation="Horizontal" 
+                    HorizontalAlignment="Right">
+            <Button Content="Продать" 
+                    Width="100" 
+                    Height="35"
+                    Margin="0,0,10,0"
+                    Click="SellButton_Click"
+                    Background="LightGreen"
+                    FontWeight="Bold"/>
+            <Button Content="Отмена" 
+                    Width="100" 
+                    Height="35"
+                    Click="CancelButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>
