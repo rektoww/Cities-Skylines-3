@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <Folder Include="Models\Buildings\Service\" />
+    <Folder Include="Models\Buildings\SocialBuildings\" />
   </ItemGroup>
 
   <ItemGroup>
