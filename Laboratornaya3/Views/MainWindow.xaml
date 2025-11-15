@@ -191,7 +191,7 @@
 
                     <!-- список тайлов -->
                     <ItemsControl x:Name="TilesItemsControl"
-                          ItemsSource="{Binding TilesFlat}"
+                          ItemsSource="{Binding TilesObservable}"
                           BorderThickness="0"
                           Background="Transparent">
                         <ItemsControl.ItemsPanel>

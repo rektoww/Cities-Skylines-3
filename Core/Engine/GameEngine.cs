@@ -87,7 +87,7 @@ namespace Core.GameEngine
         {
             foreach (var service in _services)
             {
-                service.Update();
+               service.Update();
             }
         }
 

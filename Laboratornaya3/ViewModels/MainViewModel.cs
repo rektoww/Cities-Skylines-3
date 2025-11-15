@@ -86,14 +86,19 @@ namespace Laboratornaya3.ViewModels
         public int CitizenCount => _gameEngine?.PopulationService?.CitizenCount ?? 0;
         public PlayerResources PlayerResources => _gameEngine?.PlayerResources;
 
-        public IEnumerable<Tile> TilesFlat
+        private ObservableCollection<Tile> _tilesObservable;
+        private Tile[,] _previousTilesState;
+        private bool _needsFullRefresh = true;
+
+        public ObservableCollection<Tile> TilesObservable
         {
             get
             {
-                if (CurrentMap == null) yield break;
-                for (int y = 0; y < CurrentMap.Height; y++)
-                    for (int x = 0; x < CurrentMap.Width; x++)
-                        yield return CurrentMap.Tiles[x, y];
+                if (_tilesObservable == null || _needsFullRefresh)
+                {
+                    RefreshTilesCollection();
+                }
+                return _tilesObservable;
             }
         }
 
@@ -118,14 +123,151 @@ namespace Laboratornaya3.ViewModels
         {
             _gameTimer = new DispatcherTimer();
             _gameTimer.Interval = TimeSpan.FromSeconds(3);
-            _gameTimer.Tick += (s, e) =>
+
+            _gameTimer.Tick += async (s, e) =>
             {
-                _gameEngine.Update();
-                OnPropertyChanged(nameof(CityBudget));
-                OnPropertyChanged(nameof(CitizenCount));
-                RefreshMap();
+                await System.Threading.Tasks.Task.Run(() =>
+                {
+                    try
+                    {
+                        _gameEngine.Update();
+                    }
+                    catch (Exception ex)
+                    {
+                    }
+                }).ConfigureAwait(false);
+
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    UpdateChangedTiles();
+                    OnPropertyChanged(nameof(CityBudget));
+                    OnPropertyChanged(nameof(CitizenCount));
+                });
             };
+
             _gameTimer.Start();
+        }
+
+        private void RefreshTilesCollection()
+        {
+            if (CurrentMap == null) return;
+
+            _tilesObservable = new ObservableCollection<Tile>();
+            _previousTilesState = new Tile[CurrentMap.Width, CurrentMap.Height];
+
+            for (int y = 0; y < CurrentMap.Height; y++)
+            {
+                for (int x = 0; x < CurrentMap.Width; x++)
+                {
+                    var tile = CurrentMap.Tiles[x, y];
+                    _tilesObservable.Add(tile);
+                    _previousTilesState[x, y] = CloneTileState(tile);
+                }
+            }
+            _needsFullRefresh = false;
+        }
+
+        private Tile CloneTileState(Tile tile)
+        {
+            return new Tile
+            {
+                X = tile.X,
+                Y = tile.Y,
+                Terrain = tile.Terrain,
+                Building = tile.Building,
+                HasRoad = tile.HasRoad,
+                RoadType = tile.RoadType,
+                HasIntersection = tile.HasIntersection,
+                VehicleIcons = new ObservableCollection<string>(tile.VehicleIcons),
+                VehicleCount = tile.VehicleCount,
+                HasVehicle = tile.HasVehicle
+            };
+        }
+
+        private void UpdateChangedTiles()
+        {
+            if (CurrentMap == null || _tilesObservable == null) return;
+
+            bool anyChanges = false;
+
+            for (int y = 0; y < CurrentMap.Height; y++)
+            {
+                for (int x = 0; x < CurrentMap.Width; x++)
+                {
+                    var currentTile = CurrentMap.Tiles[x, y];
+                    var previousTile = _previousTilesState[x, y];
+
+                    if (HasTileChanged(currentTile, previousTile))
+                    {
+                        int index = y * CurrentMap.Width + x;
+                        if (index >= 0 && index < _tilesObservable.Count)
+                        {
+                            UpdateTileProperties(_tilesObservable[index], currentTile);
+                            _previousTilesState[x, y] = CloneTileState(currentTile);
+                            anyChanges = true;
+                        }
+                    }
+                }
+            }
+
+            if (anyChanges)
+            {
+                OnPropertyChanged(nameof(TilesObservable));
+            }
+        }
+
+        private bool HasTileChanged(Tile current, Tile previous)
+        {
+            return current.Building != previous.Building ||
+                   current.HasRoad != previous.HasRoad ||
+                   current.RoadType != previous.RoadType ||
+                   current.HasIntersection != previous.HasIntersection ||
+                   current.VehicleCount != previous.VehicleCount ||
+                   current.HasVehicle != previous.HasVehicle ||
+                   !current.VehicleIcons.SequenceEqual(previous.VehicleIcons);
+        }
+
+        private void UpdateTileProperties(Tile target, Tile source)
+        {
+            target.Building = source.Building;
+            target.HasRoad = source.HasRoad;
+            target.RoadType = source.RoadType;
+            target.HasIntersection = source.HasIntersection;
+            target.VehicleCount = source.VehicleCount;
+            target.HasVehicle = source.HasVehicle;
+
+            if (!target.VehicleIcons.SequenceEqual(source.VehicleIcons))
+            {
+                target.VehicleIcons.Clear();
+                foreach (var icon in source.VehicleIcons)
+                {
+                    target.VehicleIcons.Add(icon);
+                }
+            }
+        }
+
+        public void RefreshSpecificTile(int x, int y)
+        {
+            if (_tilesObservable == null || CurrentMap == null) return;
+
+            int index = y * CurrentMap.Width + x;
+            if (index >= 0 && index < _tilesObservable.Count)
+            {
+                var currentTile = CurrentMap.Tiles[x, y];
+                UpdateTileProperties(_tilesObservable[index], currentTile);
+                _previousTilesState[x, y] = CloneTileState(currentTile);
+
+                OnPropertyChanged(nameof(TilesObservable));
+            }
+        }
+
+        public void RefreshMap(bool forceFull = false)
+        {
+            if (forceFull)
+            {
+                _needsFullRefresh = true;
+                OnPropertyChanged(nameof(TilesObservable));
+            }
         }
 
         private void InitializeCategories()
@@ -272,7 +414,7 @@ namespace Laboratornaya3.ViewModels
         private void LoadStatic()
         {
             CurrentMap = StaticBigMapProvider.Build50();
-            RefreshMap();
+            RefreshMap(forceFull: true);
         }
 
         [RelayCommand]
@@ -296,7 +438,7 @@ namespace Laboratornaya3.ViewModels
             try
             {
                 _saveLoadService.LoadGame(CurrentMap, "save.json");
-                RefreshMap();
+                RefreshMap(forceFull: true);
                 MessageBox.Show($"Загружено!\nЗданий: {CurrentMap.Buildings.Count}\nДорог: {CurrentMap.RoadSegments.Count}",
                               "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
             }
@@ -381,7 +523,14 @@ namespace Laboratornaya3.ViewModels
             var building = CreateBuildingFromUI(SelectedBuilding);
             if (building != null && _gameEngine.TryPlaceBuilding(building, x, y))
             {
-                RefreshMap();
+                for (int tileX = x; tileX < x + building.Width; tileX++)
+                {
+                    for (int tileY = y; tileY < y + building.Height; tileY++)
+                    {
+                        RefreshSpecificTile(tileX, tileY);
+                    }
+                }
+
                 CancelBuilding();
                 OnPropertyChanged(nameof(CityBudget));
 
@@ -430,11 +579,34 @@ namespace Laboratornaya3.ViewModels
                 var roadSegment = new RoadSegment((int)_roadStartPoint.X, (int)_roadStartPoint.Y, x, y, SelectedRoadType);
                 CurrentMap.AddRoadSegment(roadSegment);
                 _isDrawingRoad = false;
-                RefreshMap();
+
+                var points = GetPointsAlongSegment(roadSegment);
+                foreach (var point in points)
+                {
+                    RefreshSpecificTile((int)point.X, (int)point.Y);
+                }
 
                 MessageBox.Show($"Дорога успешно построена от ({_roadStartPoint.X},{_roadStartPoint.Y}) до ({x},{y})",
                                "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
             }
+        }
+
+        private System.Collections.Generic.List<Point> GetPointsAlongSegment(RoadSegment segment)
+        {
+            var points = new System.Collections.Generic.List<Point>();
+            int dx = Math.Abs(segment.EndX - segment.StartX);
+            int dy = Math.Abs(segment.EndY - segment.StartY);
+            int steps = Math.Max(dx, dy);
+
+            for (int i = 0; i <= steps; i++)
+            {
+                float t = (float)i / steps;
+                int x = (int)Math.Round(segment.StartX + t * (segment.EndX - segment.StartX));
+                int y = (int)Math.Round(segment.StartY + t * (segment.EndY - segment.StartY));
+                points.Add(new Point(x, y));
+            }
+
+            return points;
         }
 
         public void StartRoadDrawing(int x, int y)
@@ -464,7 +636,7 @@ namespace Laboratornaya3.ViewModels
             tile.HasRoad = true;
             tile.RoadType = SelectedRoadType;
             tile.HasIntersection = true;
-            RefreshMap();
+            RefreshSpecificTile(x, y);
         }
 
         public void TryPlaceVehicle(int x, int y)
@@ -479,12 +651,11 @@ namespace Laboratornaya3.ViewModels
             var vehicle = CreateVehicle(SelectedVehicleType, x, y);
             _gameEngine.AddVehicle(vehicle);
 
-            // Обновляем иконку на тайле
             tile.VehicleIcons.Add(GetVehicleIcon(SelectedVehicleType));
             tile.VehicleCount++;
             tile.HasVehicle = true;
 
-            RefreshMap();
+            RefreshSpecificTile(x, y);
 
             MessageBox.Show($"Транспорт '{SelectedVehicleType}' размещен на ({x}, {y})",
                            "Транспорт размещен", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -537,7 +708,7 @@ namespace Laboratornaya3.ViewModels
                             else
                                 _gameEngine.PlayerResources.StoredMaterials[mine.ProducedMaterial] = collected;
 
-                            RefreshMap();
+                            RefreshSpecificTile(tile.X, tile.Y);
                             MessageBox.Show($"Собрано: {collected} ед. {mine.ProducedMaterial}",
                                             "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
                         }
@@ -587,10 +758,5 @@ namespace Laboratornaya3.ViewModels
 
         private bool IsVehicleBuilding(string name) =>
             name == "Такси" || name == "Грузовик" || name == "Полицейская машина";
-
-        public void RefreshMap()
-        {
-            OnPropertyChanged(nameof(TilesFlat));
-        }
     }
 }
