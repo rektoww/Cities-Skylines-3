@@ -5,7 +5,7 @@ namespace Core.Models.Base
 {
     public abstract class Mob : GameObject
     {
-        public GameMap GameMap { get; protected set; }
+        public GameMap GameMap { get; set; }
         public abstract void Move();
         protected Mob(int x, int y, GameMap map)
         {

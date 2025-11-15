@@ -1,6 +1,11 @@
 using Core.Enums;
+using Core.Enums.Core.Enums;
 using Core.Interfaces;
 using Core.Models.Base;
+using Core.Models.Map;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Core.Models.Police
 {
@@ -8,17 +13,20 @@ namespace Core.Models.Police
     /// Представляет полицейский участок.
     /// Управляет полицейскими и патрульными машинами, реагирует на преступления.
     /// </summary>
-    public class PoliceStation : Building, IConstructable<PoliceStation>
+    public class PoliceStation : Building
     {
         // Стоимость и требуемые материалы для строительства полицейского участка
-        public static decimal BuildCost { get; protected set; } = 80000m;
-        public static Dictionary<ConstructionMaterial, int> RequiredMaterials { get; protected set; }
+        public override decimal BuildCost { get; } = 80000m;
+
+        public override Dictionary<ConstructionMaterial, int> RequiredMaterials { get; }
             = new Dictionary<ConstructionMaterial, int>
             {
                 { ConstructionMaterial.Steel, 4 },      // Сталь для укрепления
                 { ConstructionMaterial.Concrete, 5 },   // Бетон для стен
                 { ConstructionMaterial.Glass, 2 }       // Стекло для окон
             };
+
+        public override BuildingType BuildingType { get; } = BuildingType.Service;
 
         public List<PoliceOfficer> Officers { get; set; }
         public List<PoliceCar> PatrolCars { get; set; }
@@ -35,10 +43,8 @@ namespace Core.Models.Police
         public PoliceStation()
         {
             Name = "Полицейский участок";
-            Width = 3;
-            Height = 3;
             MaintenanceCost = 500m;
-            
+
             Officers = new List<PoliceOfficer>();
             PatrolCars = new List<PoliceCar>();
             CoverageRadius = 30;
@@ -60,7 +66,7 @@ namespace Core.Models.Police
             officer.HomeStation = this;
             officer.X = X;
             officer.Y = Y;
-            
+
             UpdateStationEfficiency();
             return true;
         }
@@ -186,14 +192,14 @@ namespace Core.Models.Police
 
             // Добавляем одну патрульную машину
             var patrolCar = new PoliceCar(X, Y, GameMap, this);
-            
+
             // Добавляем офицеров в патрульную машину
             if (Officers.Count >= 2)
             {
                 patrolCar.AddOfficer(Officers[0]);
                 patrolCar.AddOfficer(Officers[1]);
             }
-            
+
             AddPatrolCar(patrolCar);
             patrolCar.StartPatrol(); // Начинаем патрулирование
         }

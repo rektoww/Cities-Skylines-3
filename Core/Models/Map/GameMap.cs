@@ -1,30 +1,47 @@
+using CommunityToolkit.Mvvm.ComponentModel;
 using Core.Models.Base;
 using Core.Models.Roads;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace Core.Models.Map
 {
-    public class GameMap
+    public partial class GameMap : ObservableObject
     {
-        public int Width { get; private set; }
-        public int Height { get; private set; }
-        public Tile[,] Tiles { get; set; }
-        public List<Building> Buildings { get; private set; }
-        public Building[,] _buildingsGrid;
+        [ObservableProperty]
+        private int _width;
 
-        public List<Road> Roads { get; private set; }
-        public List<RoadSegment> RoadSegments { get; private set; }
-        public List<Intersection> Intersections { get; private set; }
+        [ObservableProperty]
+        private int _height;
+
+        [ObservableProperty]
+        private Tile[,] _tiles;
+
+        [ObservableProperty]
+        private ObservableCollection<Building> _buildings;
+
+        [ObservableProperty]
+        private ObservableCollection<RoadSegment> _roadSegments;
+
+        [ObservableProperty]
+        private ObservableCollection<Intersection> _intersections;
+
+        [ObservableProperty]
+        private ObservableCollection<Transport> _vehicles;
+
+        private Building[,] _buildingsGrid;
 
         public GameMap(int width, int height)
         {
             Width = width;
             Height = height;
             Tiles = new Tile[Width, Height];
-            Buildings = new List<Building>();
-            _buildingsGrid = new Building[Width, Height]; // добавил начальную инициализацию, чтобы NullReferenceException на тестах не выкидывало
-            Roads = new List<Road>();
-            RoadSegments = new List<RoadSegment>();
-            Intersections = new List<Intersection>();
+            Buildings = new ObservableCollection<Building>();
+            RoadSegments = new ObservableCollection<RoadSegment>();
+            Intersections = new ObservableCollection<Intersection>();
+            Vehicles = new ObservableCollection<Transport>();
+            _buildingsGrid = new Building[Width, Height];
 
             InitializeMap();
         }
@@ -42,102 +59,100 @@ namespace Core.Models.Map
 
         public bool TryPlaceBuilding(Building building, int x, int y)
         {
-            return building.TryPlace(x, y, this);
+            if (building.TryPlace(x, y, this))
+            {
+                Buildings.Add(building);
+                OnPropertyChanged(nameof(Buildings));
+                return true;
+            }
+            return false;
         }
 
         public Building GetBuildingAt(int x, int y)
         {
-            if (x >= 0 && x < Width &&
-                y >= 0 && y < Height)
+            if (x >= 0 && x < Width && y >= 0 && y < Height)
                 return _buildingsGrid[x, y];
             return null;
         }
 
         public void SetBuildingAt(int x, int y, Building building)
         {
-            if (x >= 0 && x < Width &&
-                y >= 0 && y < Height)
+            if (x >= 0 && x < Width && y >= 0 && y < Height)
             {
                 _buildingsGrid[x, y] = building;
                 Tiles[x, y].Building = building;
             }
         }
 
-        /// <summary>
-        /// Добавляет дорогу на карту
-        /// </summary>
-        public void AddRoad(Road road)
-        {
-            if (!Roads.Contains(road))
-            {
-                Roads.Add(road);
-                
-                // Добавляем все сегменты дороги
-                foreach (var segment in road.Segments)
-                {
-                    AddRoadSegment(segment);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Добавляет сегмент дороги на карту
-        /// </summary>
         public void AddRoadSegment(RoadSegment segment)
         {
             if (!RoadSegments.Contains(segment))
             {
                 RoadSegments.Add(segment);
-                
-                // Отмечаем тайлы как имеющие дорогу
                 MarkTilesAsRoad(segment);
+                OnPropertyChanged(nameof(RoadSegments));
             }
         }
 
-        /// <summary>
-        /// Отмечает тайлы как содержащие дорогу
-        /// </summary>
         private void MarkTilesAsRoad(RoadSegment segment)
         {
-            // Простой способ: отмечаем начальную и конечную точки
-            if (segment.StartX >= 0 && segment.StartX < Width && 
-                segment.StartY >= 0 && segment.StartY < Height)
+            // Упрощенная логика отметки дорог
+            var points = GetPointsAlongSegment(segment);
+            foreach (var point in points)
             {
-                Tiles[segment.StartX, segment.StartY].HasRoad = true;
-                Tiles[segment.StartX, segment.StartY].RoadType = segment.RoadType;
-            }
-
-            if (segment.EndX >= 0 && segment.EndX < Width && 
-                segment.EndY >= 0 && segment.EndY < Height)
-            {
-                Tiles[segment.EndX, segment.EndY].HasRoad = true;
-                Tiles[segment.EndX, segment.EndY].RoadType = segment.RoadType;
-            }
-
-            // Отмечаем промежуточные тайлы
-            int steps = (int)segment.GetLength();
-            for (int i = 0; i <= steps; i++)
-            {
-                float t = steps > 0 ? (float)i / steps : 0;
-                int x = (int)(segment.StartX + t * (segment.EndX - segment.StartX));
-                int y = (int)(segment.StartY + t * (segment.EndY - segment.StartY));
-
-                if (x >= 0 && x < Width && y >= 0 && y < Height)
+                if (point.X >= 0 && point.X < Width && point.Y >= 0 && point.Y < Height)
                 {
-                    Tiles[x, y].HasRoad = true;
-                    Tiles[x, y].RoadType = segment.RoadType;
+                    Tiles[point.X, point.Y].HasRoad = true;
+                    Tiles[point.X, point.Y].RoadType = segment.RoadType;
                 }
             }
         }
 
-        /// <summary>
-        /// Добавляет перекрёсток на карту
-        /// </summary>
-        public void AddIntersection(Intersection intersection)
+        private List<System.Drawing.Point> GetPointsAlongSegment(RoadSegment segment)
         {
-            if (!Intersections.Contains(intersection))
+            var points = new List<System.Drawing.Point>();
+            // Упрощенная логика получения точек сегмента
+            points.Add(new System.Drawing.Point(segment.StartX, segment.StartY));
+            points.Add(new System.Drawing.Point(segment.EndX, segment.EndY));
+            return points;
+        }
+
+        // Методы для управления транспортными средствами
+        public void AddVehicle(Transport vehicle)
+        {
+            if (!Vehicles.Contains(vehicle))
             {
-                Intersections.Add(intersection);
+                Vehicles.Add(vehicle);
+                OnPropertyChanged(nameof(Vehicles));
+            }
+        }
+
+        public void RemoveVehicle(Transport vehicle)
+        {
+            if (Vehicles.Contains(vehicle))
+            {
+                Vehicles.Remove(vehicle);
+                OnPropertyChanged(nameof(Vehicles));
+            }
+        }
+
+        public Transport GetVehicleAt(int x, int y)
+        {
+            return Vehicles.FirstOrDefault(v => v.X == x && v.Y == y);
+        }
+
+        public IEnumerable<Transport> GetVehiclesInArea(int x, int y, int radius)
+        {
+            return Vehicles.Where(v =>
+                Math.Abs(v.X - x) <= radius &&
+                Math.Abs(v.Y - y) <= radius);
+        }
+
+        public void UpdateAllVehicles()
+        {
+            foreach (var vehicle in Vehicles.ToList())
+            {
+                vehicle.Move();
             }
         }
     }

@@ -1,4 +1,5 @@
-﻿using Core.Models.Base;
+﻿using Core.Enums.Core.Enums;
+using Core.Models.Base;
 using Core.Models.Buildings;
 using Core.Models.Buildings.CommertialBuildings;
 using Core.Models.Map;
@@ -206,7 +207,7 @@ namespace Laboratornaya3
             var viewModel = DataContext as MainViewModel;
             if (viewModel?.CurrentMap != null)
             {
-                var testBuilding = new Shop();
+                var testBuilding = new ServiceBuilding(ServiceBuildingType.School);
 
                 bool placed = false;
                 for (int offset = 0; offset < 5 && !placed; offset++)

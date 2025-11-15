@@ -1,81 +1,46 @@
 ﻿using Core.Enums;
+using Core.Enums.Core.Enums;
 using Core.Interfaces;
 using Core.Models.Map;
+using System.Collections.Generic;
 
 namespace Core.Models.Base
 {
-    public abstract class Building : GameObject
+    public abstract class Building : GameObject, IConstructable
     {
-        public int Floors { get; set; }
+        // Базовые свойства
+        public int Floors { get; set; } = 1;
         public float Condition { get; set; } = 100f;
-        public int Width { get; set; }
-        public int Height { get; set; }
+        public int Width { get; set; } = 1;
+        public int Height { get; set; } = 1;
         public int MaxOccupancy { get; set; }
         public int CurrentOccupancy { get; set; }
-        /// <summary>
-        /// SmirnovMA - СИСТЕМА ЖКХ - ПОДКЛЮЧЕНИЕ К КОММУНАЛЬНЫМ СЕТЯМ
-        /// </summary>
 
-        /// Подключено ли здание к электрической сети
-        public bool HasElectricity { get; set; }
-
-        /// Подключено ли здание к водоснабжению
-        public bool HasWater { get; set; }
-
-        /// Подключено ли здание к газовой сети
-        public bool HasGas { get; set; }
-
-        /// Подключено ли здание к канализации
-        public bool HasSewage { get; set; }
-
-        /// Работоспособно ли здание (все коммуникации подключены)
+        // Коммуникации
+        public bool HasElectricity { get; set; } = true;
+        public bool HasWater { get; set; } = true;
+        public bool HasGas { get; set; } = true;
+        public bool HasSewage { get; set; } = true;
         public bool IsOperational => HasElectricity && HasWater && HasGas && HasSewage;
+
+        public abstract decimal BuildCost { get; }
+        public abstract Dictionary<ConstructionMaterial, int> RequiredMaterials { get; }
+        public abstract BuildingType BuildingType { get; }
 
         public GameMap GameMap { get; protected set; }
 
-        /// <summary>
-        /// Конструктор здания с значениями по умолчанию
-        /// </summary>
-        /// <param name="HasWater"> водоснабжение </param>
-        /// <param name="HasGas"> газоснабжение </param>
-        /// <param name="HasSewage"> канализация </param>
-        /// <param name="HasElectricity"> электроснабжение </param>
-        /// <param name="Floors"> кол-во этажей </param>
-        /// <param name="Width"> ширина на карте (x) </param>
-        /// <param name="Height"> длина на карте (y) </param>
-        protected Building(
-            bool HasWater = true,
-            bool HasGas = true,
-            bool HasSewage = true,
-            bool HasElectricity = true,
-            int Floors = 1,
-            int Width = 1,
-            int Height = 1
-            )
-        {
-            this.HasWater = HasWater;
-            this.HasGas = HasGas;
-            this.HasSewage = HasSewage;
-            this.HasElectricity = HasElectricity;
-            this.Floors = Floors;
-
-            this.Width = Width;
-            this.Height = Height;
-        }
+        protected Building() { }
 
         public bool TryPlace(int x, int y, GameMap map)
         {
-            if (!CanPlace(x, y, map)) 
+            if (!CanPlace(x, y, map))
                 return false;
 
             X = x;
             Y = y;
             GameMap = map;
-
             OccupyTiles();
-
             OnBuildingPlaced();
-
             return true;
         }
 
@@ -83,8 +48,7 @@ namespace Core.Models.Base
 
         public virtual bool CanPlace(int x, int y, GameMap map)
         {
-            if (x < 0 || x + Width > map.Width ||
-                y < 0 || y + Height > map.Height)
+            if (x < 0 || x + Width > map.Width || y < 0 || y + Height > map.Height)
                 return false;
 
             for (int tileX = x; tileX < x + Width; tileX++)
@@ -92,10 +56,7 @@ namespace Core.Models.Base
                 for (int tileY = y; tileY < y + Height; tileY++)
                 {
                     var tile = map.Tiles[tileX, tileY];
-                    if (!IsTileSuitableForBuilding(tile))
-                        return false;
-
-                    if (map.GetBuildingAt(tileX, tileY) != null)
+                    if (!IsTileSuitableForBuilding(tile) || map.GetBuildingAt(tileX, tileY) != null)
                         return false;
                 }
             }

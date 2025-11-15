@@ -1,14 +1,17 @@
-﻿using System.Text.Json;
-using System.IO;
-using System.Collections.Generic;
-using Core.Models.Map;
+﻿using Core.Enums;
+using Core.Enums.Core.Enums;
 using Core.Models.Base;
-using Core.Models.Roads;
-using Core.Enums;
+using Core.Models.Buildings;
 using Core.Models.Buildings.CommertialBuildings;
 using Core.Models.Buildings.IndustrialBuildings;
-using Core.Models.Buildings.SocialBuildings;
+using Core.Models.Map;
 using Core.Models.Police;
+using Core.Models.Roads;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
 
 namespace Infrastructure.Services
 {
@@ -27,13 +30,91 @@ namespace Infrastructure.Services
             var buildingData = new List<object>();
             foreach (var building in map.Buildings)
             {
-                buildingData.Add(new
+                var buildingInfo = new
                 {
                     Type = building.GetType().Name,
+                    BuildingType = building.BuildingType.ToString(),
                     X = building.X,
                     Y = building.Y,
                     Name = building.Name
-                });
+                };
+
+                // Добавляем специфические данные для разных типов зданий
+                switch (building)
+                {
+                    case ResidentialBuilding residential:
+                        buildingData.Add(new
+                        {
+                            buildingInfo.Type,
+                            buildingInfo.BuildingType,
+                            buildingInfo.X,
+                            buildingInfo.Y,
+                            buildingInfo.Name,
+                            ResidentialType = residential.Type.ToString(),
+                            Capacity = residential.Capacity,
+                            CurrentResidents = residential.CurrentResidents.Count
+                        });
+                        break;
+
+                    case CommercialBuilding commercial:
+                        buildingData.Add(new
+                        {
+                            buildingInfo.Type,
+                            buildingInfo.BuildingType,
+                            buildingInfo.X,
+                            buildingInfo.Y,
+                            buildingInfo.Name,
+                            CommercialType = commercial.Type.ToString(),
+                            Capacity = commercial.Capacity,
+                            EmployeeCount = commercial.EmployeeCount
+                        });
+                        break;
+
+                    case ServiceBuilding service:
+                        buildingData.Add(new
+                        {
+                            buildingInfo.Type,
+                            buildingInfo.BuildingType,
+                            buildingInfo.X,
+                            buildingInfo.Y,
+                            buildingInfo.Name,
+                            ServiceType = service.Type.ToString(),
+                            Capacity = service.Capacity,
+                            ClientsCount = service.Clients.Count
+                        });
+                        break;
+
+                    case IndustrialBuilding industrial:
+                        buildingData.Add(new
+                        {
+                            buildingInfo.Type,
+                            buildingInfo.BuildingType,
+                            buildingInfo.X,
+                            buildingInfo.Y,
+                            buildingInfo.Name,
+                            IndustrialType = industrial.Type.ToString(),
+                            ProducedMaterial = industrial.ProducedMaterial.ToString(),
+                            StoredResources = industrial.StoredResources
+                        });
+                        break;
+
+                    case PoliceStation police:
+                        buildingData.Add(new
+                        {
+                            buildingInfo.Type,
+                            buildingInfo.BuildingType,
+                            buildingInfo.X,
+                            buildingInfo.Y,
+                            buildingInfo.Name,
+                            OfficersCount = police.Officers.Count,
+                            PatrolCarsCount = police.PatrolCars.Count
+                        });
+                        break;
+
+                    default:
+                        buildingData.Add(buildingInfo);
+                        break;
+                }
             }
 
             var roadData = new List<object>();
@@ -52,10 +133,17 @@ namespace Infrastructure.Services
             var saveData = new
             {
                 Buildings = buildingData,
-                Roads = roadData
+                Roads = roadData,
+                MapWidth = map.Width,
+                MapHeight = map.Height,
+                SaveDate = DateTime.Now
             };
 
-            string jsonString = JsonSerializer.Serialize(saveData);
+            string jsonString = JsonSerializer.Serialize(saveData, new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
             File.WriteAllText(filePath, jsonString);
         }
 
@@ -70,9 +158,10 @@ namespace Infrastructure.Services
                 throw new FileNotFoundException("Файл сохранения не найден");
 
             string jsonString = File.ReadAllText(filePath);
-            var saveData = JsonSerializer.Deserialize<SaveData>(jsonString);
+            using var document = JsonDocument.Parse(jsonString);
+            var root = document.RootElement;
 
-
+            // Очищаем карту
             map.Buildings.Clear();
             map.RoadSegments.Clear();
 
@@ -88,123 +177,140 @@ namespace Infrastructure.Services
             }
 
             // Восстанавливаем здания
-            foreach (var building in saveData.Buildings)
+            if (root.TryGetProperty("buildings", out var buildingsElement))
             {
-                var newBuilding = CreateBuilding(building.Type, building.X, building.Y);
-                if (newBuilding != null && building.X < map.Width && building.Y < map.Height)
+                foreach (var buildingElement in buildingsElement.EnumerateArray())
                 {
-                    map.Buildings.Add(newBuilding);
+                    string type = buildingElement.GetProperty("type").GetString();
+                    int x = buildingElement.GetProperty("x").GetInt32();
+                    int y = buildingElement.GetProperty("y").GetInt32();
 
-                    map.Tiles[building.X, building.Y].Building = newBuilding;
+                    var newBuilding = CreateBuilding(buildingElement);
+                    if (newBuilding != null && x >= 0 && x < map.Width && y >= 0 && y < map.Height)
+                    {
+                        if (newBuilding.TryPlace(x, y, map))
+                        {
+                            map.Buildings.Add(newBuilding);
+                        }
+                    }
                 }
             }
 
             // Восстанавливаем дороги
-            foreach (var road in saveData.Roads)
+            if (root.TryGetProperty("roads", out var roadsElement))
             {
-                var roadType = Enum.Parse<RoadType>(road.RoadType);
-                var newRoad = new RoadSegment(road.StartX, road.StartY, road.EndX, road.EndY, roadType);
-                map.RoadSegments.Add(newRoad);
-
-                UpdateTilesWithRoad(map, newRoad);
-            }
-        }
-
-        /// <summary>
-        /// Обновляет тайлы карты для отображения дорог
-        /// </summary>
-        /// <param name="map">Игровая карта</param>
-        /// <param name="road">Сегмент дороги</param>
-        private void UpdateTilesWithRoad(GameMap map, RoadSegment road)
-        {
-            var points = GetPointsAlongSegment(road);
-            foreach (var point in points)
-            {
-                if (point.X >= 0 && point.X < map.Width && point.Y >= 0 && point.Y < map.Height)
+                foreach (var roadElement in roadsElement.EnumerateArray())
                 {
-                    map.Tiles[(int)point.X, (int)point.Y].HasRoad = true;
-                    map.Tiles[(int)point.X, (int)point.Y].RoadType = road.RoadType;
+                    int startX = roadElement.GetProperty("startX").GetInt32();
+                    int startY = roadElement.GetProperty("startY").GetInt32();
+                    int endX = roadElement.GetProperty("endX").GetInt32();
+                    int endY = roadElement.GetProperty("endY").GetInt32();
+                    string roadTypeString = roadElement.GetProperty("roadType").GetString();
+
+                    if (Enum.TryParse<RoadType>(roadTypeString, out var roadType))
+                    {
+                        var newRoad = new RoadSegment(startX, startY, endX, endY, roadType);
+                        map.AddRoadSegment(newRoad);
+                    }
                 }
             }
         }
 
         /// <summary>
-        /// Получает все точки вдоль сегмента дороги
+        /// Создает здание по данным из JSON
         /// </summary>
-        /// <param name="segment">Сегмент дороги</param>
-        /// <returns>Список точек дороги</returns>
-        private List<System.Drawing.Point> GetPointsAlongSegment(RoadSegment segment)
-        {
-            var points = new List<System.Drawing.Point>();
-            int dx = Math.Abs(segment.EndX - segment.StartX);
-            int dy = Math.Abs(segment.EndY - segment.StartY);
-            int steps = Math.Max(dx, dy);
-
-            for (int i = 0; i <= steps; i++)
-            {
-                float t = (float)i / steps;
-                int x = (int)Math.Round(segment.StartX + t * (segment.EndX - segment.StartX));
-                int y = (int)Math.Round(segment.StartY + t * (segment.EndY - segment.StartY));
-                points.Add(new System.Drawing.Point(x, y));
-            }
-
-            return points;
-        }
-
-        /// <summary>
-        /// Создает здание по типу и координатам
-        /// </summary>
-        /// <param name="type">Тип здания</param>
-        /// <param name="x">Координата X</param>
-        /// <param name="y">Координата Y</param>
+        /// <param name="buildingElement">JSON элемент с данными здания</param>
         /// <returns>Созданное здание</returns>
-        private Core.Models.Base.Building CreateBuilding(string type, int x, int y)
+        private Building CreateBuilding(JsonElement buildingElement)
         {
-            return type switch
+            string type = buildingElement.GetProperty("type").GetString();
+            int x = buildingElement.GetProperty("x").GetInt32();
+            int y = buildingElement.GetProperty("y").GetInt32();
+
+            Building building = type switch
             {
-                "Shop" => new Shop { X = x, Y = y },
-                "Park" => new Park { X = x, Y = y },
-                "PoliceStation" => new PoliceStation { X = x, Y = y },
-                "Mine" => new Mine { X = x, Y = y },
-                "Supermarket" => new Supermarket { X = x, Y = y },
-                "Pharmacy" => new Pharmacy { X = x, Y = y },
-                "Cafe" => new Cafe { X = x, Y = y },
-                "Restaurant" => new Restaurant { X = x, Y = y },
-                "GasStation" => new GasStation { X = x, Y = y },
-                _ => new Shop { X = x, Y = y }
+                // Жилые здания
+                "ResidentialBuilding" => CreateResidentialBuilding(buildingElement),
+                "CommercialBuilding" => CreateCommercialBuilding(buildingElement),
+                "ServiceBuilding" => CreateServiceBuilding(buildingElement),
+                "IndustrialBuilding" => CreateIndustrialBuilding(buildingElement),
+
+                // Полиция
+                "PoliceStation" => new PoliceStation(),
+
+                // Старые коммерческие здания (для обратной совместимости)
+                "Shop" => new CommercialBuilding(CommercialBuildingType.Shop),
+                "Supermarket" => new CommercialBuilding(CommercialBuildingType.Supermarket),
+                "Cafe" => new CommercialBuilding(CommercialBuildingType.Cafe),
+                "Restaurant" => new CommercialBuilding(CommercialBuildingType.Restaurant),
+                "GasStation" => new CommercialBuilding(CommercialBuildingType.GasStation),
+                "Pharmacy" => new CommercialBuilding(CommercialBuildingType.Pharmacy),
+
+                // Промышленные здания
+                "Mine" => new IndustrialBuilding(IndustrialBuildingType.Mine),
+                "Factory" => new IndustrialBuilding(IndustrialBuildingType.Factory),
+                "Farm" => new IndustrialBuilding(IndustrialBuildingType.Farm),
+                "PowerPlant" => new IndustrialBuilding(IndustrialBuildingType.PowerPlant),
+
+                // По умолчанию - магазин
+                _ => new CommercialBuilding(CommercialBuildingType.Shop)
             };
+
+            building.X = x;
+            building.Y = y;
+            return building;
         }
 
-        /// <summary>
-        /// Данные сохранения игры
-        /// </summary>
-        private class SaveData
+        private ResidentialBuilding CreateResidentialBuilding(JsonElement element)
         {
-            public List<BuildingData> Buildings { get; set; }
-            public List<RoadData> Roads { get; set; }
+            if (element.TryGetProperty("residentialType", out var typeElement))
+            {
+                var typeString = typeElement.GetString();
+                if (Enum.TryParse<ResidentialType>(typeString, out var residentialType))
+                {
+                    return new ResidentialBuilding(residentialType);
+                }
+            }
+            return new ResidentialBuilding(ResidentialType.Apartment);
         }
 
-        /// <summary>
-        /// Данные здания для сохранения
-        /// </summary>
-        private class BuildingData
+        private CommercialBuilding CreateCommercialBuilding(JsonElement element)
         {
-            public string Type { get; set; }
-            public int X { get; set; }
-            public int Y { get; set; }
-            public string Name { get; set; }
+            if (element.TryGetProperty("commercialType", out var typeElement))
+            {
+                var typeString = typeElement.GetString();
+                if (Enum.TryParse<CommercialBuildingType>(typeString, out var commercialType))
+                {
+                    return new CommercialBuilding(commercialType);
+                }
+            }
+            return new CommercialBuilding(CommercialBuildingType.Shop);
         }
 
-        /// <summary>
-        /// Данные дороги для сохранения
-        /// </summary>
-        private class RoadData
+        private ServiceBuilding CreateServiceBuilding(JsonElement element)
         {
-            public int StartX { get; set; }
-            public int StartY { get; set; }
-            public int EndX { get; set; }
-            public int EndY { get; set; }
-            public string RoadType { get; set; }
+            if (element.TryGetProperty("serviceType", out var typeElement))
+            {
+                var typeString = typeElement.GetString();
+                if (Enum.TryParse<ServiceBuildingType>(typeString, out var serviceType))
+                {
+                    return new ServiceBuilding(serviceType);
+                }
+            }
+            return new ServiceBuilding(ServiceBuildingType.School);
+        }
+
+        private IndustrialBuilding CreateIndustrialBuilding(JsonElement element)
+        {
+            if (element.TryGetProperty("industrialType", out var typeElement))
+            {
+                var typeString = typeElement.GetString();
+                if (Enum.TryParse<IndustrialBuildingType>(typeString, out var industrialType))
+                {
+                    return new IndustrialBuilding(industrialType);
+                }
+            }
+            return new IndustrialBuilding(IndustrialBuildingType.Factory);
         }
     }
 }

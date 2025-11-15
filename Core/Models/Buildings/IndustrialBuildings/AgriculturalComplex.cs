@@ -1,4 +1,5 @@
 using Core.Enums;
+using Core.Enums.Core.Enums;
 using Core.Interfaces;
 using Core.Models.Components;
 using System;
@@ -7,7 +8,7 @@ using System.Linq;
 
 namespace Core.Models.Buildings.IndustrialBuildings
 {
-    public class AgriculturalComplex : CommercialBuilding, IConstructable<AgriculturalComplex>
+    public class AgriculturalComplex : CommercialBuilding
     {
         #region Static Properties - Construction Cost
 
@@ -435,12 +436,6 @@ namespace Core.Models.Buildings.IndustrialBuildings
             // Простая имитация сезонности - можно интегрировать с реальной системой времени
             var month = DateTime.Now.Month;
             return month >= 3 && month <= 9 ? 1.2f : 0.8f; // +20% летом, -20% зимой
-        }
-
-        public override void OnBuildingPlaced()
-        {
-            // Базовая логика при размещении
-            FullProductionCycle();
         }
     }
 }

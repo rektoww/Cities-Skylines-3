@@ -11,6 +11,10 @@
         WindowState="Maximized"
         WindowStyle="SingleBorderWindow">
 
+    <Window.DataContext>
+        <vm:MainViewModel />
+    </Window.DataContext>
+
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
@@ -109,14 +113,14 @@
                         Background="#90EE90"
                         Margin="0,0,10,0"
                         Padding="5,2" />
-                
+
                 <Button Content="💰 Продать"
                         Command="{Binding SellMaterialsCommand}"
                         ToolTip="Продать материалы"
                         Background="#FFD700"
                         Margin="0,0,5,0"
                         Padding="3,2" />
-                
+
                 <Button Content="🗑️ Очистить" 
                         Click="ClearBuildings_Click"
                         ToolTip="Удалить все здания"
@@ -162,7 +166,6 @@
             </StackPanel>
         </Grid>
 
-        <!-- Область карты -->
         <!-- Область карты -->
         <ScrollViewer Grid.Row="1"
               x:Name="MapScrollViewer"
@@ -323,7 +326,6 @@
                 </Grid>
             </ContentControl>
         </ScrollViewer>
-
 
         <!-- Легенда -->
         <Canvas Grid.Row="1">

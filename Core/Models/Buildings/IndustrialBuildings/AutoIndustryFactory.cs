@@ -1,4 +1,5 @@
 ﻿using Core.Enums;
+using Core.Enums.Core.Enums;
 using Core.Interfaces;
 using Core.Models.Components;
 using System;
@@ -7,7 +8,7 @@ using System.Linq;
 
 namespace Core.Models.Buildings.IndustrialBuildings
 {
-    public class AutoIndustryFactory : CommercialBuilding, IConstructable<AutoIndustryFactory>
+    public class AutoIndustryFactory : CommercialBuilding
     {
         #region Static Properties - Construction Cost
 
@@ -317,11 +318,6 @@ namespace Core.Models.Buildings.IndustrialBuildings
                 { "MaxProductStorage", MaxProductStorage },
                 { "ActiveWorkshops", Workshops.Count }
             };
-        }
-
-        public override void OnBuildingPlaced()
-        {
-            FullProductionCycle();
         }
     }
 }

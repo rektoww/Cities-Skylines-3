@@ -40,12 +40,9 @@ public abstract class Transport(int x, int y, GameMap map, int capacity)
         if (Passengers.Contains(citizen)) return false;
 
         Passengers.Add(citizen);
-
-        // Синхронизируем состояние гражданина
         citizen.CurrentTransport = this;
         citizen.TargetTransitStation = null;
 
-        // Помещаем гражданина в транспортную позицию
         citizen.X = this.X;
         citizen.Y = this.Y;
 
@@ -62,7 +59,6 @@ public abstract class Transport(int x, int y, GameMap map, int capacity)
         bool removed = Passengers.Remove(citizen);
         if (!removed) return false;
 
-        // Сбрасываем связь с транспортом и оставляем гражданина на текущей позиции транспорта
         citizen.CurrentTransport = null;
 
         citizen.X = this.X;

@@ -1,4 +1,5 @@
 ﻿using Core.Enums;
+using Core.Enums.Core.Enums;
 using Core.Interfaces;
 using Core.Models.Components;
 using System;
@@ -11,7 +12,7 @@ namespace Core.Models.Buildings.IndustrialBuildings
     /// Текстильная фабрика - производит различные ткани и текстильные изделия
     /// из натуральных и синтетических волокон для снабжения магазинов одежды
     /// </summary>
-    public class TextileFactory : CommercialBuilding, IConstructable<TextileFactory>
+    public class TextileFactory : CommercialBuilding
     {
         #region Static Properties - Construction Cost
 
@@ -101,7 +102,7 @@ namespace Core.Models.Buildings.IndustrialBuildings
         /// Выходные данные: инициализированная фабрика с цехами и стартовыми материалами
         /// </summary>
         public TextileFactory() : base(CommercialBuildingType.Factory)
-        {
+        {       
             MaxMaterialStorage = 1200;  // Средний склад сырья (волокна занимают место)
             MaxProductStorage = 800;    // Вместительный склад готовой продукции
             MaxWorkers = 18;           // Текстильное производство требует много рабочих

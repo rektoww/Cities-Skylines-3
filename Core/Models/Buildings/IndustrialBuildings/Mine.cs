@@ -1,24 +1,18 @@
-using System;
-using System.Collections.Generic;
 using Core.Enums;
+using Core.Enums.Core.Enums;
 using Core.Interfaces;
 using Core.Models.Base;
 using Core.Resourses;
+using System;
+using System.Collections.Generic;
 
 namespace Core.Models.Buildings.IndustrialBuildings
 {
     /// <summary>
     /// Шахта - добывающее здание, производящее строительные материалы со временем
     /// </summary>
-    public class Mine : Building, IConstructable<Mine>
+    public class Mine : Building
     {
-        public static decimal BuildCost { get; protected set; } = 30000m;
-        public static Dictionary<ConstructionMaterial, int> RequiredMaterials { get; protected set; } = new()
-        {
-            { ConstructionMaterial.Steel, 5 },
-            { ConstructionMaterial.Concrete, 8 }
-        };
-
         /// <summary>
         /// Накопленные ресурсы в шахте
         /// </summary>
@@ -44,15 +38,18 @@ namespace Core.Models.Buildings.IndustrialBuildings
         /// </summary>
         public DateTime LastProductionTime { get; set; }
 
-        public Mine() : base(
-            HasWater: true,
-            HasGas: true,
-            HasSewage: true,
-            HasElectricity: true,
-            Floors: 1,
-            Width: 2,
-            Height: 2
-        )
+        // Реализация абстрактных свойств Building
+        public override decimal BuildCost { get; } = 30000m;
+
+        public override Dictionary<ConstructionMaterial, int> RequiredMaterials { get; } = new()
+        {
+            { ConstructionMaterial.Steel, 5 },
+            { ConstructionMaterial.Concrete, 8 }
+        };
+
+        public override BuildingType BuildingType { get; } = BuildingType.Industrial;
+
+        public Mine() 
         {
             Name = "Шахта";
             MaxOccupancy = 20;

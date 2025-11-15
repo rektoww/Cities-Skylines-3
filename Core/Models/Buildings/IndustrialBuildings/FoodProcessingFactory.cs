@@ -1,4 +1,5 @@
 ﻿using Core.Enums;
+using Core.Enums.Core.Enums;
 using Core.Interfaces;
 using Core.Models.Components;
 using System;
@@ -11,7 +12,7 @@ namespace Core.Models.Buildings.IndustrialBuildings
     /// Фабрика пищевой промышленности - производит различные продукты питания
     /// из сельскохозяйственного сырья для снабжения магазинов и населения
     /// </summary>
-    public class FoodProcessingFactory : CommercialBuilding, IConstructable<FoodProcessingFactory>
+    public class FoodProcessingFactory : CommercialBuilding
     {
         #region Static Properties - Construction Cost
 

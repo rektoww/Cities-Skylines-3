@@ -1,16 +1,10 @@
 ﻿using Core.Enums;
-using Core.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Core.Enums.Core.Enums;
 
 namespace Core.Models.Buildings.CommertialBuildings
 {
-    public class GasStation : CommercialBuilding, IConstructable<GasStation>
+    public class GasStation : CommercialBuilding
     {
-        // Статические свойства, уникальные для каждого объекта, для примера (Бардашов)
         public static decimal BuildCost { get; protected set; } = 100000m;
 
         public static Dictionary<ConstructionMaterial, int> RequiredMaterials { get; protected set; }

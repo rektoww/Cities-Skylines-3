@@ -1,54 +1,42 @@
 ﻿using Core.Enums;
+using Core.Enums.Core.Enums;
 using Core.Interfaces;
 using Core.Models.Base;
 using Core.Models.Map;
+using System.Collections.Generic;
 
-namespace Core.Models.Buildings;
-
-/// <summary>
-/// Конкретная реализация остановки для автобусов.
-/// Должна быть размещена на дороге.
-/// </summary>
-public class BusStop : TransitStation, IConstructable<BusStop>
+namespace Core.Models.Buildings
 {
-    // Статические свойства, уникальные для каждого объекта, для примера (Бардашов)
-    public static decimal BuildCost { get; protected set; } = 50000m;
+    public class BusStop : TransitStation, IConstructable
+    {
+        public override decimal BuildCost => 500m;
+        public override Dictionary<ConstructionMaterial, int> RequiredMaterials =>
+            new Dictionary<ConstructionMaterial, int>
+            {
+                { ConstructionMaterial.Concrete, 2 },
+                { ConstructionMaterial.Steel, 1 }
+            };
+        public override BuildingType BuildingType => BuildingType.BusStop;
 
-    public static Dictionary<ConstructionMaterial, int> RequiredMaterials { get; protected set; }
-        = new Dictionary<ConstructionMaterial, int>
+        public BusStop()
         {
-                { ConstructionMaterial.Steel, 5 },
-                { ConstructionMaterial.Concrete, 5 }
-        };
-    public BusStop()
-    {
-        // Переопределяем параметры, если нужно.
-        Width = 1;
-        Height = 1;
-        BuildCost = 500m; // Автобусная остановка дешевле вокзала.
-    }
+            Width = 1;
+            Height = 1;
+            Name = "Автобусная остановка";
+        }
 
-    /// <summary>
-    /// Логика размещения: остановка должна быть на тайле с дорогой.
-    /// </summary>
-    public override bool CanPlace(int x, int y, GameMap map)
-    {
-        // 1. Сначала выполняем базовую проверку (границы, нет зданий и т.д.)
-        if (!base.CanPlace(x, y, map))
-            return false;
+        public override bool CanPlace(int x, int y, GameMap map)
+        {
+            if (!base.CanPlace(x, y, map))
+                return false;
 
-        // 2. Специфическая проверка: тайл должен иметь дорогу.
-        var tile = map.Tiles[x, y];
-            
-        if (!tile.HasRoad) 
-            return false;
-            
-        return true;
-    }
+            var tile = map.Tiles[x, y];
+            return tile.HasRoad;
+        }
 
-    public override void OnBuildingPlaced()
-    {
-        // Логика, специфичная для автобусной остановки, например, 
-        // автоматическое добавление к ближайшему маршруту.
+        public override void OnBuildingPlaced()
+        {
+            // Логика инициализации
+        }
     }
 }

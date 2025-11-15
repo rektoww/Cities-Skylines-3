@@ -1,4 +1,5 @@
 ﻿using Core.Enums;
+using Core.Enums.Core.Enums;
 using Core.Interfaces;
 using Core.Models.Components;
 using System;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Core.Models.Buildings.IndustrialBuildings
 {
-    public class PharmaceuticalFactory : CommercialBuilding, IConstructable<PharmaceuticalFactory>
+    public class PharmaceuticalFactory : CommercialBuilding
     {
         #region Static Properties - Construction Cost
 

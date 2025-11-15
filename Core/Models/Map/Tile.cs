@@ -1,13 +1,20 @@
+using CommunityToolkit.Mvvm.ComponentModel;
 using Core.Enums;
+
 using Core.Models.Base;
-using Core.Enums;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
 namespace Core.Models.Map
 {
-    public class Tile
+    public partial class Tile : ObservableObject
     {
+        [ObservableProperty]
+        private bool _hasRoad;
+
+        [ObservableProperty]
+        private RoadType _roadType = Core.Enums.RoadType.Regular;
+
         public int X { get; set; }
         public int Y { get; set; }
         public TerrainType Terrain { get; set; }
@@ -15,7 +22,6 @@ namespace Core.Models.Map
         public List<NaturalResource> Resources { get; set; }
 
         public Building Building { get; set; }
-        public bool HasRoad { get; set; }
 
         // Транспорт на тайле
         public int VehicleCount { get; set; }
@@ -57,7 +63,6 @@ namespace Core.Models.Map
         /// </summary>
         public bool HasForest => Terrain == TerrainType.Forest;
 
-        public RoadType RoadType { get; set; }
         public bool HasIntersection { get; set; }
 
         public Tile()

@@ -1,4 +1,5 @@
 ﻿using Core.Enums;
+using Core.Enums.Core.Enums;
 using Core.Interfaces;
 using Core.Models.Components;
 using System;
@@ -10,7 +11,7 @@ namespace Core.Models.Buildings.CommercialBuildings
     /// <summary>
     /// Логистическая компания - осуществляет доставку грузов между предприятиями
     /// </summary>
-    public class LogisticsCompany : CommercialBuilding, IConstructable<LogisticsCompany>
+    public class LogisticsCompany : CommercialBuilding
     {
         #region Static Properties - Construction Cost
 
@@ -326,11 +327,6 @@ namespace Core.Models.Buildings.CommercialBuildings
 
         #endregion
 
-        public override void OnBuildingPlaced()
-        {
-            // Инициализация логистической компании при размещении
-            Console.WriteLine($"Логистическая компания {CompanyType} размещена и готова к работе!");
-        }
     }
 
     /// <summary>

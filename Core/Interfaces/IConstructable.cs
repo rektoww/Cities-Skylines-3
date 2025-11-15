@@ -7,22 +7,21 @@ namespace Core.Interfaces
     /// <summary>
     /// Определяет контракт на здания, которые могут быть построены с течением времени.
     /// </summary>
-    public interface IConstructable<T> where T : IConstructable<T>
+    public interface IConstructable
     {
         /// <summary>
         /// Цена на строительство
         /// </summary>
-        static abstract decimal BuildCost { get; }
+        decimal BuildCost { get; }
 
         /// <summary>
         /// Необходимое количество материалов для строительства.
         /// </summary>
-        static abstract Dictionary<ConstructionMaterial, int> RequiredMaterials { get; }
+        Dictionary<ConstructionMaterial, int> RequiredMaterials { get; }
 
         /// <summary>
         /// Размещение на карте
         /// </summary>
-        /// <returns></returns>
-        public bool TryPlace(int x, int y, GameMap map);
+        bool TryPlace(int x, int y, GameMap map);
     }
 }

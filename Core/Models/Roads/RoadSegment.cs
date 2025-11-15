@@ -18,7 +18,7 @@ namespace Core.Models.Roads
         public int StartY { get; set; }
         public int EndX { get; set; }
         public int EndY { get; set; }
-        public RoadType RoadType { get; set; }
+        public RoadType RoadType { get; set; } = RoadType.Regular;
         public float SpeedLimit { get; set; }
         public decimal BuildCost { get; set; }
 
@@ -56,11 +56,6 @@ namespace Core.Models.Roads
                 case RoadType.Dirt:
                     SpeedLimit = 20f;
                     BuildCost = 100m;
-                    break;
-
-                case RoadType.Street:
-                    SpeedLimit = 40f;
-                    BuildCost = 500m;
                     break;
 
                 case RoadType.Avenue:

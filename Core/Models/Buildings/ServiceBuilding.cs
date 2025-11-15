@@ -1,6 +1,9 @@
 ﻿using Core.Enums;
+using Core.Enums.Core.Enums;
 using Core.Models.Base;
 using Core.Models.Mobs;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Core.Models.Buildings
 {
@@ -13,13 +16,15 @@ namespace Core.Models.Buildings
         public decimal ServiceCost { get; set; }
         public bool CanAcceptClient => Clients.Count < Capacity;
 
-        /// Работоспособно ли здание (все коммуникации подключены)
-        public bool IsOperational => HasElectricity && HasWater && HasGas && HasSewage;
+        // Реализация абстрактных свойств
+        public override BuildingType BuildingType => BuildingType.Service;
+        public override decimal BuildCost => GetBuildCostByType(Type);
+        public override Dictionary<ConstructionMaterial, int> RequiredMaterials => GetRequiredMaterialsByType(Type);
 
-        public ServiceBuilding(ServiceBuildingType type, int capacity = 0) : base()
+        public ServiceBuilding(ServiceBuildingType type)
         {
             Type = type;
-            Capacity = capacity == 0 ? GetDefaultCapacity(type) : capacity;
+            Capacity = GetDefaultCapacity(type);
             Clients = new List<Citizen>();
             SetDefaultValuesByType(type);
         }
@@ -56,6 +61,31 @@ namespace Core.Models.Buildings
                 ServiceBuildingType.Hospital => 200,
                 ServiceBuildingType.University => 2000,
                 _ => 100
+            };
+        }
+
+        private decimal GetBuildCostByType(ServiceBuildingType type)
+        {
+            return type switch
+            {
+                ServiceBuildingType.School => 300_000m,
+                ServiceBuildingType.Hospital => 800_000m,
+                ServiceBuildingType.University => 1_500_000m,
+                _ => 200_000m
+            };
+        }
+
+        private Dictionary<ConstructionMaterial, int> GetRequiredMaterialsByType(ServiceBuildingType type)
+        {
+            return type switch
+            {
+                ServiceBuildingType.School => new Dictionary<ConstructionMaterial, int>
+                    { { ConstructionMaterial.Concrete, 25 }, { ConstructionMaterial.Steel, 10 }, { ConstructionMaterial.Glass, 8 } },
+                ServiceBuildingType.Hospital => new Dictionary<ConstructionMaterial, int>
+                    { { ConstructionMaterial.Concrete, 40 }, { ConstructionMaterial.Steel, 20 }, { ConstructionMaterial.Glass, 15 } },
+                ServiceBuildingType.University => new Dictionary<ConstructionMaterial, int>
+                    { { ConstructionMaterial.Concrete, 60 }, { ConstructionMaterial.Steel, 30 }, { ConstructionMaterial.Glass, 20 } },
+                _ => new Dictionary<ConstructionMaterial, int> { { ConstructionMaterial.Concrete, 10 } }
             };
         }
 

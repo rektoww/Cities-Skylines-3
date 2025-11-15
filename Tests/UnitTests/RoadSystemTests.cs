@@ -16,13 +16,12 @@ namespace Tests.UnitTests
         [TestMethod]
         public void RoadSegment_Creation_SetsPropertiesCorrectly()
         {
-            var segment = new RoadSegment(0, 0, 10, 0, RoadType.Street);
+            var segment = new RoadSegment(0, 0, 10, 0, RoadType.Dirt);
 
             Assert.AreEqual(0, segment.StartX);
             Assert.AreEqual(0, segment.StartY);
             Assert.AreEqual(10, segment.EndX);
             Assert.AreEqual(0, segment.EndY);
-            Assert.AreEqual(RoadType.Street, segment.RoadType);
             Assert.AreEqual(40f, segment.SpeedLimit); // Городская улица имеет скорость 40
             Assert.AreEqual(500m, segment.BuildCost); // Городская улица стоит 500
         }
@@ -33,7 +32,7 @@ namespace Tests.UnitTests
         [TestMethod]
         public void RoadSegment_GetLength_CalculatesCorrectly()
         {
-            var segment = new RoadSegment(0, 0, 3, 4, RoadType.Street);
+            var segment = new RoadSegment(0, 0, 3, 4, RoadType.Dirt);
 
             var length = segment.GetLength();
 
@@ -46,7 +45,7 @@ namespace Tests.UnitTests
         [TestMethod]
         public void RoadSegment_PassesThrough_ReturnsTrueForPointOnLine()
         {
-            var segment = new RoadSegment(0, 0, 10, 0, RoadType.Street);
+            var segment = new RoadSegment(0, 0, 10, 0, RoadType.Dirt);
 
             var passes = segment.PassesThrough(5, 0);
 
@@ -72,8 +71,8 @@ namespace Tests.UnitTests
         [TestMethod]
         public void Road_AddSegment_IncreasesCount()
         {
-            var road = new Road(1, "Main Street", RoadType.Street);
-            var segment = new RoadSegment(0, 0, 10, 0, RoadType.Street);
+            var road = new Road(1, "Main Street", RoadType.Dirt);
+            var segment = new RoadSegment(0, 0, 10, 0, RoadType.Dirt);
 
             road.AddSegment(segment);
 
@@ -88,8 +87,8 @@ namespace Tests.UnitTests
         [TestMethod]
         public void Road_RemoveSegment_DecreasesCount()
         {
-            var road = new Road(1, "Main Street", RoadType.Street);
-            var segment = new RoadSegment(0, 0, 10, 0, RoadType.Street);
+            var road = new Road(1, "Main Street", RoadType.Dirt);
+            var segment = new RoadSegment(0, 0, 10, 0, RoadType.Dirt);
             road.AddSegment(segment);
 
             road.RemoveSegment(segment);
@@ -105,8 +104,8 @@ namespace Tests.UnitTests
         [TestMethod]
         public void Road_GetAverageSpeed_CalculatesCorrectly()
         {
-            var road = new Road(1, "Main Street", RoadType.Street);
-            road.AddSegment(new RoadSegment(0, 0, 10, 0, RoadType.Street)); // 40
+            var road = new Road(1, "Main Street", RoadType.Dirt);
+            road.AddSegment(new RoadSegment(0, 0, 10, 0, RoadType.Dirt)); // 40
             road.AddSegment(new RoadSegment(10, 0, 20, 0, RoadType.Highway)); // 100
 
             var avgSpeed = road.GetAverageSpeed();
@@ -136,7 +135,7 @@ namespace Tests.UnitTests
         public void Intersection_AddRoad_IncreasesConnectedRoads()
         {
             var intersection = new Intersection(5, 5);
-            var segment = new RoadSegment(0, 0, 10, 0, RoadType.Street);
+            var segment = new RoadSegment(0, 0, 10, 0, RoadType.Dirt);
 
             intersection.AddRoad(segment);
 
@@ -161,8 +160,8 @@ namespace Tests.UnitTests
         public void Intersection_GetRoadCount_ReturnsCorrectCount()
         {
             var intersection = new Intersection(5, 5);
-            intersection.AddRoad(new RoadSegment(0, 0, 5, 5, RoadType.Street));
-            intersection.AddRoad(new RoadSegment(5, 5, 10, 10, RoadType.Street));
+            intersection.AddRoad(new RoadSegment(0, 0, 5, 5, RoadType.Dirt));
+            intersection.AddRoad(new RoadSegment(5, 5, 10, 10, RoadType.Dirt));
 
             var count = intersection.GetRoadCount();
 

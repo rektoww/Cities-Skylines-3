@@ -1,15 +1,9 @@
 ﻿using Core.Enums;
+using Core.Enums.Core.Enums;
 using Core.Interfaces;
 using Core.Models.Base;
 using Core.Models.Map;
 using Core.Resourses;
-using System.Xml.Linq;
-
-using Core.Models.Base;
-using Core.Resourses;
-using Core.Models.Map;
-using Core.Enums;
-using Core.Interfaces;
 using System.Collections.Generic;
 
 namespace Core.Models.Buildings
@@ -17,7 +11,7 @@ namespace Core.Models.Buildings
     /// <summary>
     /// Морской порт.
     /// </summary>
-    public class SeaPort : Port, IConstructable<SeaPort>
+    public class SeaPort : Port
     {
         // Количество юнитов по умолчанию для морского порта
         protected override int MaxUnits => 10;
@@ -31,15 +25,18 @@ namespace Core.Models.Buildings
         // Сколько людей помещается в одном корабле
         protected override int PassengersPerUnit => 20;
 
-        // Статические параметры для строительства (IConstructable)
-        public static decimal BuildCost { get; } = 120000m;
-        public static Dictionary<ConstructionMaterial, int> RequiredMaterials { get; } =
+        // Реализация абстрактных свойств Building
+        public override decimal BuildCost { get; } = 120000m;
+
+        public override Dictionary<ConstructionMaterial, int> RequiredMaterials { get; } =
             new Dictionary<ConstructionMaterial, int>
             {
                 { ConstructionMaterial.Steel, 10 },
                 { ConstructionMaterial.Concrete, 12 },
                 { ConstructionMaterial.Glass, 4 }
             };
+
+        public override BuildingType BuildingType { get; } = BuildingType.Industrial;
 
         public SeaPort(PlayerResources playerResources)
             : base(playerResources)
@@ -80,6 +77,10 @@ namespace Core.Models.Buildings
             }
 
             return false;
+        }
+
+        public override void OnBuildingPlaced()
+        {
         }
     }
 }

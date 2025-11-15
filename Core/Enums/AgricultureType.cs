@@ -21,4 +21,54 @@ namespace Core.Enums
         PoultryFarm,
         SheepFarm
     }
+
+    namespace Core.Enums
+    {
+        public enum BuildingType
+        {
+            Commercial,
+            Residential,
+            Industrial,
+            Service,
+            Park,
+            PoliceStation,
+            Airport,
+            Seaport,
+            TrainStation,
+            BusStop
+        }
+
+        public enum CommercialBuildingType
+        {
+            Shop,
+            Supermarket,
+            Cafe,
+            Restaurant,
+            GasStation,
+            Pharmacy,
+            Factory
+        }
+        public enum IndustrialBuildingType
+        {
+            Factory,
+            Farm,
+            Mine,
+            PowerPlant
+        }
+
+        public enum ResidentialType
+        {
+            Apartment,
+            Dormitory,
+            Hotel
+        }
+        public enum ServiceBuildingType
+        {
+            School,
+            Hospital,
+            University,
+            Park,
+            PoliceStation
+        }
+    }
 }

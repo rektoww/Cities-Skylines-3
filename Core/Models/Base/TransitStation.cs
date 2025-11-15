@@ -24,7 +24,6 @@ public abstract class TransitStation : Building
     // Конструктор
     public TransitStation()
     {
-        // Базовая стоимость и размеры могут быть переопределены в наследниках.
         Width = 1;
         Height = 1;
         Floors = 1;
@@ -37,16 +36,12 @@ public abstract class TransitStation : Building
     {
         if (citizen == null) return;
 
-        // Не добавляем дважды
         if (WaitingCitizens.Contains(citizen)) return;
 
-        // Помещаем гражданина в очередь ожидания на этой станции
         WaitingCitizens.Add(citizen);
 
-        // Обновляем у гражданина цель ожидания и позицию на тайле станции
         citizen.TargetTransitStation = this;
 
-        // Синхронизируем позицию гражданина с позицией станции (удобно для тестов и визуализации)
         citizen.X = this.X;
         citizen.Y = this.Y;
     }
@@ -58,8 +53,4 @@ public abstract class TransitStation : Building
     {
         return WaitingCitizens.Remove(citizen);
     }
-
-    // Мы не реализуем CanPlace здесь, потому что требования к размещению
-    // (на дороге, на трамвайных путях, на ж/д путях) сильно отличаются.
-    // Это остается задачей конкретных наследников.
 }

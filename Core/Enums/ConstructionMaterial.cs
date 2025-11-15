@@ -11,6 +11,8 @@ namespace Core.Enums
         Steel,
         Glass,
         Concrete, // Бетон
-        Plastic
+        Plastic,
+        Wood,
+        None
     }
 }

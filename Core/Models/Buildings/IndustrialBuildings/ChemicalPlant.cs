@@ -1,4 +1,5 @@
 ﻿using Core.Enums;
+using Core.Enums.Core.Enums;
 using Core.Interfaces;
 using Core.Models.Components;
 using System;
@@ -10,7 +11,7 @@ namespace Core.Models.Buildings.IndustrialBuildings
     /// <summary>
     /// Химический завод - производит широкий спектр химической продукции
     /// </summary>
-    public class ChemicalPlant : CommercialBuilding, IConstructable<ChemicalPlant>
+    public class ChemicalPlant : CommercialBuilding
     {
         #region Static Properties - Construction Cost
 
