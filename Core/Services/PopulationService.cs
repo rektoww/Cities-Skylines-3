@@ -1,8 +1,10 @@
-﻿
-using Core.Models.Map;
-using Core.Models.Mobs;
+﻿using Core.Models.Map;
 using Core.Models.Buildings;
 using Core.Interfaces;
+using Core.Models.Mobs;
+using Core.Services.Mobility;
+using Core.Services.Education;
+using Core.Services.Happiness;
 
 namespace Core.Services
 {
@@ -16,11 +18,20 @@ namespace Core.Services
         private readonly List<Citizen> _citizens;
         private readonly Random _random;
 
+        private readonly IMobilityService _mobilityService;
+        private readonly IEducationService _educationService;
+        private readonly IHappinessService _happinessService;
+
         public PopulationService(GameMap map)
         {
             _map = map ?? throw new ArgumentNullException(nameof(map));
             _citizens = new List<Citizen>();
             _random = new Random();
+
+            _mobilityService = new MobilityService(_map);
+            _educationService = new EducationService();
+            _happinessService = new HappinessService(_map);
+
             Initialize();
         }
         
@@ -54,20 +65,19 @@ namespace Core.Services
 
             foreach (var citizen in snapshot)
             {
-                citizen.UpdateHappinessBasedOnInfrastructure();
+                _happinessService.UpdateHappiness(citizen);
 
-                citizen.Study();
+                _educationService.StudyTick(citizen);
 
                 try
                 {
-                    citizen.Move();
+                    _mobilityService.MoveCitizen(citizen);
                 }
                 catch
                 {
-
                 }
 
-                citizen.ApplyHappinessEffects();
+                _happinessService.ApplyHappinessEffects(citizen);
 
                 if (citizen.Health <= 0f)
                 {

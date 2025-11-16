@@ -18,7 +18,6 @@ namespace Core.Services
 
         public BuildingFactory()
         {
-            // Создаем дефолтные ресурсы для зданий, которые требуют PlayerResources
             _defaultResources = new PlayerResources(0, new Dictionary<ConstructionMaterial, int>());
         }
 
@@ -39,7 +38,7 @@ namespace Core.Services
                 BuildingType.Airport => new AirPort(_defaultResources),
                 BuildingType.Seaport => new SeaPort(_defaultResources),
                 BuildingType.BusStop => new BusStop(),
-                _ => throw new ArgumentException($"Unknown building type: {type}")
+                _ => throw new ArgumentException($"Неизвестный тип здания: {type}")
             };
         }
 
@@ -86,7 +85,7 @@ namespace Core.Services
                 "Социум" => CreateServiceBuilding(GetServiceTypeByName(buildingName)),
                 "Производство" => CreateIndustrialBuilding(GetIndustrialTypeByName(buildingName)),
                 "Транспорт" => CreateTransportBuilding(buildingName),
-                _ => throw new ArgumentException($"Unknown category: {category}")
+                _ => throw new ArgumentException($"Неизвестная категория: {category}")
             };
         }
 
@@ -100,7 +99,7 @@ namespace Core.Services
                 "Аэропорт" => new AirPort(_defaultResources),
                 "Морской порт" => new SeaPort(_defaultResources),
                 "Автобусная остановка" => new BusStop(),
-                _ => throw new ArgumentException($"Unknown transport building: {buildingName}")
+                _ => throw new ArgumentException($"Неизвестный транспорт: {buildingName}")
             };
         }
 

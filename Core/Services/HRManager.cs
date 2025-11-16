@@ -1,4 +1,4 @@
-﻿﻿using Core.Enums;
+﻿using Core.Enums;
 using Core.Models.Base;
 using Core.Models.Buildings;
 using Core.Models.HR;

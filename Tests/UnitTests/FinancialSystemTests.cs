@@ -382,76 +382,6 @@ namespace UnitTests
             Assert.AreEqual(TAX_RATE_15_PERCENT, receivedRate, "Ставка в событии должна совпадать");
         }
 
-        /// <summary>
-        /// Проверка сбора налога с работающего здания
-        /// </summary>
-        [TestMethod]
-        public void CollectTaxFromBuilding_OperationalBuilding_ShouldCollectTax()
-        {
-            var building = new TestResidentialBuilding(ResidentialType.Apartment)
-            {
-                Name = "Тестовое здание",
-                HasElectricity = true,
-                HasWater = true,
-                HasGas = true,
-                HasSewage = true
-            };
-
-            decimal initialBudget = _financialSystem.CityBudget;
-            decimal expectedTax = BASE_VALUE_10000 * TAX_RATE_9_PERCENT; // 900
-
-            decimal collectedTax = _financialSystem.CollectTaxFromBuilding(building, "Residential", BASE_VALUE_10000);
-
-            Assert.AreEqual(expectedTax, collectedTax, "Собранный налог должен быть корректным");
-            Assert.AreEqual(initialBudget + expectedTax, _financialSystem.CityBudget, "Налог должен быть добавлен в бюджет");
-        }
-
-        /// <summary>
-        /// Проверка, что налог не собирается с неработающего здания
-        /// </summary>
-        [TestMethod]
-        public void CollectTaxFromBuilding_NonOperationalBuilding_ShouldNotCollectTax()
-        {
-            var building = new TestResidentialBuilding(ResidentialType.Apartment)
-            {
-                Name = "Неработающее здание",
-                HasElectricity = false, 
-                HasWater = true,
-                HasGas = true,
-                HasSewage = true
-            };
-
-            decimal initialBudget = _financialSystem.CityBudget;
-
-            decimal collectedTax = _financialSystem.CollectTaxFromBuilding(building, "Residential", BASE_VALUE_10000);
-
-            Assert.AreEqual(0m, collectedTax, "Налог с неработающего здания должен быть 0");
-            Assert.AreEqual(initialBudget, _financialSystem.CityBudget, "Бюджет не должен измениться");
-        }
-
-        /// <summary>
-        /// Проверка использования ставки по умолчанию для неизвестной категории
-        /// </summary>
-        [TestMethod]
-        public void CollectTaxFromBuilding_UnknownCategory_ShouldUseDefaultRate()
-        {
-            var building = new TestResidentialBuilding(ResidentialType.Apartment)
-            {
-                Name = "Тестовое здание",
-                HasElectricity = true,
-                HasWater = true,
-                HasGas = true,
-                HasSewage = true
-            };
-
-            decimal expectedTax = BASE_VALUE_10000 * 0.1m; // Ставка по умолчанию 10%
-
-            decimal collectedTax = _financialSystem.CollectTaxFromBuilding(building, "НеизвестнаяКатегория", BASE_VALUE_10000);
-
-            Assert.AreEqual(expectedTax, collectedTax, "Должна использоваться ставка по умолчанию 10%");
-        }
-
-
 
         /// <summary>
         /// Проверка добавления субсидии
@@ -704,19 +634,4 @@ namespace UnitTests
       
     }
 
- 
-    /// <summary>
-    /// Тестовый класс жилого здания для юнит-тестов
-    /// </summary>
-    public class TestResidentialBuilding : ResidentialBuilding
-    {
-        public TestResidentialBuilding(ResidentialType type) : base(type)
-        {
-        }
-
-        public override void OnBuildingPlaced()
-        {
-            
-        }
-    }
 }

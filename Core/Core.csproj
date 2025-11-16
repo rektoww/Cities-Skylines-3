@@ -7,7 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Models\Buildings\Service\" />
+    <Compile Remove="Models\Buildings\Service\**" />
+    <EmbeddedResource Remove="Models\Buildings\Service\**" />
+    <None Remove="Models\Buildings\Service\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Models\Buildings\SocialBuildings\" />
   </ItemGroup>
 

@@ -10,11 +10,9 @@ namespace Core.Services
     /// </summary>
     public class ExternalConnectionsManager
     {
-        // Зависимости от других систем города
         private readonly PlayerResources _playerResources;
         private readonly FinancialSystem _financialSystem;
 
-        // Константы для расчетов
         private const decimal IMPORT_PRICE_MULTIPLIER = 1.5m; // Импорт дороже на 50%
         private const decimal EXPORT_PRICE_MULTIPLIER = 0.7m; // Экспорт дешевле на 30%
 

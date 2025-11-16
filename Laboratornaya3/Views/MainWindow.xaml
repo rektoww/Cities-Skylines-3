@@ -193,7 +193,7 @@
                     <ItemsControl x:Name="TilesItemsControl"
                           ItemsSource="{Binding TilesObservable}"
                           BorderThickness="0"
-                          Background="Transparent">
+                          Background="Transparent" Margin="-371,401,371,-401">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <UniformGrid Columns="{Binding CurrentMap.Width}"

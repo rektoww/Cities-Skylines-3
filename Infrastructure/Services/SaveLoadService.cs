@@ -2,15 +2,9 @@
 using Core.Enums.Core.Enums;
 using Core.Models.Base;
 using Core.Models.Buildings;
-using Core.Models.Buildings.CommertialBuildings;
-using Core.Models.Buildings.IndustrialBuildings;
 using Core.Models.Map;
 using Core.Models.Police;
 using Core.Models.Roads;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Text.Json;
 
 namespace Infrastructure.Services

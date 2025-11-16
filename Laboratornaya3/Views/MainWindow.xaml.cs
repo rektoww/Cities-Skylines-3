@@ -1,8 +1,4 @@
-﻿using Core.Enums.Core.Enums;
-using Core.Models.Base;
-using Core.Models.Buildings;
-using Core.Models.Buildings.CommertialBuildings;
-using Core.Models.Map;
+﻿using Core.Models.Map;
 using Laboratornaya3.ViewModels;
 using System.Windows;
 using System.Windows.Controls;
@@ -13,8 +9,8 @@ namespace Laboratornaya3
 {
     public partial class MainWindow : Window
     {
-        private Point? lastMousePosition;
-        private bool isDragging = false;
+        private Point? _lastMousePosition;
+        private bool _isDragging = false;
 
         public MainWindow()
         {
@@ -22,10 +18,11 @@ namespace Laboratornaya3
             DataContext = new MainViewModel();
         }
 
+        private MainViewModel ViewModel => DataContext as MainViewModel;
+
         private void MapScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            if (Keyboard.Modifiers != ModifierKeys.Control)
-                return;
+            if (Keyboard.Modifiers != ModifierKeys.Control) return;
 
             var scale = e.Delta > 0 ? 1.1 : 0.9;
             ScaleTransform.ScaleX *= scale;
@@ -35,72 +32,72 @@ namespace Laboratornaya3
 
         private void MapScrollViewer_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            var viewModel = DataContext as MainViewModel;
+            if (ViewModel == null) return;
 
-            if (viewModel?.IsBuildingMode == true && viewModel.SelectedBuilding != null)
+            var position = e.GetPosition(MapGrid);
+            var tile = GetTileAtPosition(position);
+            if (tile == null) return;
+
+            switch (e.ChangedButton)
             {
-                TryPlaceBuilding(e.GetPosition(MapGrid));
+                case MouseButton.Left:
+                    HandleLeftClick(tile, e);
+                    break;
+                case MouseButton.Right:
+                    HandleRightClick(tile, e);
+                    break;
+            }
+        }
+
+        private void HandleLeftClick(Tile tile, MouseButtonEventArgs e)
+        {
+            if (ViewModel.IsBuildingMode && ViewModel.SelectedBuilding != null)
+            {
+                ViewModel.TryPlaceBuilding(tile.X, tile.Y);
                 e.Handled = true;
             }
-            else if (viewModel?.IsRoadPlacementMode == true && e.ChangedButton == MouseButton.Right)
+            else
             {
-                var tile = GetTileAtPosition(e.GetPosition(MapGrid));
-                if (tile != null)
-                {
-                    if (viewModel.SelectedBuilding?.Name == "Перекрёсток")
-                        viewModel.TryPlaceSelected(tile.X, tile.Y);
-                    else
-                        viewModel.StartRoadDrawing(tile.X, tile.Y);
-                }
-                e.Handled = true;
-            }
-            else if (viewModel?.IsVehiclePlacementMode == true && e.ChangedButton == MouseButton.Right)
-            {
-                // Размещение транспорта на дороге по клику (ПКМ)
-                var tile = GetTileAtPosition(e.GetPosition(MapGrid));
-                if (tile != null)
-                {
-                    viewModel.TryPlaceVehicle(tile.X, tile.Y);
-                }
-                e.Handled = true;
-            }
-            else if (e.ChangedButton == MouseButton.Left)
-            {
-                lastMousePosition = e.GetPosition(this);
-                isDragging = true;
+                // Начало перетаскивания карты
+                _lastMousePosition = e.GetPosition(this);
+                _isDragging = true;
                 MapScrollViewer.CaptureMouse();
                 MapScrollViewer.Cursor = Cursors.SizeAll;
             }
-            else if (e.ChangedButton == MouseButton.Right && viewModel?.IsRoadPlacementMode != true && viewModel?.IsVehiclePlacementMode != true)
+        }
+
+        private void HandleRightClick(Tile tile, MouseButtonEventArgs e)
+        {
+            if (ViewModel.IsRoadPlacementMode)
             {
-                // ПКМ как отмена в остальных режимах, но не в режиме дорог/транспорта
-                viewModel?.CancelBuildingCommand.Execute(null);
+                if (ViewModel.SelectedBuilding?.Name == "Перекрёсток")
+                    ViewModel.TryPlaceSelected(tile.X, tile.Y);
+                else
+                    ViewModel.StartRoadDrawing(tile.X, tile.Y);
+                e.Handled = true;
+            }
+            else if (ViewModel.IsVehiclePlacementMode)
+            {
+                ViewModel.TryPlaceVehicle(tile.X, tile.Y);
+                e.Handled = true;
+            }
+            else
+            {
+                ViewModel.CancelBuildingCommand.Execute(null);
             }
         }
 
         private void MapScrollViewer_MouseMove(object sender, MouseEventArgs e)
         {
-            var viewModel = DataContext as MainViewModel;
+            if (ViewModel == null) return;
 
-            if (viewModel?.IsBuildingMode == true)
-            {
-                MapScrollViewer.Cursor = Cursors.Cross;
-                ShowBuildingPreview(e.GetPosition(MapGrid));
-            }
-            else if (viewModel?.IsRoadPlacementMode == true || viewModel?.IsVehiclePlacementMode == true)
+            if (ViewModel.IsBuildingMode || ViewModel.IsRoadPlacementMode || ViewModel.IsVehiclePlacementMode)
             {
                 MapScrollViewer.Cursor = Cursors.Cross;
             }
-            else if (isDragging && lastMousePosition.HasValue)
+            else if (_isDragging && _lastMousePosition.HasValue)
             {
-                Point currentPosition = e.GetPosition(this);
-                Vector delta = currentPosition - lastMousePosition.Value;
-
-                TranslateTransform.X += delta.X;
-                TranslateTransform.Y += delta.Y;
-
-                lastMousePosition = currentPosition;
-                MapScrollViewer.Cursor = Cursors.SizeAll;
+                HandleMapDragging(e);
             }
             else
             {
@@ -108,61 +105,61 @@ namespace Laboratornaya3
             }
         }
 
+        private void HandleMapDragging(MouseEventArgs e)
+        {
+            Point currentPosition = e.GetPosition(this);
+            Vector delta = currentPosition - _lastMousePosition.Value;
+
+            TranslateTransform.X += delta.X;
+            TranslateTransform.Y += delta.Y;
+
+            _lastMousePosition = currentPosition;
+            MapScrollViewer.Cursor = Cursors.SizeAll;
+        }
+
         private void MapScrollViewer_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            var viewModel = DataContext as MainViewModel;
-
-            if (viewModel?.IsRoadPlacementMode == true && e.ChangedButton == MouseButton.Right)
+            if (ViewModel?.IsRoadPlacementMode == true && e.ChangedButton == MouseButton.Right)
             {
                 var tile = GetTileAtPosition(e.GetPosition(MapGrid));
-                if (tile != null && viewModel.SelectedBuilding?.Name != "Перекрёсток")
+                if (tile != null && ViewModel.SelectedBuilding?.Name != "Перекрёсток")
                 {
-                    viewModel.EndRoadDrawing(tile.X, tile.Y);
+                    ViewModel.EndRoadDrawing(tile.X, tile.Y);
                 }
                 e.Handled = true;
             }
 
-            if (e.ChangedButton == MouseButton.Left && isDragging)
+            if (e.ChangedButton == MouseButton.Left && _isDragging)
             {
-                isDragging = false;
-                lastMousePosition = null;
+                _isDragging = false;
+                _lastMousePosition = null;
                 MapScrollViewer.ReleaseMouseCapture();
-
-                MapScrollViewer.Cursor = viewModel?.IsBuildingMode == true ? Cursors.Cross : Cursors.Arrow;
+                MapScrollViewer.Cursor = ViewModel?.IsBuildingMode == true ? Cursors.Cross : Cursors.Arrow;
             }
         }
 
-        private void ShowBuildingPreview(Point mousePosition)
+        // исправить привязку
+        private void Tile_LeftClick(object sender, MouseButtonEventArgs e)
         {
-            var tile = GetTileAtPosition(mousePosition);
-        }
-
-        private void TryPlaceBuilding(Point mousePosition)
-        {
-            var viewModel = DataContext as MainViewModel;
-            if (viewModel == null) return;
-
-            if (!viewModel.IsBuildingMode || viewModel.SelectedBuilding == null) return;
-
-            var tile = GetTileAtPosition(mousePosition);
-            if (tile != null)
+            if (sender is Border border && border.DataContext is Tile tile)
             {
-                viewModel.TryPlaceBuilding(tile.X, tile.Y);
+                ViewModel?.ShowTileInfoCommand.Execute(tile);
             }
         }
 
-        private void TryPlaceSelected(Point mousePosition)
+        // исправить привязку
+        private void Tile_RightClick(object sender, MouseButtonEventArgs e)
         {
-            var viewModel = DataContext as MainViewModel;
-            if (viewModel == null) return;
-
-            if (viewModel.SelectedBuilding == null) return;
-
-            var tile = GetTileAtPosition(mousePosition);
-            if (tile != null)
+            if (sender is Border border && border.DataContext is Tile tile)
             {
-                viewModel.TryPlaceSelected(tile.X, tile.Y);
+                ViewModel?.TryPlaceBuilding(tile.X, tile.Y);
             }
+        }
+        
+        // исправить привязку
+        private void ClearBuildings_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("допилить");
         }
 
         private Tile GetTileAtPosition(Point position)
@@ -179,12 +176,11 @@ namespace Laboratornaya3
                 int x = (int)(transformedPoint.X / tileSize);
                 int y = (int)(transformedPoint.Y / tileSize);
 
-                var viewModel = DataContext as MainViewModel;
-                if (viewModel?.CurrentMap != null &&
-                    x >= 0 && x < viewModel.CurrentMap.Width &&
-                    y >= 0 && y < viewModel.CurrentMap.Height)
+                if (ViewModel?.CurrentMap != null &&
+                    x >= 0 && x < ViewModel.CurrentMap.Width &&
+                    y >= 0 && y < ViewModel.CurrentMap.Height)
                 {
-                    return viewModel.CurrentMap.Tiles[x, y];
+                    return ViewModel.CurrentMap.Tiles[x, y];
                 }
 
                 return null;
@@ -202,93 +198,12 @@ namespace Laboratornaya3
                 : Visibility.Visible;
         }
 
-        private void TestButton_Click(object sender, RoutedEventArgs e)
-        {
-            var viewModel = DataContext as MainViewModel;
-            if (viewModel?.CurrentMap != null)
-            {
-                var testBuilding = new ServiceBuilding(ServiceBuildingType.School);
-
-                bool placed = false;
-                for (int offset = 0; offset < 5 && !placed; offset++)
-                {
-                    int centerX = viewModel.CurrentMap.Width / 2 + offset;
-                    int centerY = viewModel.CurrentMap.Height / 2;
-
-                    if (testBuilding.TryPlace(centerX, centerY, viewModel.CurrentMap))
-                    {
-                        viewModel.CurrentMap.Buildings.Add(testBuilding);
-                        viewModel.RefreshMap();
-                        MessageBox.Show($"Тестовое здание размещено в ({centerX}, {centerY})",
-                                       "Тест", MessageBoxButton.OK, MessageBoxImage.Information);
-                        placed = true;
-                    }
-                }
-
-                if (!placed)
-                {
-                    MessageBox.Show("Не удалось разместить тестовое здание ни в одной из позиций!",
-                                   "Тест", MessageBoxButton.OK, MessageBoxImage.Warning);
-                }
-            }
-        }
-        private void Tile_LeftClick(object sender, MouseButtonEventArgs e)
-        {
-            if (sender is Border border && border.DataContext is Tile tile)
-            {
-                if (DataContext is MainViewModel vm)
-                {
-                    // просто вызвать команду показа информации
-                    if (vm.ShowTileInfoCommand.CanExecute(tile))
-                        vm.ShowTileInfoCommand.Execute(tile);
-                }
-            }
-        }
-
-        // ПКМ — поставить здание
-        private void Tile_RightClick(object sender, MouseButtonEventArgs e)
-        {
-            if (sender is Border border && border.DataContext is Tile tile)
-            {
-                if (DataContext is MainViewModel vm)
-                {
-                    vm.TryPlaceBuilding(tile.X, tile.Y);
-                }
-            }
-        }
-
-        private void ClearBuildings_Click(object sender, RoutedEventArgs e)
-        {
-            var viewModel = DataContext as MainViewModel;
-            if (viewModel?.CurrentMap != null)
-            {
-                int buildingCount = viewModel.CurrentMap.Buildings.Count;
-
-                viewModel.CurrentMap.Buildings.Clear();
-
-                for (int x = 0; x < viewModel.CurrentMap.Width; x++)
-                {
-                    for (int y = 0; y < viewModel.CurrentMap.Height; y++)
-                    {
-                        viewModel.CurrentMap.SetBuildingAt(x, y, null);
-                    }
-                }
-
-                viewModel.RefreshMap();
-                MessageBox.Show($"Удалено {buildingCount} зданий", "Очистка", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-        }
-
-        private void MapGrid_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            var position = e.GetPosition(MapGrid);
-            var tile = GetTileAtPosition(position);
-        }
-
+        
+        // тоже исправить привязку
         private void BudgetPanel_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            var viewModel = DataContext as MainViewModel;
-            viewModel?.ShowFinanceInfoCommand.Execute(null);
+            ViewModel?.GameState.ShowFinanceInfoCommand.Execute(null);
         }
+
     }
 }

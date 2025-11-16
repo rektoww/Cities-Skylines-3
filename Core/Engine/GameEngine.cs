@@ -12,7 +12,7 @@ namespace Core.GameEngine
     public class GameEngine
     {
         private readonly List<IGameService> _services = new();
-        private readonly GameMap _map;
+        public readonly GameMap Map;
 
         // Сервисы
         public EconomyService EconomyService { get; private set; }
@@ -37,7 +37,7 @@ namespace Core.GameEngine
 
         public GameEngine(GameMap map)
         {
-            _map = map;
+            Map = map;
             InitializeSystems();
             InitializeServices();
         }
@@ -62,18 +62,18 @@ namespace Core.GameEngine
             UtilityManager = new UtilityManager();
             NatureManager = new NatureManager();
 
-            DisasterManager = new DisasterManager(_map, UtilityManager);
+            DisasterManager = new DisasterManager(Map, UtilityManager);
 
             HRManager = new HRManager();
         }
 
         private void InitializeServices()
         {
-            EconomyService = new EconomyService(_map, FinancialSystem, PlayerResources);
-            PopulationService = new PopulationService(_map);
-            TransportService = new TransportService(_map, new PathfindingService(_map));
-            PoliceService = new PoliceService(_map);
-            ProductionService = new ProductionService(_map);
+            EconomyService = new EconomyService(Map, FinancialSystem, PlayerResources);
+            PopulationService = new PopulationService(Map);
+            TransportService = new TransportService(Map, new PathfindingService(Map));
+            PoliceService = new PoliceService(Map);
+            ProductionService = new ProductionService(Map);
 
             _services.Add(EconomyService);
             _services.Add(PopulationService);
@@ -93,7 +93,7 @@ namespace Core.GameEngine
 
         public void AddVehicle(Transport vehicle)
         {
-            _map.Vehicles.Add(vehicle);
+            Map.Vehicles.Add(vehicle);
         }
 
         public void AddCitizen(Citizen citizen)
@@ -103,7 +103,7 @@ namespace Core.GameEngine
 
         public bool TryPlaceBuilding(Building building, int x, int y)
         {
-            return ConstructionCompany.TryBuild(building, x, y, _map);
+            return ConstructionCompany.TryBuild(building, x, y, Map);
         }
     }
 }
