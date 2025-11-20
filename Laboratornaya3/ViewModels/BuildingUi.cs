@@ -1,14 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Core.Enums.Core.Enums;
-using Core.Models.Base;
 
 namespace Laboratornaya3.ViewModels
 {
     public partial class BuildingUI : ObservableObject
     {
-        private Building _building;
-        public Building Building { get => _building; set => SetProperty(ref _building, value); }
-
         private string _name;
         public string Name { get => _name; set => SetProperty(ref _name, value); }
 
