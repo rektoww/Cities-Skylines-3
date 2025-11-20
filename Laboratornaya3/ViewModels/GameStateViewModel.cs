@@ -75,6 +75,7 @@ namespace Laboratornaya3.ViewModels
             _gameTimer = null;
         }
 
+        [RelayCommand]
         private void UpdateGameState()
         {
             var report = _reportService.GetFinanceReport();

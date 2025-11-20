@@ -1,31 +1,22 @@
-﻿using Core.Models.Map;
+﻿// Map.xaml.cs
+
+using Core.Models.Map;
 using Laboratornaya3.ViewModels;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace Laboratornaya3.Views.Components
 {
-    /// <summary>
-    /// Логика взаимодействия для Map.xaml
-    /// </summary>
     public partial class Map : UserControl
     {
         private MainViewModel ViewModel => DataContext as MainViewModel;
 
         private Point? _lastMousePosition;
-        private bool _isDragging = false;
+        private bool _isLMBDragging = false;
+        private bool _isRMBDragging = false; // Флаг для перетаскивания ПКМ
 
         public Map()
         {
@@ -48,54 +39,75 @@ namespace Laboratornaya3.Views.Components
 
             var position = e.GetPosition(MapGrid);
             var tile = GetTileAtPosition(position);
-            if (tile == null) return;
 
-            switch (e.ChangedButton)
+            // Обработка нажатия ПКМ (Панорамирование или Размещение Транспорта)
+            if (e.ChangedButton == MouseButton.Right)
             {
-                case MouseButton.Left:
-                    HandleLeftClick(tile, e);
-                    break;
-                case MouseButton.Right:
+                if (ViewModel.IsVehiclePlacementMode && tile != null)
+                {
+                    // Размещение транспорта по ПКМ (мгновенная установка)
                     HandleRightClick(tile, e);
-                    break;
+                }
+                else
+                {
+                    // Начинаем перетаскивание правой кнопкой (Панорамирование)
+                    StartRMBDragging(e);
+                }
+            }
+            // Обработка нажатия ЛКМ (Размещение Здания/Дороги или Отмена режима)
+            else if (e.ChangedButton == MouseButton.Left)
+            {
+                if (tile != null && ViewModel.IsRoadPlacementMode)
+                {
+                    // КЛЮЧЕВОЕ ИЗМЕНЕНИЕ ДЛЯ ДОРОГ (ЛКМ): Начинаем рисование дороги
+                    if (ViewModel.SelectedBuilding?.Name == "Перекрёсток")
+                        ViewModel.TryPlaceSelected(tile.X, tile.Y);
+                    else
+                        ViewModel.StartRoadDrawing(tile.X, tile.Y);
+
+                    _lastMousePosition = e.GetPosition(this);
+                    _isLMBDragging = true; // Начинаем перетаскивание ЛКМ для рисования
+                    MapScrollViewer.CaptureMouse();
+                    e.Handled = true;
+                }
+                else
+                {
+                    // Если не дорога, то просто отменяем режим (если клик вне тайла)
+                    HandleLeftClick(tile, e);
+                }
             }
         }
 
+        private void StartRMBDragging(MouseButtonEventArgs e)
+        {
+            _lastMousePosition = e.GetPosition(this);
+            _isRMBDragging = true;
+            MapScrollViewer.CaptureMouse();
+            MapScrollViewer.Cursor = Cursors.SizeAll;
+            e.Handled = true;
+        }
+
+        // УПРОЩЕНО: Теперь этот метод только отменяет активные режимы (при клике вне тайла)
         private void HandleLeftClick(Tile tile, MouseButtonEventArgs e)
         {
-            if (ViewModel.IsBuildingMode && ViewModel.SelectedBuilding != null)
+            if (ViewModel == null) return;
+
+            if (ViewModel.IsBuildingMode || ViewModel.IsRoadPlacementMode || ViewModel.IsVehiclePlacementMode)
             {
-                ViewModel.TryPlaceBuilding(tile.X, tile.Y);
+                ViewModel.CancelBuildingCommand.Execute(null);
                 e.Handled = true;
-            }
-            else
-            {
-                // Начало перетаскивания карты
-                _lastMousePosition = e.GetPosition(this);
-                _isDragging = true;
-                MapScrollViewer.CaptureMouse();
-                MapScrollViewer.Cursor = Cursors.SizeAll;
             }
         }
 
         private void HandleRightClick(Tile tile, MouseButtonEventArgs e)
         {
-            if (ViewModel.IsRoadPlacementMode)
-            {
-                if (ViewModel.SelectedBuilding?.Name == "Перекрёсток")
-                    ViewModel.TryPlaceSelected(tile.X, tile.Y);
-                else
-                    ViewModel.StartRoadDrawing(tile.X, tile.Y);
-                e.Handled = true;
-            }
-            else if (ViewModel.IsVehiclePlacementMode)
+            // Этот метод теперь используется для мгновенной установки транспорта (ПКМ)
+            if (ViewModel == null || tile == null) return;
+
+            if (ViewModel.IsVehiclePlacementMode)
             {
                 ViewModel.TryPlaceVehicle(tile.X, tile.Y);
                 e.Handled = true;
-            }
-            else
-            {
-                ViewModel.CancelBuildingCommand.Execute(null);
             }
         }
 
@@ -103,11 +115,35 @@ namespace Laboratornaya3.Views.Components
         {
             if (ViewModel == null) return;
 
+            // Курсор в режимах размещения
             if (ViewModel.IsBuildingMode || ViewModel.IsRoadPlacementMode || ViewModel.IsVehiclePlacementMode)
             {
+                // ПЕРЕТАСКИВАНИЕ КАРТЫ ПКМ
+                if (_isRMBDragging && _lastMousePosition.HasValue)
+                {
+                    HandleMapDragging(e);
+                    MapScrollViewer.Cursor = Cursors.SizeAll;
+                    return;
+                }
+
+                // РИСОВАНИЕ ДОРОГИ ЛКМ
+                if (_isLMBDragging && ViewModel.IsRoadPlacementMode)
+                {
+                    var tile = GetTileAtPosition(e.GetPosition(MapGrid));
+                    if (tile != null && ViewModel.SelectedBuilding?.Name != "Перекрёсток")
+                    {
+                        // ИСПРАВЛЕНИЕ: Используем StartRoadDrawing для рисования сегментов
+                        ViewModel.StartRoadDrawing(tile.X, tile.Y);
+                    }
+                    e.Handled = true;
+                    return;
+                }
+
+                // Если не тащим, устанавливаем курсор для размещения
                 MapScrollViewer.Cursor = Cursors.Cross;
             }
-            else if (_isDragging && _lastMousePosition.HasValue)
+            // Перетаскивание правой кнопкой (когда нет активных режимов)
+            else if (_isRMBDragging && _lastMousePosition.HasValue)
             {
                 HandleMapDragging(e);
             }
@@ -131,41 +167,65 @@ namespace Laboratornaya3.Views.Components
 
         private void MapScrollViewer_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            if (ViewModel?.IsRoadPlacementMode == true && e.ChangedButton == MouseButton.Right)
+            if (ViewModel == null) return;
+
+            // Завершение рисования дороги по отпусканию ЛКМ
+            if (ViewModel.IsRoadPlacementMode && e.ChangedButton == MouseButton.Left && _isLMBDragging)
             {
                 var tile = GetTileAtPosition(e.GetPosition(MapGrid));
                 if (tile != null && ViewModel.SelectedBuilding?.Name != "Перекрёсток")
                 {
+                    // ИСПРАВЛЕНИЕ: Вызываем EndRoadDrawing без дополнительных аргументов
                     ViewModel.EndRoadDrawing(tile.X, tile.Y);
                 }
+
+                _isLMBDragging = false;
+                _lastMousePosition = null;
+                MapScrollViewer.ReleaseMouseCapture();
+                MapScrollViewer.Cursor = Cursors.Cross; // Остаемся в режиме дороги (до отмены)
                 e.Handled = true;
             }
 
-            if (e.ChangedButton == MouseButton.Left && _isDragging)
+            // Завершение перетаскивания правой кнопкой мыши
+            if (e.ChangedButton == MouseButton.Right && _isRMBDragging)
             {
-                _isDragging = false;
+                _isRMBDragging = false;
                 _lastMousePosition = null;
                 MapScrollViewer.ReleaseMouseCapture();
-                MapScrollViewer.Cursor = ViewModel?.IsBuildingMode == true ? Cursors.Cross : Cursors.Arrow;
+                MapScrollViewer.Cursor = (ViewModel.IsBuildingMode || ViewModel.IsRoadPlacementMode || ViewModel.IsVehiclePlacementMode) ? Cursors.Cross : Cursors.Arrow;
             }
         }
 
-        // исправить привязку
+        // Обрабатываем размещение зданий или показ инфо (ЛКМ)
         private void Tile_LeftClick(object sender, MouseButtonEventArgs e)
         {
-            if (sender is Border border && border.DataContext is Tile tile)
+            if (ViewModel == null || !(sender is Border border) || !(border.DataContext is Tile tile)) return;
+
+            // 1. ПРИОРИТЕТ: Проверяем режим строительства (только одиночный клик ЛКМ)
+            if (ViewModel.IsBuildingMode && ViewModel.SelectedBuilding != null)
+            {
+                bool placementSuccessful = ViewModel.TryPlaceBuilding(tile.X, tile.Y);
+
+                // Если размещение успешно, отменяем режим строительства
+                if (placementSuccessful)
+                {
+                    ViewModel.CancelBuildingCommand.Execute(null);
+                }
+
+                e.Handled = true; // Останавливаем событие
+            }
+            // 2. Если не в режиме строительства и не в режиме дорог, показываем информацию о тайле
+            else if (!ViewModel.IsRoadPlacementMode)
             {
                 ViewModel?.ShowTileInfoCommand.Execute(tile);
+                e.Handled = true; // Останавливаем событие
             }
+            // Если в режиме дорог, то не делаем ничего (обработка клика уже произошла в MouseDown)
         }
 
-        // исправить привязку
         private void Tile_RightClick(object sender, MouseButtonEventArgs e)
         {
-            if (sender is Border border && border.DataContext is Tile tile)
-            {
-                ViewModel?.TryPlaceBuilding(tile.X, tile.Y);
-            }
+            // Используется для панорамирования (MapScrollViewer_MouseDown)
         }
 
         private Tile GetTileAtPosition(Point position)

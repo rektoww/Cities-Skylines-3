@@ -17,8 +17,8 @@
     
     <ScrollViewer Grid.Row="1"
       x:Name="MapScrollViewer"
-      HorizontalScrollBarVisibility="Auto"
-      VerticalScrollBarVisibility="Auto"
+      HorizontalScrollBarVisibility="Disabled"
+      VerticalScrollBarVisibility="Hidden"
       PreviewMouseWheel="MapScrollViewer_PreviewMouseWheel"
       MouseDown="MapScrollViewer_MouseDown"
       MouseMove="MapScrollViewer_MouseMove"
